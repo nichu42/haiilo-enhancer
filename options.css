@@ -1,0 +1,191 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+
+header .subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+section .description {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.form-group select,
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4f46e5;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+button.primary {
+  background: #4f46e5;
+  color: white;
+}
+
+button.primary:hover {
+  background: #4338ca;
+}
+
+button.secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+button.secondary:hover {
+  background: #e5e7eb;
+}
+
+button.danger {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+button.danger:hover {
+  background: #fecaca;
+}
+
+.danger-zone h2 {
+  color: #dc2626;
+}
+
+.save-status {
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.save-status.visible {
+  opacity: 1;
+}
+
+.save-status.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.save-status.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+footer {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+footer .credits {
+  margin-top: 4px;
+}

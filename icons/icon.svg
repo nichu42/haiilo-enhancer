@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#4f46e5"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#bg)"/>
+  <!-- Shush finger gesture - simplified hand with finger over lips -->
+  <!-- Finger vertical -->
+  <rect x="58" y="28" width="12" height="50" rx="6" fill="white"/>
+  <!-- Lips/mouth shape -->
+  <ellipse cx="64" cy="88" rx="24" ry="12" fill="white" opacity="0.9"/>
+  <ellipse cx="64" cy="88" rx="16" ry="6" fill="#4f46e5"/>
+</svg>

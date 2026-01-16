@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hush for Haiilo - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hush for Haiilo</h1>
+      <p class="subtitle">Settings</p>
+    </header>
+
+    <section>
+      <h2>Default Mute Duration</h2>
+      <p class="description">When using "Mute for default period" from the context menu, users will be muted for this duration.</p>
+      <div class="form-group">
+        <label for="defaultMuteDays">Default mute period:</label>
+        <select id="defaultMuteDays">
+          <option value="1">1 day</option>
+          <option value="3">3 days</option>
+          <option value="7">7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h2>Display Options</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="showMutedIndicator">
+          <span>Show badge with hidden content count</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="danger-zone">
+      <h2>Data Management</h2>
+      <div class="button-group">
+        <button id="exportData" class="secondary">Export Muted Users</button>
+        <button id="importData" class="secondary">Import Muted Users</button>
+        <button id="clearAll" class="danger">Clear All Muted Users</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display: none;">
+    </section>
+
+    <div class="save-status" id="saveStatus"></div>
+
+    <footer>
+      <p>Hush for Haiilo v1.0.0</p>
+      <p class="credits">Made for a more peaceful Haiilo experience</p>
+    </footer>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

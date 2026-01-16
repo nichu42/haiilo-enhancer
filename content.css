@@ -1,0 +1,17 @@
+/* Content styles for Hush for Haiilo */
+
+.hush-hidden {
+  display: none !important;
+}
+
+/* Optional: Show a subtle indicator where content was hidden */
+.hush-placeholder {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+  font-style: italic;
+}

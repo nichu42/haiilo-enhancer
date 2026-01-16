@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hush for Haiilo</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hush for Haiilo</h1>
+      <p class="subtitle">Manage your muted users</p>
+    </header>
+
+    <div class="stats">
+      <span id="hiddenCount">0</span> items hidden on this page
+    </div>
+
+    <section class="muted-list-section">
+      <h2>Muted Users</h2>
+      <div id="mutedList" class="muted-list">
+        <p class="empty-state">No muted users yet. Right-click on a username to mute.</p>
+      </div>
+    </section>
+
+    <section class="add-user-section">
+      <h2>Add User Manually</h2>
+      <form id="addUserForm">
+        <input type="text" id="userName" placeholder="Enter username" required>
+        <select id="muteDuration">
+          <option value="permanent">Permanently</option>
+          <option value="1">1 day</option>
+          <option value="3">3 days</option>
+          <option value="7" selected>7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
+        <button type="submit">Mute</button>
+      </form>
+    </section>
+
+    <footer>
+      <a href="#" id="openOptions">Settings</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,30 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Hush for Haiilo",
-  "version": "1.0.0",
-  "description": "Mute users on Haiilo - hide posts and comments from specific users",
+  "name": "Haiilo Enhancer",
+  "version": "0.1.0",
+  "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
   "permissions": [
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "webNavigation"
   ],
   "host_permissions": [
     "https://*.haiilo.app/*",
     "https://*.haiilo.com/*"
   ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.haiilo.app/*",
-        "https://*.haiilo.com/*"
-      ],
-      "js": ["content.js"],
-      "css": ["content.css"],
-      "run_at": "document_idle"
-    }
-  ],
+  "content_scripts": [],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -33,11 +31,11 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Hush for Haiilo"
+    "default_title": "Haiilo Enhancer"
   },
   "options_ui": {
     "page": "options.html",
-    "open_in_tab": false
+    "open_in_tab": true
   },
   "icons": {
     "16": "icons/icon16.png",

@@ -1,4 +1,4 @@
-# Build script for Hush for Haiilo
+# Build script for Haiilo Enhancer
 # Creates distribution packages for Chrome and Firefox
 
 param(
@@ -48,7 +48,7 @@ function Build-Chrome {
     Remove-Item "$chromeDir\icons\*.svg" -ErrorAction SilentlyContinue
 
     # Create zip
-    $zipPath = "$distDir\hush-for-haiilo-chrome.zip"
+    $zipPath = "$distDir\haiilo-enhancer-chrome.zip"
     if (Test-Path $zipPath) {
         Remove-Item $zipPath
     }
@@ -92,7 +92,7 @@ function Build-Firefox {
     Remove-Item "$firefoxDir\icons\*.svg" -ErrorAction SilentlyContinue
 
     # Create zip (Firefox uses .xpi but .zip works for web-ext)
-    $zipPath = "$distDir\hush-for-haiilo-firefox.zip"
+    $zipPath = "$distDir\haiilo-enhancer-firefox.zip"
     if (Test-Path $zipPath) {
         Remove-Item $zipPath
     }

@@ -1,4 +1,4 @@
-// Background script for Hush for Haiilo (Firefox version)
+// Background script for Haiilo Enhancer (Firefox version)
 // Uses browser.* API with Promises (Firefox native)
 
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
@@ -38,7 +38,7 @@ function createContextMenu() {
     // Create parent menu
     browserAPI.contextMenus.create({
       id: 'hush-parent',
-      title: 'Hush for Haiilo',
+      title: 'Haiilo Enhancer',
       contexts: ['link', 'selection']
     });
 
@@ -81,11 +81,29 @@ function createContextMenu() {
 
 // Handle context menu clicks
 browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
+  console.log('Context menu clicked:', info);
+  
   // Get user name from selection or try to extract from link
   let userName = null;
 
+  // First, ensure content script is injected
+  if (await isHaiiloTab(tab)) {
+    try {
+      await browserAPI.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
+      console.log('Content script injected successfully');
+    } catch (e) {
+      console.log('Could not inject content script:', e.message);
+    }
+  } else {
+    console.log('Not a Haiilo tab, skipping content script injection');
+  }
+
   if (info.selectionText) {
     userName = info.selectionText.trim();
+    console.log('Username from selection:', userName);
   } else if (info.linkUrl) {
     // Try to extract username from the page via content script
     try {
@@ -94,6 +112,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
       });
       if (response && response.userName) {
         userName = response.userName;
+        console.log('Username from element:', userName);
       }
     } catch (e) {
       console.error('Could not get username from element:', e);
@@ -108,6 +127,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
       });
       if (response && response.userName) {
         userName = response.userName;
+        console.log('Username from last right-click:', userName);
       }
     } catch (e) {
       console.error('Could not get last right-clicked user:', e);
@@ -213,6 +233,38 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
+
+  if (message.action === 'getCustomDomains') {
+    browserAPI.storage.local.get('customDomains').then(data => {
+      sendResponse(data.customDomains || []);
+    });
+    return true;
+  }
+
+  if (message.action === 'addCustomDomain') {
+    addCustomDomain(message.domain)
+      .then(() => {
+        sendResponse({ success: true });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
+  }
+
+  if (message.action === 'removeCustomDomain') {
+    removeCustomDomain(message.domain).then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (message.action === 'isHaiiloTab') {
+    isHaiiloTab(sender.tab).then(result => {
+      sendResponse({ isHaiilo: result });
+    });
+    return true;
+  }
 });
 
 // Get active muted users (filter out expired)
@@ -248,8 +300,83 @@ async function unmuteUser(userName) {
 
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
-  const tabs = await browserAPI.tabs.query({ url: ['https://*.haiilo.app/*', 'https://*.haiilo.com/*'] });
-  tabs.forEach(tab => {
-    browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+  const tabs = await browserAPI.tabs.query({});
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+    }
+  }
+}
+
+// Default domains
+const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
+
+// Get all domains (default + custom)
+async function getAllDomains() {
+  const data = await browserAPI.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+  return [...DEFAULT_DOMAINS, ...customDomains];
+}
+
+// Check if a tab is a Haiilo tab
+async function isHaiiloTab(tab) {
+  if (!tab || !tab.url) return false;
+
+  const allDomains = await getAllDomains();
+  const url = new URL(tab.url);
+
+  return allDomains.some(domain => {
+    return url.hostname === domain || url.hostname.endsWith('.' + domain);
   });
+}
+
+// Add a custom domain
+async function addCustomDomain(domain) {
+  const data = await browserAPI.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+
+  if (!customDomains.includes(domain)) {
+    // Request permission for this domain
+    const granted = await browserAPI.permissions.request({
+      origins: [
+        `https://*.${domain}/*`,
+        `https://${domain}/*`,
+        `http://*.${domain}/*`,
+        `http://${domain}/*`
+      ]
+    });
+
+    if (!granted) {
+      console.log(`Permission denied for domain: ${domain}`);
+      throw new Error('Permission denied for this domain');
+    }
+
+    customDomains.push(domain);
+    await browserAPI.storage.local.set({ customDomains });
+    console.log(`Added custom domain: ${domain}`);
+  }
+}
+
+// Remove a custom domain
+async function removeCustomDomain(domain) {
+  const data = await browserAPI.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+
+  const filtered = customDomains.filter(d => d !== domain);
+  await browserAPI.storage.local.set({ customDomains: filtered });
+
+  // Remove permissions for this domain
+  try {
+    await browserAPI.permissions.remove({
+      origins: [
+        `https://*.${domain}/*`,
+        `https://${domain}/*`,
+        `http://*.${domain}/*`,
+        `http://${domain}/*`
+      ]
+    });
+    console.log(`Removed custom domain and permissions: ${domain}`);
+  } catch (e) {
+    console.log(`Could not remove permissions for ${domain}:`, e.message);
+  }
 }

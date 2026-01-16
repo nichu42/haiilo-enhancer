@@ -1,0 +1,66 @@
+/* Shared color variables for Haiilo Enhancer */
+/* Based on Haiilo teal (#0f939d) and organization purple (#502379) */
+
+:root {
+  /* Primary brand colors */
+  --color-primary-teal: #0f939d;
+  --color-primary-purple: #502379;
+
+  /* Darker variants for hover states */
+  --color-primary-teal-dark: #0d7a83;
+  --color-primary-purple-dark: #3d1c5c;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0f939d 0%, #502379 100%);
+  --gradient-primary-dark: linear-gradient(135deg, #0d7a83 0%, #3d1c5c 100%);
+
+  /* Light backgrounds with brand colors */
+  --gradient-light: linear-gradient(135deg, rgba(15, 147, 157, 0.15) 0%, rgba(80, 35, 121, 0.15) 100%);
+  --gradient-lighter: linear-gradient(135deg, rgba(15, 147, 157, 0.1) 0%, rgba(80, 35, 121, 0.1) 100%);
+  --gradient-lightest: linear-gradient(135deg, rgba(15, 147, 157, 0.05) 0%, rgba(80, 35, 121, 0.05) 100%);
+
+  /* Shadows with brand color tint */
+  --shadow-primary: 0 2px 4px rgba(15, 147, 157, 0.3);
+  --shadow-primary-hover: 0 4px 8px rgba(15, 147, 157, 0.4);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px rgba(15, 147, 157, 0.1);
+
+  /* Border colors */
+  --border-primary: rgba(15, 147, 157, 0.1);
+  --border-primary-hover: rgba(15, 147, 157, 0.2);
+
+  /* Neutral colors */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-label: #374151;
+
+  /* Background colors */
+  --color-bg-white: #ffffff;
+  --color-bg-light: #f9fafb;
+  --color-bg-lighter: #f3f4f6;
+
+  /* Border colors (neutral) */
+  --color-border-light: #e5e7eb;
+  --color-border-medium: #d1d5db;
+
+  /* Danger colors */
+  --color-danger: #dc2626;
+  --color-danger-bg: #fee2e2;
+  --color-danger-border: #fecaca;
+
+  /* Success colors */
+  --color-success: #059669;
+  --color-success-bg: #d1fae5;
+
+  /* Warning colors */
+  --color-warning: #d97706;
+  --color-warning-bg: #fef3c7;
+  --color-warning-border: #f59e0b;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}

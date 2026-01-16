@@ -1,16 +1,40 @@
-// Background service worker for Hush for Haiilo
+// Background service worker for Haiilo Enhancer
+
+// Debug logging helper
+function debugLog(...args) {
+  chrome.storage.local.get('settings').then(data => {
+    const settings = data.settings || DEFAULT_SETTINGS;
+    if (settings.debugMode) {
+      console.log(...args);
+    }
+  });
+}
 
 // Default settings
 const DEFAULT_SETTINGS = {
   defaultMuteDays: 7,
   showMutedIndicator: true,
+  debugMode: false,
+  enhanceChannelAvatars: true,
+  channelAvatarStyle: 'ring', // 'ring', 'square', or 'badge'
+  channelAvatarRingColor: '#502379', // Brand purple
+  channelAvatarRingWidth: 2, // Ring border width in pixels (0-5)
+  channelAvatarSquareColor: '#502379', // Brand purple for square border
+  channelAvatarSquareWidth: 2, // Square border width in pixels (0-5)
+  channelAvatarBadgeSize: 100, // Badge size as percentage (50-150, 100 = default)
+  channelAvatarBadgePosition: 'bottom-left', // 'bottom-left' or 'top-left'
+  channelAvatarColorMode: 'random', // 'random' or 'fixed'
+  channelAvatarFixedColor: '#0f939d', // Haiilo teal color when colorMode is 'fixed'
   hiddenCount: 0
 };
+
+// Default domains
+const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 
 // Initialize extension on install
 chrome.runtime.onInstalled.addListener(async () => {
   // Initialize storage with defaults if not set
-  const data = await chrome.storage.local.get(['mutedUsers', 'settings']);
+  const data = await chrome.storage.local.get(['mutedUsers', 'settings', 'customDomains']);
 
   if (!data.mutedUsers) {
     await chrome.storage.local.set({ mutedUsers: [] });
@@ -20,8 +44,15 @@ chrome.runtime.onInstalled.addListener(async () => {
     await chrome.storage.local.set({ settings: DEFAULT_SETTINGS });
   }
 
+  if (!data.customDomains) {
+    await chrome.storage.local.set({ customDomains: [] });
+  }
+
   // Create context menu
   createContextMenu();
+
+  // Inject content scripts into existing tabs
+  await injectContentScripts();
 });
 
 // Create context menu on startup
@@ -29,13 +60,28 @@ chrome.runtime.onStartup.addListener(() => {
   createContextMenu();
 });
 
+// Inject content script when navigating to Haiilo pages
+chrome.webNavigation.onCompleted.addListener(async (details) => {
+  if (await isHaiiloTab({ url: details.url })) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: details.tabId },
+        files: ['content.js']
+      });
+      debugLog('Content script injected on navigation to:', details.url);
+    } catch (e) {
+      debugLog('Could not inject content script on navigation:', e.message);
+    }
+  }
+}, { url: [{ hostSuffix: '.haiilo.app' }, { hostSuffix: '.haiilo.com' }] });
+
 function createContextMenu() {
   // Remove existing menu items first
   chrome.contextMenus.removeAll(() => {
     // Create parent menu
     chrome.contextMenus.create({
       id: 'hush-parent',
-      title: 'Hush for Haiilo',
+      title: 'Haiilo Enhancer',
       contexts: ['link', 'selection']
     });
 
@@ -78,21 +124,51 @@ function createContextMenu() {
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  debugLog('Context menu clicked:', info);
+  
   // Get user name from selection or try to extract from link
   let userName = null;
 
+  // First, ensure content script is injected
+  if (await isHaiiloTab(tab)) {
+    try {
+      // Check if content script is already injected by trying to send a ping
+      try {
+        await chrome.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
+        debugLog('Content script already present');
+      } catch (pingError) {
+        // Content script not present, inject it
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js']
+        });
+        debugLog('Content script injected successfully');
+        
+        // Wait a moment for content script to initialize
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    } catch (e) {
+      debugLog('Could not inject content script:', e.message);
+    }
+  } else {
+    debugLog('Not a Haiilo tab, skipping content script injection');
+  }
+
   if (info.selectionText) {
     userName = info.selectionText.trim();
+    debugLog('Username from selection:', userName);
   } else if (info.linkUrl) {
     // Try to extract username from the page via content script
     try {
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'getUserNameFromElement'
-      });
+      }).catch(() => null);
       if (response && response.userName) {
         userName = response.userName;
+        debugLog('Username from element:', userName);
       }
     } catch (e) {
+      // This catch block should not be reached due to the .catch() above
       console.error('Could not get username from element:', e);
     }
   }
@@ -102,11 +178,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'getLastRightClickedUser'
-      });
+      }).catch(() => null);
       if (response && response.userName) {
         userName = response.userName;
+        debugLog('Username from last right-click:', userName);
       }
     } catch (e) {
+      // This catch block should not be reached due to the .catch() above
       console.error('Could not get last right-clicked user:', e);
     }
   }
@@ -132,11 +210,28 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   await muteUser(userName, muteDays);
 
   // Notify content script to update
-  chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
+  try {
+    await chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
+    debugLog('Sent refreshFilter message to tab', tab.id);
+  } catch (e) {
+    console.error('Failed to send refreshFilter message:', e);
+    // Try to inject content script and send message again
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
+      debugLog('Re-injected content script, trying refresh again');
+      await chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
+    } catch (retryError) {
+      console.error('Failed to refresh after re-injection:', retryError);
+    }
+  }
 });
 
 // Mute a user
 async function muteUser(userName, days) {
+  debugLog('Muting user:', userName, 'for', days ? `${days} days` : 'permanently');
   const data = await chrome.storage.local.get('mutedUsers');
   const mutedUsers = data.mutedUsers || [];
 
@@ -157,7 +252,8 @@ async function muteUser(userName, days) {
   }
 
   await chrome.storage.local.set({ mutedUsers });
-  console.log(`Muted user: ${userName}`, days ? `for ${days} days` : 'permanently');
+  debugLog(`Muted user: ${userName}`, days ? `for ${days} days` : 'permanently');
+  debugLog('Updated muted users list:', mutedUsers);
 }
 
 // Listen for messages from content script or popup
@@ -199,14 +295,49 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'updateHiddenCount') {
+    debugLog('Updating badge for tab', sender.tab.id, 'with count', message.count);
     // Update badge with hidden count
     if (message.count > 0) {
       chrome.action.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });
       chrome.action.setBadgeBackgroundColor({ color: '#6366f1', tabId: sender.tab.id });
+      debugLog('Badge updated with count:', message.count);
     } else {
       chrome.action.setBadgeText({ text: '', tabId: sender.tab.id });
+      debugLog('Badge cleared');
     }
     sendResponse({ success: true });
+    return true;
+  }
+
+  if (message.action === 'getCustomDomains') {
+    chrome.storage.local.get('customDomains').then(data => {
+      sendResponse(data.customDomains || []);
+    });
+    return true;
+  }
+
+  if (message.action === 'addCustomDomain') {
+    addCustomDomain(message.domain)
+      .then(() => {
+        sendResponse({ success: true });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
+  }
+
+  if (message.action === 'removeCustomDomain') {
+    removeCustomDomain(message.domain).then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (message.action === 'isHaiiloTab') {
+    isHaiiloTab(sender.tab).then(result => {
+      sendResponse({ isHaiilo: result });
+    });
     return true;
   }
 });
@@ -217,15 +348,20 @@ async function getMutedUsers() {
   let mutedUsers = data.mutedUsers || [];
   const now = Date.now();
 
+  debugLog('Retrieved muted users from storage:', mutedUsers);
+
   // Filter out expired users
   const activeUsers = mutedUsers.filter(user => {
     if (user.permanent || !user.expiresAt) return true;
     return user.expiresAt > now;
   });
 
+  debugLog('Active muted users after filtering:', activeUsers);
+
   // Save if we filtered any out
   if (activeUsers.length !== mutedUsers.length) {
     await chrome.storage.local.set({ mutedUsers: activeUsers });
+    debugLog('Saved filtered muted users list');
   }
 
   return activeUsers;
@@ -244,8 +380,91 @@ async function unmuteUser(userName) {
 
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
-  const tabs = await chrome.tabs.query({ url: ['https://*.haiilo.app/*', 'https://*.haiilo.com/*'] });
-  tabs.forEach(tab => {
-    chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+  const allDomains = await getAllDomains();
+  const urlPatterns = allDomains.map(d => `https://*.${d}/*`).concat(allDomains.map(d => `https://${d}/*`));
+
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+    }
+  }
+}
+
+// Get all domains (default + custom)
+async function getAllDomains() {
+  const data = await chrome.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+  return [...DEFAULT_DOMAINS, ...customDomains];
+}
+
+// Check if a tab is a Haiilo tab
+async function isHaiiloTab(tab) {
+  if (!tab || !tab.url) return false;
+
+  const allDomains = await getAllDomains();
+  const url = new URL(tab.url);
+
+  return allDomains.some(domain => {
+    return url.hostname === domain || url.hostname.endsWith('.' + domain);
   });
+}
+
+// Add a custom domain (permission must be granted before calling this)
+async function addCustomDomain(domain) {
+  const data = await chrome.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+
+  if (customDomains.includes(domain)) {
+    throw new Error('Domain already exists');
+  }
+
+  try {
+    customDomains.push(domain);
+    await chrome.storage.local.set({ customDomains });
+    console.log(`Added custom domain: ${domain}`);
+
+    // Inject content scripts into tabs with this domain
+    await injectContentScripts();
+  } catch (error) {
+    console.error(`Error adding domain ${domain}:`, error);
+    throw error;
+  }
+}
+
+// Remove a custom domain (permissions should be removed by the options page before calling this)
+async function removeCustomDomain(domain) {
+  const data = await chrome.storage.local.get('customDomains');
+  const customDomains = data.customDomains || [];
+
+  const filtered = customDomains.filter(d => d !== domain);
+  await chrome.storage.local.set({ customDomains: filtered });
+
+  console.log(`Removed custom domain: ${domain}`);
+}
+
+// Inject content scripts into all Haiilo tabs
+async function injectContentScripts() {
+  const tabs = await chrome.tabs.query({});
+
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js']
+        });
+
+        await chrome.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ['content.css']
+        });
+
+        console.log(`Injected content script into tab ${tab.id}`);
+      } catch (e) {
+        // Tab might not allow script injection (e.g., chrome:// pages)
+        console.log(`Could not inject into tab ${tab.id}:`, e.message);
+      }
+    }
+  }
 }

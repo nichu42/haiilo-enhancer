@@ -1,3 +1,5 @@
+@import url('colors.css');
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,83 +9,104 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   font-size: 14px;
-  color: #1f2937;
-  background: #f9fafb;
-  min-width: 320px;
-  max-width: 400px;
+  color: var(--color-text-primary);
+  background: var(--gradient-primary);
+  min-width: 380px;
+  width: 380px;
+  line-height: 1.6;
 }
 
 .container {
-  padding: 16px;
+  padding: 20px 16px;
 }
 
 header {
   text-align: center;
   margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 16px;
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
 }
 
 header h1 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #4f46e5;
-  margin-bottom: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
 }
 
 header .subtitle {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
 .stats {
-  background: #eef2ff;
-  padding: 10px 14px;
-  border-radius: 8px;
+  background: white;
+  padding: 14px 16px;
+  border-radius: 12px;
   text-align: center;
   margin-bottom: 16px;
-  font-size: 13px;
-  color: #4338ca;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--gradient-light);
+  color: var(--color-primary-purple);
+  box-shadow: var(--shadow-sm);
 }
 
 .stats #hiddenCount {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 18px;
 }
 
 section {
   margin-bottom: 16px;
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-md);
 }
 
 section h2 {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  letter-spacing: -0.025em;
 }
 
 .muted-list {
-  max-height: 200px;
+  max-height: 240px;
   overflow-y: auto;
-  border: 1px solid #e5e7eb;
+  border: 2px solid var(--color-bg-lighter);
   border-radius: 8px;
-  background: white;
+  background: var(--color-bg-light);
 }
 
 .muted-list .empty-state {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
   font-size: 13px;
+  font-style: italic;
 }
 
 .muted-user {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-white);
+  transition: background 0.15s ease;
+}
+
+.muted-user:hover {
+  background: var(--color-bg-light);
 }
 
 .muted-user:last-child {
@@ -97,7 +120,7 @@ section h2 {
 
 .muted-user-name {
   font-weight: 500;
-  color: #1f2937;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -105,103 +128,114 @@ section h2 {
 
 .muted-user-expiry {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
 .muted-user-expiry.permanent {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .unmute-btn {
-  background: none;
-  border: none;
-  color: #6b7280;
+  background: var(--color-danger-bg);
+  border: 2px solid var(--color-danger-border);
+  color: var(--color-danger);
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
-  transition: all 0.15s ease;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .unmute-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
 }
 
 .add-user-section form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .add-user-section input,
 .add-user-section select {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 2px solid var(--color-border-light);
+  border-radius: 8px;
   font-size: 14px;
-  background: white;
+  background: var(--color-bg-light);
+  transition: all 0.2s ease;
 }
 
 .add-user-section input:focus,
 .add-user-section select:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: var(--color-primary-teal);
+  background: var(--color-bg-white);
+  box-shadow: var(--focus-ring);
 }
 
 .add-user-section button {
-  padding: 10px 16px;
-  background: #4f46e5;
+  padding: 12px 18px;
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-primary);
 }
 
 .add-user-section button:hover {
-  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 .add-user-section button:active {
-  background: #3730a3;
+  transform: translateY(0);
 }
 
 footer {
   text-align: center;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  padding: 16px;
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  margin-top: 16px;
 }
 
 footer a {
-  color: #6b7280;
+  color: var(--color-primary-purple);
   text-decoration: none;
   font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s ease;
 }
 
 footer a:hover {
-  color: #4f46e5;
+  color: var(--color-primary-teal);
 }
 
 /* Scrollbar styling */
 .muted-list::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .muted-list::-webkit-scrollbar-track {
-  background: #f3f4f6;
-  border-radius: 3px;
+  background: var(--color-bg-lighter);
+  border-radius: 4px;
 }
 
 .muted-list::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
+  background: var(--gradient-primary);
+  border-radius: 4px;
 }
 
 .muted-list::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--gradient-primary-dark);
 }

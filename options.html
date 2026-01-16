@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hush for Haiilo - Settings</title>
+  <title>Haiilo Enhancer - Options</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Hush for Haiilo</h1>
-      <p class="subtitle">Settings</p>
+      <h1>Haiilo Enhancer</h1>
+      <p class="subtitle">Options</p>
     </header>
 
     <section>
@@ -39,6 +39,119 @@
       </div>
     </section>
 
+    <section>
+      <h2>Channel Avatar Customization</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="enhanceChannelAvatars">
+          <span>Replace generic group chat icons with channel initials</span>
+        </label>
+      </div>
+
+      <div id="channelAvatarOptions" style="display: none;">
+        <p class="description">Customize how group chat avatars appear to distinguish them from individual users.</p>
+
+        <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+          <!-- Preview -->
+          <div class="avatar-preview-container">
+            <h3>Preview</h3>
+            <div class="avatar-preview-wrapper">
+              <div class="avatar-preview empty-avatar cui-text-m" id="previewAvatar">
+                <span id="previewInitials">HT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color Settings -->
+          <div class="avatar-color-settings">
+            <h3>Background Color</h3>
+            <div class="form-group">
+              <label>
+                <input type="radio" name="colorMode" value="random" id="colorModeRandom" checked>
+                <span>Random color per group</span>
+              </label>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+              <label style="margin: 0;">
+                <input type="radio" name="colorMode" value="fixed" id="colorModeFixed">
+                <span>Fixed color:</span>
+              </label>
+              <input type="color" id="channelAvatarFixedColor" value="#0f939d">
+            </div>
+          </div>
+        </div>
+
+      <div class="form-group">
+        <label for="channelAvatarStyle">Avatar style:</label>
+        <select id="channelAvatarStyle">
+          <option value="ring">Ring border</option>
+          <option value="square">Rounded square</option>
+          <option value="badge">Icon badge overlay</option>
+        </select>
+        <small class="help-text">Choose how to visually distinguish group chats from individual users</small>
+      </div>
+
+      <!-- Ring Style Settings -->
+      <div class="form-group style-settings" id="ringColorSettings">
+        <label for="channelAvatarRingColor">Ring border customization:</label>
+        <div class="color-input-group">
+          <input type="color" id="channelAvatarRingColor" value="#502379">
+          <input type="number" id="channelAvatarRingWidth" min="0" max="5" step="0.5" value="2">
+          <span class="opacity-label">Width (px)</span>
+          <button type="button" class="secondary reset-btn" id="resetRing">Reset</button>
+        </div>
+        <small class="help-text">Customize the ring border color and width</small>
+      </div>
+
+      <!-- Square Style Settings -->
+      <div class="form-group style-settings" id="squareColorSettings" style="display: none;">
+        <label for="channelAvatarSquareColor">Square border customization:</label>
+        <div class="color-input-group">
+          <input type="color" id="channelAvatarSquareColor" value="#502379">
+          <input type="number" id="channelAvatarSquareWidth" min="0" max="5" step="0.5" value="2">
+          <span class="opacity-label">Width (px)</span>
+          <button type="button" class="secondary reset-btn" id="resetSquare">Reset</button>
+        </div>
+        <small class="help-text">Customize the square border color and width</small>
+      </div>
+
+      <!-- Badge Style Settings -->
+      <div class="form-group style-settings" id="badgeSizeSettings" style="display: none;">
+        <label for="channelAvatarBadgeSize">Badge icon size:</label>
+        <div class="slider-input-group">
+          <input type="range" id="channelAvatarBadgeSize" min="50" max="150" step="10" value="100">
+          <span class="slider-value" id="badgeSizeValue">100%</span>
+          <button type="button" class="secondary reset-btn" id="resetBadge">Reset</button>
+        </div>
+        <small class="help-text">Adjust the size of the badge icon overlay (percentage of base size)</small>
+      </div>
+
+      <div class="form-group style-settings" id="badgePositionSettings" style="display: none;">
+        <label for="channelAvatarBadgePosition">Badge position:</label>
+        <select id="channelAvatarBadgePosition">
+          <option value="bottom-left">Lower left corner</option>
+          <option value="top-left">Upper left corner</option>
+        </select>
+        <small class="help-text">Choose where the badge icon appears on the avatar</small>
+      </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Custom Haiilo Domains</h2>
+      <p class="description">Add custom domains if your organization uses a custom Haiilo URL instead of *.haiilo.app</p>
+      <div id="domainsList" class="domains-list"></div>
+      <div class="form-group">
+        <label for="newDomain">Add custom domain:</label>
+        <div class="domain-input-group">
+          <input type="text" id="newDomain" placeholder="example.com">
+          <button type="button" id="addDomain" class="secondary">Add Domain</button>
+        </div>
+        <small class="help-text">Enter just the domain name (e.g., intranet.company.com)</small>
+        <small class="help-text warning-text" id="chromePermissionWarning">Note: Due to a Chrome limitation, domain permissions cannot be revoked after being granted. Removing a domain here stops the extension from using it, but the permission will remain visible in chrome://extensions until you reinstall the extension.</small>
+      </div>
+    </section>
+
     <section class="danger-zone">
       <h2>Data Management</h2>
       <div class="button-group">
@@ -51,8 +164,18 @@
 
     <div class="save-status" id="saveStatus"></div>
 
+    <section>
+      <h2>Advanced Options</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="debugMode">
+          <span>Enable debug logging (for troubleshooting)</span>
+        </label>
+      </div>
+    </section>
+
     <footer>
-      <p>Hush for Haiilo v1.0.0</p>
+      <p id="versionInfo">Haiilo Enhancer</p>
       <p class="credits">Made for a more peaceful Haiilo experience</p>
     </footer>
   </div>

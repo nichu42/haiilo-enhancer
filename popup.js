@@ -1,4 +1,4 @@
-// Popup script for Hush for Haiilo
+// Popup script for Haiilo Enhancer
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadMutedUsers();

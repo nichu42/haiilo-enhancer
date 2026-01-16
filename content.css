@@ -1,4 +1,5 @@
-/* Content styles for Hush for Haiilo */
+/* Content styles for Haiilo Enhancer */
+@import url('colors.css');
 
 .hush-hidden {
   display: none !important;
@@ -6,12 +7,20 @@
 
 /* Optional: Show a subtle indicator where content was hidden */
 .hush-placeholder {
-  padding: 8px 12px;
-  background: #f3f4f6;
-  border-radius: 6px;
-  margin: 8px 0;
-  font-size: 12px;
-  color: #9ca3af;
+  padding: 12px 16px;
+  background: var(--gradient-lightest);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: var(--color-primary-purple);
   text-align: center;
   font-style: italic;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.hush-placeholder:hover {
+  background: linear-gradient(135deg, rgba(15, 147, 157, 0.08) 0%, rgba(80, 35, 121, 0.08) 100%);
+  border-color: var(--border-primary-hover);
 }

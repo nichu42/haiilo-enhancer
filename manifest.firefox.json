@@ -1,29 +1,24 @@
 {
   "manifest_version": 2,
-  "name": "Hush for Haiilo",
-  "version": "1.0.0",
-  "description": "Mute users on Haiilo - hide posts and comments from specific users",
+  "name": "Haiilo Enhancer",
+  "version": "0.1.0",
+  "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
   "permissions": [
     "storage",
     "contextMenus",
+    "activeTab",
     "https://*.haiilo.app/*",
     "https://*.haiilo.com/*"
+  ],
+  "optional_permissions": [
+    "https://*/*",
+    "http://*/*"
   ],
   "background": {
     "scripts": ["background-firefox.js"],
     "persistent": false
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.haiilo.app/*",
-        "https://*.haiilo.com/*"
-      ],
-      "js": ["content.js"],
-      "css": ["content.css"],
-      "run_at": "document_idle"
-    }
-  ],
+  "content_scripts": [],
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -32,11 +27,12 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Hush for Haiilo"
+    "default_title": "Haiilo Enhancer"
   },
   "options_ui": {
     "page": "options.html",
-    "browser_style": true
+    "browser_style": true,
+    "open_in_tab": true
   },
   "icons": {
     "16": "icons/icon16.png",
@@ -46,7 +42,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "hush-for-haiilo@example.com",
+      "id": "haiilo-enhancer@example.com",
       "strict_min_version": "109.0"
     }
   }

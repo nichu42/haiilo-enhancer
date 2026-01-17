@@ -62,6 +62,7 @@
   let mutedUsers = [];
   let hiddenCount = 0;
   let lastRightClickedUser = null;
+  let lastRightClickedElement = null;
   let observer = null;
   let debugMode = false;
   let enhanceChannelAvatars = false;
@@ -75,11 +76,221 @@
   let badgePosition = 'bottom-left'; // 'bottom-left' or 'top-left'
   let colorMode = 'random'; // 'random' or 'fixed'
   let fixedColor = '#0f939d';
+  let customHomepageUrl = null;
+  let dateFormat = 'MMDD'; // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
+  let timeFormat = '12h'; // '12h' or '24h'
+  let dateTimeProcessed = false;
+  let messengerOverlayObserver = null;
+  let keepMessengerExpandedActive = false;
+  let bodyStyleObserver = null;
 
   // Debug logging helper
   function debugLog(...args) {
     if (debugMode) {
       console.log(...args);
+    }
+  }
+
+  // Function to remove Haiilo's body locking styles
+  function removeBodyLockStyles() {
+    if (!keepMessengerExpandedActive) return;
+
+    const body = document.body;
+    const currentStyle = body.getAttribute('style');
+
+    if (currentStyle && (currentStyle.includes('position: fixed') ||
+                         currentStyle.includes('overflow: hidden') ||
+                         currentStyle.includes('top:'))) {
+      console.log('[Content] Removing body lock styles:', currentStyle);
+      // Remove the inline style attributes that lock the body
+      body.style.position = '';
+      body.style.overflow = '';
+      body.style.top = '';
+      console.log('[Content] Body lock removed');
+    }
+  }
+
+  // Function to block overlay click events
+  function blockOverlayClicks(e) {
+    if (!keepMessengerExpandedActive) return;
+
+    const target = e.target;
+
+    // Check for Angular overlay divs by their inline styles
+    // Looking for divs with position:fixed, z-index, and semi-transparent background
+    const style = target.getAttribute('style');
+    if (style &&
+        style.includes('position: fixed') &&
+        style.includes('z-index') &&
+        (style.includes('background: rgba') || style.includes('background:rgba'))) {
+      console.log('[Content] Blocking Angular overlay click');
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return false;
+    }
+
+    // Check if click is on overlay elements with class names
+    if (target.classList.contains('cdk-overlay-backdrop') ||
+        target.classList.contains('cdk-overlay-dark-backdrop') ||
+        target.classList.contains('cdk-overlay-transparent-backdrop') ||
+        target.classList.contains('menu-overlay') ||
+        target.closest('.cdk-overlay-backdrop') ||
+        target.closest('.cdk-overlay-dark-backdrop') ||
+        target.closest('.cdk-overlay-transparent-backdrop') ||
+        target.closest('.menu-overlay')) {
+      console.log('[Content] Blocking overlay click event on:', target.className);
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return false;
+    }
+
+    // Also check if the target or any parent is part of the cdk-overlay-container
+    // but NOT part of the messenger panel itself
+    const overlayContainer = target.closest('.cdk-overlay-container');
+    const messengerPanel = target.closest('coyo-messaging-panel, coyo-messenger, [class*="messaging"], [class*="messenger"]');
+
+    if (overlayContainer && !messengerPanel) {
+      console.log('[Content] Blocking click in overlay container but outside messenger');
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return false;
+    }
+  }
+
+  // Function to apply CSS for keeping messenger expanded
+  function applyMessengerExpandedCSS(expanded, adjustLayout = false) {
+    console.log('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'adjustLayout =', adjustLayout);
+    let styleElement = document.getElementById('haiilo-enhancer-messenger-style');
+
+    keepMessengerExpandedActive = expanded;
+
+    if (expanded) {
+      if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'haiilo-enhancer-messenger-style';
+        document.head.appendChild(styleElement);
+        console.log('[Content] Created new style element');
+      }
+
+      // Measure messenger panel width dynamically (only if layout adjustment is enabled)
+      let messengerWidth = 400; // Default fallback
+      let layoutAdjustmentCSS = '';
+
+      if (adjustLayout) {
+        const messengerPanel = document.querySelector('coyo-messaging-panel, coyo-messenger');
+        if (messengerPanel) {
+          const computedStyle = window.getComputedStyle(messengerPanel);
+          messengerWidth = parseFloat(computedStyle.width);
+          console.log('[Content] Detected messenger width:', messengerWidth + 'px');
+        }
+
+        layoutAdjustmentCSS = `
+        /* Prevent horizontal scroll */
+        html {
+          overflow-x: hidden !important;
+        }
+
+        /* Add right margin to body to prevent content from going under messenger */
+        body {
+          margin-right: ${messengerWidth}px !important;
+          overflow-x: hidden !important;
+        }
+        `;
+      }
+
+      // CSS to disable the blocking backdrop and remove dimming + optional layout adjustment
+      styleElement.textContent = `
+        /* Make backdrop completely invisible and non-interactive */
+        .cdk-overlay-backdrop,
+        .cdk-overlay-dark-backdrop,
+        .cdk-overlay-transparent-backdrop {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+        }
+
+        /* Make menu overlay completely invisible and non-interactive */
+        .menu-overlay {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+        }
+
+        /* Target Angular overlay divs with ng-trigger-openClose */
+        div[class*="ng-trigger-openClose"] {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+        }
+
+        /* Target fixed position divs with rgba background (Angular overlays) */
+        div[style*="position: fixed"][style*="rgba"] {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+        }
+
+        ${layoutAdjustmentCSS}
+      `;
+      console.log('[Content] Applied CSS to remove overlays and adjust layout');
+
+      // Remove any existing body lock styles
+      removeBodyLockStyles();
+
+      // Set up click event blockers on capture phase (before other handlers)
+      // Use multiple event types to catch all possible interaction methods
+      document.addEventListener('click', blockOverlayClicks, true);
+      document.addEventListener('mousedown', blockOverlayClicks, true);
+      document.addEventListener('mouseup', blockOverlayClicks, true);
+      document.addEventListener('pointerdown', blockOverlayClicks, true);
+      document.addEventListener('pointerup', blockOverlayClicks, true);
+      console.log('[Content] Added click event blockers');
+
+      // Set up MutationObserver to watch for body style changes
+      if (!bodyStyleObserver) {
+        bodyStyleObserver = new MutationObserver((mutations) => {
+          for (const mutation of mutations) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+              console.log('[Content] Body style changed, removing lock');
+              removeBodyLockStyles();
+            }
+          }
+        });
+
+        bodyStyleObserver.observe(document.body, {
+          attributes: true,
+          attributeFilter: ['style']
+        });
+        console.log('[Content] Set up body style observer');
+      }
+
+      debugLog('Applied CSS and body unlock for messenger expansion');
+    } else {
+      // Clean up when feature is disabled
+      if (styleElement) {
+        styleElement.remove();
+        console.log('[Content] Removed messenger expanded CSS');
+      }
+
+      // Remove event listeners
+      document.removeEventListener('click', blockOverlayClicks, true);
+      document.removeEventListener('mousedown', blockOverlayClicks, true);
+      console.log('[Content] Removed click event blockers');
+
+      if (bodyStyleObserver) {
+        bodyStyleObserver.disconnect();
+        bodyStyleObserver = null;
+        console.log('[Content] Disconnected body style observer');
+      }
+
+      debugLog('Removed messenger expanded CSS and observer');
     }
   }
 
@@ -375,8 +586,10 @@
       channelAvatarsProcessed = false;
       await loadSettings();
       await loadMutedUsers();
+      await loadCustomHomepage();
       setupMutationObserver();
       setupRightClickListener();
+      setupLogoClickInterceptor();
       hideContent();
       
       // Add periodic checking for dynamically loaded content
@@ -399,13 +612,14 @@
       }, 2000); // Check every 2 seconds
       debugLog('Started periodic content checking every 2 seconds');
       
-      // Replace generic channel avatars
+      // Replace generic channel avatars and process date/times
       setTimeout(() => {
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
           replaceChannelAvatars();
           replaceHeaderAvatars();
+          processAllDateTimes();
         } else {
-          debugLog('Extension context invalidated, skipping channel avatar replacement');
+          debugLog('Extension context invalidated, skipping channel avatar replacement and date/time processing');
         }
       }, 1000); // Give page a moment to load
     } catch (e) {
@@ -456,6 +670,26 @@
             const userName = findUserNameFromElement(activeElement) || lastRightClickedUser;
             sendResponse({ userName: userName });
           }
+
+          if (message.action === 'getHomepageUrl') {
+            // Extract homepage URL from last right-clicked element
+            const homepageInfo = getHomepageFromElement(lastRightClickedElement);
+            sendResponse(homepageInfo);
+          }
+
+          if (message.action === 'updateHomepageRedirect') {
+            // Reload custom homepage setting
+            loadCustomHomepage();
+            sendResponse({ success: true });
+          }
+
+          if (message.action === 'toggleMessengerExpanded') {
+            // Toggle messenger expanded state
+            console.log('Content script received toggleMessengerExpanded:', message.expanded, 'adjustLayout:', message.adjustLayout);
+            applyMessengerExpandedCSS(message.expanded, message.adjustLayout);
+            console.log('Applied messenger expanded CSS for:', message.expanded, 'with layout adjustment:', message.adjustLayout);
+            sendResponse({ success: true });
+          }
         } catch (e) {
           console.error('Error in message handler:', e);
           sendResponse({ success: false, error: e.message });
@@ -482,10 +716,19 @@
           badgePosition = settings.channelAvatarBadgePosition || 'bottom-left';
           colorMode = settings.channelAvatarColorMode || 'random';
           fixedColor = settings.channelAvatarFixedColor || '#0f939d';
+          dateFormat = settings.dateFormat || 'MMDD';
+          timeFormat = settings.timeFormat || '12h';
+          console.log('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
+          console.log('[Content] adjustLayoutForMessenger setting:', settings.adjustLayoutForMessenger);
+          if (settings.keepMessengerExpanded) {
+            console.log('[Content] Applying messenger expanded CSS on page load');
+            applyMessengerExpandedCSS(true, settings.adjustLayoutForMessenger || false);
+          }
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
           debugLog('Avatar style:', avatarStyle, 'Ring:', ringColor, ringWidth, 'Square:', squareColor, squareWidth, 'Badge:', badgeSize, badgePosition);
           debugLog('Color mode:', colorMode, 'Fixed color:', fixedColor);
+          debugLog('Date format:', dateFormat, 'Time format:', timeFormat);
         } catch (error) {
           // safeSendMessage already handles context errors
           console.error('Failed to load settings:', error);
@@ -580,6 +823,7 @@
             hideContent();
             replaceChannelAvatars(); // Also check for new channel avatars
             replaceHeaderAvatars(); // Also check for new header avatars
+            processAllDateTimes(); // Also process date/time formats
           } else {
             debugLog('Extension context invalidated, skipping mutation handling');
           }
@@ -601,6 +845,7 @@
   function setupRightClickListener() {
     document.addEventListener('contextmenu', (e) => {
       lastRightClickedUser = null;
+      lastRightClickedElement = e.target;
 
       // Try to find username from the clicked element or its ancestors
       const userName = findUserNameFromElement(e.target);
@@ -779,20 +1024,20 @@
   function updateBadge() {
     try {
       // Check if we're still in a valid extension context
-      if (typeof chrome === 'undefined' || 
-          typeof chrome.runtime === 'undefined' || 
+      if (typeof chrome === 'undefined' ||
+          typeof chrome.runtime === 'undefined' ||
           typeof chrome.runtime.sendMessage === 'undefined' ||
           !chrome.runtime.id) {
         debugLog('Extension context invalidated, skipping badge update');
         return;
       }
-      
+
       // Check context first
       if (!isExtensionContextValid()) {
         debugLog('Skipping badge update: extension context invalid');
         return;
       }
-      
+
       debugLog('Updating badge with count:', hiddenCount);
       safeSendMessage({
         action: 'updateHiddenCount',
@@ -804,5 +1049,273 @@
     } catch (e) {
       console.error('Unexpected error in updateBadge:', e);
     }
+  }
+
+  // Load custom homepage URL for current instance
+  async function loadCustomHomepage() {
+    try {
+      if (!isExtensionContextValid()) {
+        debugLog('Cannot load custom homepage: extension context invalid');
+        return;
+      }
+
+      const baseUrl = window.location.protocol + '//' + window.location.hostname;
+      const customHomepages = await safeSendMessage({ action: 'getCustomHomepages' });
+
+      if (customHomepages && customHomepages[baseUrl]) {
+        customHomepageUrl = customHomepages[baseUrl];
+        debugLog('Custom homepage loaded for', baseUrl, ':', customHomepageUrl);
+      } else {
+        customHomepageUrl = null;
+        debugLog('No custom homepage set for', baseUrl);
+      }
+    } catch (e) {
+      console.error('Failed to load custom homepage:', e);
+      customHomepageUrl = null;
+    }
+  }
+
+  // Extract homepage URL from clicked element
+  function getHomepageFromElement(element) {
+    if (!element) return null;
+
+    const baseUrl = window.location.protocol + '//' + window.location.hostname;
+
+    // Look for homepage navigation links in navbar
+    let current = element;
+    let depth = 0;
+    const maxDepth = 15;
+
+    while (current && depth < maxDepth) {
+      // Check if this is an anchor element with href
+      if (current.tagName === 'A' && current.href) {
+        const url = new URL(current.href);
+
+        // Check if it's a valid homepage path (/home/*, /pages/*, or /workspaces/*)
+        if (url.pathname.startsWith('/home/') ||
+            url.pathname.startsWith('/pages/') ||
+            url.pathname.startsWith('/workspaces/')) {
+          debugLog('Found homepage URL:', current.href);
+          return {
+            homepageUrl: current.href,
+            baseUrl: baseUrl
+          };
+        }
+      }
+
+      // Also check for cui-button elements with uisref attribute that might be links
+      if (current.hasAttribute && current.hasAttribute('uisref')) {
+        const href = current.getAttribute('href');
+        if (href && (href.startsWith('/home/') ||
+                     href.startsWith('/pages/') ||
+                     href.startsWith('/workspaces/'))) {
+          const fullUrl = baseUrl + href;
+          debugLog('Found homepage URL from uisref:', fullUrl);
+          return {
+            homepageUrl: fullUrl,
+            baseUrl: baseUrl
+          };
+        }
+      }
+
+      current = current.parentElement;
+      depth++;
+    }
+
+    return null;
+  }
+
+  // Setup logo click interceptor
+  function setupLogoClickInterceptor() {
+    // Intercept clicks on the logo
+    document.addEventListener('click', (e) => {
+      // Check if we have a custom homepage set
+      if (!customHomepageUrl) return;
+
+      // Find if the click was on the logo or its children
+      let current = e.target;
+      let depth = 0;
+      const maxDepth = 10;
+
+      while (current && depth < maxDepth) {
+        // Check for the main logo link
+        if (current.tagName === 'A' && current.hasAttribute('data-test') &&
+            current.getAttribute('data-test') === 'navigation-logo') {
+          debugLog('Logo click intercepted, redirecting to custom homepage:', customHomepageUrl);
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = customHomepageUrl;
+          return;
+        }
+
+        // Also check for coyo-main-logo element
+        if (current.tagName && current.tagName.toLowerCase() === 'coyo-main-logo') {
+          // Find the anchor inside
+          const logoLink = current.querySelector('a[data-test="navigation-logo"]');
+          if (logoLink && (e.target === logoLink || logoLink.contains(e.target))) {
+            debugLog('Logo click intercepted via coyo-main-logo, redirecting to custom homepage:', customHomepageUrl);
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = customHomepageUrl;
+            return;
+          }
+        }
+
+        current = current.parentElement;
+        depth++;
+      }
+    }, true); // Use capture phase to intercept before other handlers
+  }
+
+  // Convert 12-hour time to 24-hour
+  function convert12to24(timeStr) {
+    // Match formats like "10:22 PM", "4:30 am", "12:00 AM"
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)/i);
+    if (!match) return timeStr;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+
+    if (period === 'AM') {
+      if (hours === 12) hours = 0;
+    } else {
+      if (hours !== 12) hours += 12;
+    }
+
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+  }
+
+  // Convert date format
+  function convertDateFormat(dateStr, hasYear = false) {
+    // If dateStr contains a year, handle full date
+    if (hasYear) {
+      const fullDateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (fullDateMatch) {
+        const month = fullDateMatch[1].padStart(2, '0');
+        const day = fullDateMatch[2].padStart(2, '0');
+        const year = fullDateMatch[3];
+
+        switch (dateFormat) {
+          case 'DDMM':
+            return `${day}/${month}/${year}`;
+          case 'DD.MM':
+            return `${day}.${month}.${year}`;
+          case 'DD-MM':
+            return `${day}-${month}-${year}`;
+          default: // MMDD
+            return `${month}/${day}/${year}`;
+        }
+      }
+    } else {
+      // Handle short date (MM/DD)
+      const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})/);
+      if (slashMatch) {
+        const month = slashMatch[1].padStart(2, '0');
+        const day = slashMatch[2].padStart(2, '0');
+
+        switch (dateFormat) {
+          case 'DDMM':
+            return `${day}/${month}`;
+          case 'DD.MM':
+            return `${day}.${month}`;
+          case 'DD-MM':
+            return `${day}-${month}`;
+          default: // MMDD
+            return `${month}/${day}`;
+        }
+      }
+    }
+
+    // Match "Month DD, YYYY" format (e.g., "January 17, 2026")
+    const monthNameMatch = dateStr.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})/i);
+    if (monthNameMatch && (dateFormat === 'DDMM' || dateFormat === 'DD.MM' || dateFormat === 'DD-MM')) {
+      const month = monthNameMatch[1];
+      const day = monthNameMatch[2];
+      const year = monthNameMatch[3];
+      return `${day} ${month} ${year}`;
+    }
+
+    return dateStr;
+  }
+
+  // Process date/time in text nodes
+  function processDateTimeInText(node) {
+    if (node.nodeType !== Node.TEXT_NODE) return;
+
+    let text = node.textContent;
+    let modified = false;
+
+    // Convert times if 24-hour format is enabled
+    if (timeFormat === '24h') {
+      const newText = text.replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)\b/gi, (match) => {
+        modified = true;
+        return convert12to24(match);
+      });
+      text = newText;
+    }
+
+    // Convert dates
+    if (dateFormat !== 'MMDD') {
+      // IMPORTANT: Process full dates FIRST (before short dates) to avoid partial matches
+
+      // Match and convert full dates with year (MM/DD/YYYY)
+      text = text.replace(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/g, (match) => {
+        modified = true;
+        return convertDateFormat(match, true); // hasYear=true
+      });
+
+      // Match and convert long date formats (Month DD, YYYY)
+      text = text.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/gi, (match) => {
+        modified = true;
+        return convertDateFormat(match, true); // hasYear=true
+      });
+
+      // Match and convert short date patterns (MM/DD) - process LAST
+      text = text.replace(/\b(\d{1,2})\/(\d{1,2})\b/g, (match) => {
+        modified = true;
+        return convertDateFormat(match, false); // hasYear=false
+      });
+    }
+
+    if (modified) {
+      node.textContent = text;
+    }
+  }
+
+  // Walk through all text nodes and process dates/times
+  function processAllDateTimes() {
+    if (dateFormat === 'MMDD' && timeFormat === '12h') {
+      debugLog('Date/time format matches default, skipping processing');
+      return;
+    }
+
+    debugLog('Processing date/time formats...');
+
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node) {
+          // Skip script and style elements
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tagName = parent.tagName.toLowerCase();
+          if (tagName === 'script' || tagName === 'style') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    let node;
+    const nodesToProcess = [];
+    while (node = walker.nextNode()) {
+      nodesToProcess.push(node);
+    }
+
+    nodesToProcess.forEach(processDateTimeInText);
+    debugLog('Date/time processing complete');
   }
 })();

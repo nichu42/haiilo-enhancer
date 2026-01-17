@@ -14,7 +14,7 @@
     </header>
 
     <section>
-      <h2>Default Mute Duration</h2>
+      <h2>Muting Options</h2>
       <p class="description">When using "Mute for default period" from the context menu, users will be muted for this duration.</p>
       <div class="form-group">
         <label for="defaultMuteDays">Default mute period:</label>
@@ -27,10 +27,6 @@
           <option value="90">90 days</option>
         </select>
       </div>
-    </section>
-
-    <section>
-      <h2>Display Options</h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="showMutedIndicator">
@@ -40,11 +36,36 @@
     </section>
 
     <section>
+      <h2>Date & Time Format</h2>
+      <p class="description">When English as selected in your Haiilo preferences, date and time are shown in US format by default. You can customize this here.</p>
+
+      <div class="form-group">
+        <label for="dateFormat">Date format:</label>
+        <select id="dateFormat">
+          <option value="MMDD">MM/DD/YYYY (Default, US format)</option>
+          <option value="DDMM">DD/MM/YYYY (European format)</option>
+          <option value="DD.MM">DD.MM.YYYY (German format)</option>
+          <option value="DD-MM">DD-MM-YYYY (ISO-like format)</option>
+        </select>
+        <small class="help-text">Choose how dates are displayed (e.g., 01/15/2026 vs 15/01/2026)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="timeFormat">Time format:</label>
+        <select id="timeFormat">
+          <option value="12h">12-hour (AM/PM)</option>
+          <option value="24h">24-hour</option>
+        </select>
+        <small class="help-text">Choose between 12-hour (AM/PM) and 24-hour time display.</small>
+      </div>
+    </section>
+
+    <section>
       <h2>Channel Avatar Customization</h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="enhanceChannelAvatars">
-          <span>Replace generic group chat icons with channel initials</span>
+          <span>Replace generic group chat icons with individual channel initials</span>
         </label>
       </div>
 
@@ -138,6 +159,12 @@
     </section>
 
     <section>
+      <h2>Custom Homepage Settings</h2>
+      <p class="description">Set which homepage the logo redirects to for each Haiilo instance. Right-click on a homepage tab (e.g., "Home", "Home (soft)") and select "Set as default homepage" to configure.</p>
+      <div id="homepagesList" class="domains-list"></div>
+    </section>
+
+    <section>
       <h2>Custom Haiilo Domains</h2>
       <p class="description">Add custom domains if your organization uses a custom Haiilo URL instead of *.haiilo.app</p>
       <div id="domainsList" class="domains-list"></div>
@@ -152,12 +179,12 @@
       </div>
     </section>
 
-    <section class="danger-zone">
+    <section>
       <h2>Data Management</h2>
       <div class="button-group">
-        <button id="exportData" class="secondary">Export Muted Users</button>
-        <button id="importData" class="secondary">Import Muted Users</button>
-        <button id="clearAll" class="danger">Clear All Muted Users</button>
+        <button id="exportData" class="secondary">Export All Settings</button>
+        <button id="importData" class="secondary">Import All Settings</button>
+        <button id="clearAll" class="danger">Reset Everything to Defaults</button>
       </div>
       <input type="file" id="importFile" accept=".json" style="display: none;">
     </section>

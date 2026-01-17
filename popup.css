@@ -22,7 +22,7 @@ body {
 
 header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   padding: 20px 16px;
   background: var(--color-bg-white);
   border-radius: 12px;
@@ -36,13 +36,33 @@ header h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 6px;
 }
 
 header .subtitle {
   font-size: 13px;
   color: var(--color-text-secondary);
   font-weight: 500;
+}
+
+.header-actions {
+  margin-bottom: 12px;
+  text-align: center;
+  padding: 12px 16px;
+  background: var(--color-bg-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+.options-link {
+  color: var(--color-primary-purple);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.options-link:hover {
+  color: var(--color-primary-teal);
 }
 
 .stats {
@@ -53,9 +73,9 @@ header .subtitle {
   margin-bottom: 16px;
   font-size: 14px;
   font-weight: 600;
-  background: var(--gradient-light);
+  background: var(--color-bg-white);
   color: var(--color-primary-purple);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .stats #hiddenCount {
@@ -198,6 +218,36 @@ section h2 {
 
 .add-user-section button:active {
   transform: translateY(0);
+}
+
+/* Form groups and checkboxes */
+.form-group {
+  margin-bottom: 12px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary-teal);
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox-group label:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 footer {

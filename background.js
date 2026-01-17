@@ -25,7 +25,11 @@ const DEFAULT_SETTINGS = {
   channelAvatarBadgePosition: 'bottom-left', // 'bottom-left' or 'top-left'
   channelAvatarColorMode: 'random', // 'random' or 'fixed'
   channelAvatarFixedColor: '#0f939d', // Haiilo teal color when colorMode is 'fixed'
-  hiddenCount: 0
+  hiddenCount: 0,
+  dateFormat: 'MMDD', // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
+  timeFormat: '12h', // '12h' or '24h'
+  keepMessengerExpanded: false, // Keep messenger panel permanently expanded
+  adjustLayoutForMessenger: false // Adjust page layout when messenger is expanded
 };
 
 // Default domains
@@ -46,6 +50,10 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   if (!data.customDomains) {
     await chrome.storage.local.set({ customDomains: [] });
+  }
+
+  if (!data.customHomepages) {
+    await chrome.storage.local.set({ customHomepages: {} });
   }
 
   // Create context menu
@@ -75,7 +83,40 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
   }
 }, { url: [{ hostSuffix: '.haiilo.app' }, { hostSuffix: '.haiilo.com' }] });
 
-function createContextMenu() {
+async function createContextMenu() {
+  // Get all domains (default + custom) for targetUrlPatterns
+  const allDomains = await getAllDomains();
+
+  // Build targetUrlPatterns for all domains
+  const targetUrlPatterns = [];
+  allDomains.forEach(domain => {
+    targetUrlPatterns.push(
+      `https://*.${domain}/home/*`,
+      `https://${domain}/home/*`,
+      `https://*.${domain}/pages/*`,
+      `https://${domain}/pages/*`,
+      `https://*.${domain}/workspaces/*`,
+      `https://${domain}/workspaces/*`,
+      `http://*.${domain}/home/*`,
+      `http://${domain}/home/*`,
+      `http://*.${domain}/pages/*`,
+      `http://${domain}/pages/*`,
+      `http://*.${domain}/workspaces/*`,
+      `http://${domain}/workspaces/*`
+    );
+  });
+
+  // Build documentUrlPatterns for all domains
+  const documentUrlPatterns = [];
+  allDomains.forEach(domain => {
+    documentUrlPatterns.push(
+      `https://*.${domain}/*`,
+      `https://${domain}/*`,
+      `http://*.${domain}/*`,
+      `http://${domain}/*`
+    );
+  });
+
   // Remove existing menu items first
   chrome.contextMenus.removeAll(() => {
     // Create parent menu
@@ -119,13 +160,37 @@ function createContextMenu() {
         contexts: ['link', 'selection']
       });
     });
+
+    // Separator
+    chrome.contextMenus.create({
+      id: 'separator-2',
+      parentId: 'hush-parent',
+      type: 'separator',
+      contexts: ['link', 'selection']
+    });
+
+    // Set as default homepage (only shown for valid homepage links)
+    chrome.contextMenus.create({
+      id: 'set-homepage',
+      parentId: 'hush-parent',
+      title: 'Set as default homepage',
+      contexts: ['link'],
+      documentUrlPatterns: documentUrlPatterns,
+      targetUrlPatterns: targetUrlPatterns
+    });
   });
 }
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   debugLog('Context menu clicked:', info);
-  
+
+  // Handle setting custom homepage
+  if (info.menuItemId === 'set-homepage') {
+    handleSetHomepage(info, tab);
+    return;
+  }
+
   // Get user name from selection or try to extract from link
   let userName = null;
 
@@ -294,6 +359,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.action === 'resetSettings') {
+    chrome.storage.local.set({ settings: DEFAULT_SETTINGS }).then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
   if (message.action === 'updateHiddenCount') {
     debugLog('Updating badge for tab', sender.tab.id, 'with count', message.count);
     // Update badge with hidden count
@@ -337,6 +409,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'isHaiiloTab') {
     isHaiiloTab(sender.tab).then(result => {
       sendResponse({ isHaiilo: result });
+    });
+    return true;
+  }
+
+  if (message.action === 'getCustomHomepages') {
+    chrome.storage.local.get('customHomepages').then(data => {
+      sendResponse(data.customHomepages || {});
+    });
+    return true;
+  }
+
+  if (message.action === 'setCustomHomepage') {
+    setCustomHomepage(message.baseUrl, message.homepageUrl).then(() => {
+      sendResponse({ success: true });
+    }).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  if (message.action === 'removeCustomHomepage') {
+    removeCustomHomepage(message.baseUrl).then(() => {
+      sendResponse({ success: true });
     });
     return true;
   }
@@ -424,6 +519,9 @@ async function addCustomDomain(domain) {
     await chrome.storage.local.set({ customDomains });
     console.log(`Added custom domain: ${domain}`);
 
+    // Rebuild context menu to include new domain in targetUrlPatterns
+    await createContextMenu();
+
     // Inject content scripts into tabs with this domain
     await injectContentScripts();
   } catch (error) {
@@ -439,6 +537,9 @@ async function removeCustomDomain(domain) {
 
   const filtered = customDomains.filter(d => d !== domain);
   await chrome.storage.local.set({ customDomains: filtered });
+
+  // Rebuild context menu to remove domain from targetUrlPatterns
+  await createContextMenu();
 
   console.log(`Removed custom domain: ${domain}`);
 }
@@ -466,5 +567,89 @@ async function injectContentScripts() {
         console.log(`Could not inject into tab ${tab.id}:`, e.message);
       }
     }
+  }
+}
+
+// Set custom homepage for a specific base URL
+async function setCustomHomepage(baseUrl, homepageUrl) {
+  const data = await chrome.storage.local.get('customHomepages');
+  const customHomepages = data.customHomepages || {};
+
+  customHomepages[baseUrl] = homepageUrl;
+  await chrome.storage.local.set({ customHomepages });
+
+  console.log(`Set custom homepage for ${baseUrl}: ${homepageUrl}`);
+}
+
+// Remove custom homepage for a specific base URL
+async function removeCustomHomepage(baseUrl) {
+  const data = await chrome.storage.local.get('customHomepages');
+  const customHomepages = data.customHomepages || {};
+
+  delete customHomepages[baseUrl];
+  await chrome.storage.local.set({ customHomepages });
+
+  console.log(`Removed custom homepage for ${baseUrl}`);
+}
+
+// Handle setting custom homepage from context menu
+async function handleSetHomepage(info, tab) {
+  try {
+    // First check if the link URL is valid (should be /home/*, /pages/*, or /workspaces/*)
+    if (info.linkUrl) {
+      try {
+        const linkUrl = new URL(info.linkUrl);
+        const pathname = linkUrl.pathname;
+
+        if (!pathname.startsWith('/home/') &&
+            !pathname.startsWith('/pages/') &&
+            !pathname.startsWith('/workspaces/')) {
+          console.log('Link URL is not a valid homepage path:', pathname);
+          return;
+        }
+      } catch (e) {
+        console.log('Could not parse link URL:', info.linkUrl);
+        return;
+      }
+    }
+
+    // Ensure content script is injected
+    if (await isHaiiloTab(tab)) {
+      try {
+        await chrome.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
+      } catch (pingError) {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js']
+        });
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    // Ask content script for homepage URL from clicked element
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: 'getHomepageUrl'
+    }).catch(() => null);
+
+    if (response && response.homepageUrl && response.baseUrl) {
+      await setCustomHomepage(response.baseUrl, response.homepageUrl);
+      console.log(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
+
+      // Notify all tabs of the same instance to update
+      const tabs = await chrome.tabs.query({});
+      for (const t of tabs) {
+        if (await isHaiiloTab(t)) {
+          const url = new URL(t.url);
+          const baseUrl = url.protocol + '//' + url.hostname;
+          if (baseUrl === response.baseUrl) {
+            chrome.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
+          }
+        }
+      }
+    } else {
+      console.log('Could not determine homepage URL from clicked element');
+    }
+  } catch (e) {
+    console.error('Error setting custom homepage:', e);
   }
 }

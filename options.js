@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadSettings();
   await loadDomains();
+  await loadCustomHomepages();
   setupEventListeners();
 });
 
@@ -23,6 +24,8 @@ async function loadSettings() {
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
   document.getElementById('showMutedIndicator').checked = settings.showMutedIndicator !== false;
   document.getElementById('debugMode').checked = settings.debugMode || false;
+  document.getElementById('dateFormat').value = settings.dateFormat || 'MMDD';
+  document.getElementById('timeFormat').value = settings.timeFormat || '12h';
   document.getElementById('enhanceChannelAvatars').checked = settings.enhanceChannelAvatars !== false;
   document.getElementById('channelAvatarStyle').value = settings.channelAvatarStyle || 'ring';
 
@@ -73,6 +76,63 @@ async function loadDomains() {
   `).join('');
 }
 
+async function loadCustomHomepages() {
+  const customHomepages = await chrome.runtime.sendMessage({ action: 'getCustomHomepages' });
+  const homepagesList = document.getElementById('homepagesList');
+
+  const entries = Object.entries(customHomepages || {});
+
+  if (entries.length === 0) {
+    homepagesList.innerHTML = '<p class="empty-state">No custom homepages set. Use the context menu on a homepage tab to set one.</p>';
+    return;
+  }
+
+  homepagesList.innerHTML = entries.map(([baseUrl, homepageUrl]) => {
+    // Extract path from full URL for display
+    let displayPath = homepageUrl;
+    let displayName = '';
+
+    try {
+      const url = new URL(homepageUrl);
+      displayPath = url.pathname;
+
+      // Generate a friendly name based on the path
+      if (displayPath.startsWith('/home/')) {
+        const section = displayPath.substring(6); // Remove '/home/'
+        if (section === 'members') {
+          displayName = 'Home';
+        } else if (section === 'timeline') {
+          displayName = 'Home (soft)';
+        } else {
+          // Capitalize first letter and format other sections
+          displayName = 'Home (' + section.charAt(0).toUpperCase() + section.slice(1) + ')';
+        }
+      } else if (displayPath.startsWith('/pages/')) {
+        displayName = 'Pages';
+      } else if (displayPath.startsWith('/workspaces/')) {
+        displayName = 'Workspaces';
+      } else {
+        // Fallback to just the path
+        displayName = displayPath;
+      }
+    } catch (e) {
+      // If parsing fails, use the full URL
+      displayName = homepageUrl;
+      displayPath = homepageUrl;
+    }
+
+    return `
+      <div class="domain-item">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span class="domain-item-text" style="font-weight: 500;">${escapeHtml(baseUrl)}</span>
+          <span class="domain-item-text" style="font-size: 0.9em; opacity: 0.7;">${escapeHtml(displayName)} [${escapeHtml(displayPath)}]</span>
+        </div>
+        <button class="danger remove-homepage-btn" data-baseurl="${escapeHtml(baseUrl)}">Remove</button>
+      </div>
+    `;
+  }).join('');
+}
+
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
@@ -84,6 +144,8 @@ function setupEventListeners() {
   document.getElementById('defaultMuteDays').addEventListener('change', saveSettings);
   document.getElementById('showMutedIndicator').addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
+  document.getElementById('dateFormat').addEventListener('change', saveSettings);
+  document.getElementById('timeFormat').addEventListener('change', saveSettings);
 
   document.getElementById('enhanceChannelAvatars').addEventListener('change', () => {
     toggleChannelAvatarSettings();
@@ -164,6 +226,16 @@ function setupEventListeners() {
       const domain = e.target.getAttribute('data-domain');
       if (domain) {
         await removeDomain(domain);
+      }
+    }
+  });
+
+  // Remove custom homepage - using event delegation
+  document.getElementById('homepagesList').addEventListener('click', async (e) => {
+    if (e.target.classList.contains('remove-homepage-btn')) {
+      const baseUrl = e.target.getAttribute('data-baseurl');
+      if (baseUrl) {
+        await removeCustomHomepage(baseUrl);
       }
     }
   });
@@ -277,6 +349,17 @@ async function removeDomain(domain) {
   }
 }
 
+async function removeCustomHomepage(baseUrl) {
+  try {
+    await chrome.runtime.sendMessage({ action: 'removeCustomHomepage', baseUrl });
+    await loadCustomHomepages();
+    showStatus('Custom homepage removed successfully', 'success');
+  } catch (error) {
+    console.error('Error removing custom homepage:', error);
+    showStatus('Error removing custom homepage: ' + error.message, 'error');
+  }
+}
+
 function toggleChannelAvatarSettings() {
   const enhanceEnabled = document.getElementById('enhanceChannelAvatars').checked;
   const optionsContainer = document.getElementById('channelAvatarOptions');
@@ -298,6 +381,8 @@ async function saveSettings() {
     defaultMuteDays: parseInt(document.getElementById('defaultMuteDays').value, 10),
     showMutedIndicator: document.getElementById('showMutedIndicator').checked,
     debugMode: document.getElementById('debugMode').checked,
+    dateFormat: document.getElementById('dateFormat').value,
+    timeFormat: document.getElementById('timeFormat').value,
     enhanceChannelAvatars: document.getElementById('enhanceChannelAvatars').checked,
     channelAvatarStyle: document.getElementById('channelAvatarStyle').value,
     channelAvatarRingColor: document.getElementById('channelAvatarRingColor').value,
@@ -334,7 +419,7 @@ async function exportData() {
   a.click();
 
   URL.revokeObjectURL(url);
-  showStatus('Data exported successfully', 'success');
+  showStatus('All settings exported successfully', 'success');
 }
 
 async function importData(e) {
@@ -345,26 +430,35 @@ async function importData(e) {
     const text = await file.text();
     const data = JSON.parse(text);
 
-    if (!data.mutedUsers || !Array.isArray(data.mutedUsers)) {
-      throw new Error('Invalid file format');
+    // Validate file has required data
+    if (!data.mutedUsers && !data.settings) {
+      throw new Error('Invalid file format - must contain mutedUsers and/or settings');
     }
 
     // Import muted users
-    for (const user of data.mutedUsers) {
-      await chrome.runtime.sendMessage({
-        action: 'muteUser',
-        userName: user.name,
-        days: user.permanent ? null : Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))
-      });
+    let userCount = 0;
+    if (data.mutedUsers && Array.isArray(data.mutedUsers)) {
+      for (const user of data.mutedUsers) {
+        await chrome.runtime.sendMessage({
+          action: 'muteUser',
+          userName: user.name,
+          days: user.permanent ? null : Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))
+        });
+        userCount++;
+      }
     }
 
-    // Import settings if present
+    // Import all settings if present
     if (data.settings) {
       await chrome.runtime.sendMessage({ action: 'saveSettings', settings: data.settings });
       await loadSettings();
     }
 
-    showStatus(`Imported ${data.mutedUsers.length} muted users`, 'success');
+    const messages = [];
+    if (userCount > 0) messages.push(`${userCount} muted users`);
+    if (data.settings) messages.push('all settings');
+
+    showStatus(`Imported ${messages.join(' and ')}`, 'success');
   } catch (err) {
     showStatus('Failed to import data: ' + err.message, 'error');
   }
@@ -374,7 +468,7 @@ async function importData(e) {
 }
 
 async function clearAllData() {
-  if (!confirm('Are you sure you want to remove all muted users? This cannot be undone.')) {
+  if (!confirm('Are you sure you want to reset everything to defaults? This cannot be undone.')) {
     return;
   }
 
@@ -384,7 +478,11 @@ async function clearAllData() {
     await chrome.runtime.sendMessage({ action: 'unmuteUser', userName: user.name });
   }
 
-  showStatus('All muted users have been removed', 'success');
+  // Reset all settings to defaults
+  await chrome.runtime.sendMessage({ action: 'resetSettings' });
+  await loadSettings();
+
+  showStatus('All settings have been reset to defaults', 'success');
 }
 
 function showStatus(message, type) {

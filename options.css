@@ -178,9 +178,6 @@ button.danger:hover {
   box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
 }
 
-.danger-zone h2 {
-  color: var(--color-danger);
-}
 
 .save-status {
   position: fixed;

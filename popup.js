@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await loadMutedUsers();
   await loadHiddenCount();
+  await loadSettings();
   setupEventListeners();
 });
 
@@ -75,6 +76,98 @@ async function loadHiddenCount() {
   } catch (e) {
     // Tab might not have content script loaded
     console.log('Could not get hidden count:', e);
+  }
+}
+
+async function loadSettings() {
+  const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+  const messengerCheckbox = document.getElementById('keepMessengerExpanded');
+  const layoutCheckbox = document.getElementById('adjustLayoutForMessenger');
+
+  if (messengerCheckbox) {
+    messengerCheckbox.checked = settings.keepMessengerExpanded || false;
+
+    // Attach event listener immediately after setting the checkbox
+    messengerCheckbox.addEventListener('change', async (e) => {
+      try {
+        console.log('[Popup] Messenger expanded toggle changed to:', e.target.checked);
+        const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+        settings.keepMessengerExpanded = e.target.checked;
+
+        // Disable layout adjustment if messenger expansion is disabled
+        if (!e.target.checked) {
+          settings.adjustLayoutForMessenger = false;
+          if (layoutCheckbox) {
+            layoutCheckbox.checked = false;
+            layoutCheckbox.disabled = true;
+          }
+        } else {
+          // Enable the layout adjustment checkbox when messenger expansion is enabled
+          if (layoutCheckbox) {
+            layoutCheckbox.disabled = false;
+          }
+        }
+
+        await chrome.runtime.sendMessage({ action: 'saveSettings', settings });
+        console.log('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
+
+        // Notify all tabs about the change
+        const tabs = await chrome.tabs.query({});
+        console.log('[Popup] Found', tabs.length, 'total tabs');
+        tabs.forEach(tab => {
+          if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
+            console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'expanded:', e.target.checked);
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'toggleMessengerExpanded',
+              expanded: e.target.checked,
+              adjustLayout: settings.adjustLayoutForMessenger
+            }).catch((err) => {
+              // Silently ignore errors for tabs where content script isn't loaded
+              if (chrome.runtime.lastError) {
+                // Clear the lastError
+              }
+            });
+          }
+        });
+      } catch (error) {
+        console.error('[Popup] Error in messenger expanded toggle:', error);
+      }
+    });
+  }
+
+  if (layoutCheckbox) {
+    layoutCheckbox.checked = settings.adjustLayoutForMessenger || false;
+    layoutCheckbox.disabled = !settings.keepMessengerExpanded;
+
+    layoutCheckbox.addEventListener('change', async (e) => {
+      try {
+        console.log('[Popup] Layout adjustment toggle changed to:', e.target.checked);
+        const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+        settings.adjustLayoutForMessenger = e.target.checked;
+        await chrome.runtime.sendMessage({ action: 'saveSettings', settings });
+        console.log('[Popup] Settings saved, adjustLayoutForMessenger:', e.target.checked);
+
+        // Notify all tabs about the change
+        const tabs = await chrome.tabs.query({});
+        tabs.forEach(tab => {
+          if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
+            console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'adjustLayout:', e.target.checked);
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'toggleMessengerExpanded',
+              expanded: settings.keepMessengerExpanded,
+              adjustLayout: e.target.checked
+            }).catch((err) => {
+              // Silently ignore errors for tabs where content script isn't loaded
+              if (chrome.runtime.lastError) {
+                // Clear the lastError
+              }
+            });
+          }
+        });
+      } catch (error) {
+        console.error('[Popup] Error in layout adjustment toggle:', error);
+      }
+    });
   }
 }
 

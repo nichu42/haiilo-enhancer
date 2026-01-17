@@ -10,8 +10,11 @@
   <div class="container">
     <header>
       <h1>Haiilo Enhancer</h1>
-      <p class="subtitle">Manage your muted users</p>
     </header>
+
+    <div class="header-actions">
+      <a href="#" id="openOptions" class="options-link">Options</a>
+    </div>
 
     <div class="stats">
       <span id="hiddenCount">0</span> items hidden on this page
@@ -41,8 +44,23 @@
       </form>
     </section>
 
+    <section>
+      <h2>Interface Options</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="keepMessengerExpanded">
+          <span>Keep messenger panel expanded</span>
+        </label>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="adjustLayoutForMessenger" disabled>
+          <span>Adjust page layout to prevent content overlap (experimental)</span>
+        </label>
+      </div>
+    </section>
+
     <footer>
-      <a href="#" id="openOptions">Options</a>
     </footer>
   </div>
 

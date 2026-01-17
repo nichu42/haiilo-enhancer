@@ -12,7 +12,7 @@ Haiilo Enhancer is a browser extension designed to give you more control over yo
 ## Features
 
 ### Content Filtering
--   **User Muting**: Hide posts and comments from specific users to clean up your feed.
+-   **User Muting**: Hide posts and comments from specific users for a more peaceful experience.
 -   **Right-Click to Mute**: Quickly add users to your mute list directly from their posts or comments.
 -   **Flexible Mute Durations**: Mute users permanently or for a specific period (1, 3, 7, 14, 30, or 90 days).
 -   **Hidden Content Counter**: The extension icon shows a badge with the number of items hidden on the current page.

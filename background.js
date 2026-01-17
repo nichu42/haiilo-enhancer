@@ -1,4 +1,8 @@
 // Background service worker for Haiilo Enhancer
+// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
+
+// Browser API compatibility
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // Debug logging helper
 function debugLog(...args) {
@@ -59,16 +63,24 @@ chrome.runtime.onInstalled.addListener(async () => {
   // Create context menu
   createContextMenu();
 
+  // Register dynamic content scripts for custom domains
+  await registerDynamicContentScripts();
+
   // Inject content scripts into existing tabs
   await injectContentScripts();
 });
 
-// Create context menu on startup
-chrome.runtime.onStartup.addListener(() => {
+// Create context menu on startup and re-register content scripts
+chrome.runtime.onStartup.addListener(async () => {
   createContextMenu();
+
+  // Re-register dynamic content scripts (they don't persist across browser restarts)
+  await registerDynamicContentScripts();
 });
 
 // Inject content script when navigating to Haiilo pages
+// Note: Dynamic content scripts handle automatic injection for custom domains
+// This listener serves as a fallback and handles default domains
 chrome.webNavigation.onCompleted.addListener(async (details) => {
   if (await isHaiiloTab({ url: details.url })) {
     try {
@@ -81,7 +93,7 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
       debugLog('Could not inject content script on navigation:', e.message);
     }
   }
-}, { url: [{ hostSuffix: '.haiilo.app' }, { hostSuffix: '.haiilo.com' }] });
+});
 
 async function createContextMenu() {
   // Get all domains (default + custom) for targetUrlPatterns
@@ -522,7 +534,10 @@ async function addCustomDomain(domain) {
     // Rebuild context menu to include new domain in targetUrlPatterns
     await createContextMenu();
 
-    // Inject content scripts into tabs with this domain
+    // Register dynamic content scripts for the new domain
+    await registerDynamicContentScripts();
+
+    // Inject content scripts into existing tabs with this domain
     await injectContentScripts();
   } catch (error) {
     console.error(`Error adding domain ${domain}:`, error);
@@ -541,7 +556,80 @@ async function removeCustomDomain(domain) {
   // Rebuild context menu to remove domain from targetUrlPatterns
   await createContextMenu();
 
+  // Re-register dynamic content scripts (this will unregister the removed domain)
+  await registerDynamicContentScripts();
+
   console.log(`Removed custom domain: ${domain}`);
+}
+
+// Register dynamic content scripts for custom domains
+// This ensures content scripts automatically run on custom domains without manual injection
+//
+// Why this is needed:
+// - Default domains (*.haiilo.app, *.haiilo.com) use host_permissions in manifest.json
+// - Custom domains use optional_host_permissions which require dynamic registration
+// - Dynamic registrations don't persist across browser restarts, so we re-register on startup
+//
+// Privacy & Compliance:
+// - Only registers scripts for domains where user explicitly granted permission
+// - Follows principle of least privilege (no blanket access to all sites)
+// - Content scripts only run on Haiilo instances, not arbitrary websites
+async function registerDynamicContentScripts() {
+  try {
+    // First, unregister all existing dynamic scripts to avoid duplicates
+    const existingScripts = await chrome.scripting.getRegisteredContentScripts();
+    if (existingScripts.length > 0) {
+      await chrome.scripting.unregisterContentScripts();
+      debugLog('Unregistered existing content scripts:', existingScripts.map(s => s.id));
+    }
+
+    // Get custom domains only (default domains use host_permissions)
+    const data = await chrome.storage.local.get('customDomains');
+    const customDomains = data.customDomains || [];
+
+    if (customDomains.length === 0) {
+      debugLog('No custom domains to register');
+      return;
+    }
+
+    // Register a content script for each custom domain
+    // We need to check permissions before registering
+    for (const domain of customDomains) {
+      const origins = [
+        `https://*.${domain}/*`,
+        `https://${domain}/*`,
+        `http://*.${domain}/*`,
+        `http://${domain}/*`
+      ];
+
+      // Check if we have permission for this domain
+      const hasPermission = await chrome.permissions.contains({ origins });
+
+      if (!hasPermission) {
+        console.warn(`No permission for domain ${domain}, skipping registration`);
+        continue;
+      }
+
+      try {
+        await chrome.scripting.registerContentScripts([
+          {
+            id: `haiilo-enhancer-${domain}`,
+            matches: origins,
+            js: ['content.js'],
+            css: ['content.css'],
+            runAt: 'document_idle'
+          }
+        ]);
+        console.log(`Registered content script for custom domain: ${domain}`);
+      } catch (error) {
+        console.error(`Failed to register content script for ${domain}:`, error);
+      }
+    }
+
+    debugLog(`Dynamic content scripts registered for ${customDomains.length} custom domains`);
+  } catch (error) {
+    console.error('Error registering dynamic content scripts:', error);
+  }
 }
 
 // Inject content scripts into all Haiilo tabs

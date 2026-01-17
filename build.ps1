@@ -34,7 +34,8 @@ function Build-Chrome {
         "popup.js",
         "options.html",
         "options.css",
-        "options.js"
+        "options.js",
+        "colors.css"
     )
 
     foreach ($file in $files) {
@@ -66,11 +67,11 @@ function Build-Firefox {
     }
     New-Item -ItemType Directory -Path $firefoxDir | Out-Null
 
-    # Copy files (Firefox uses different manifest and background script)
+    # Copy files (Firefox uses different manifest but same background.js)
     Copy-Item "manifest.firefox.json" "$firefoxDir\manifest.json"
-    Copy-Item "background-firefox.js" "$firefoxDir\background.js"
 
     $files = @(
+        "background.js",
         "content.js",
         "content.css",
         "popup.html",
@@ -78,7 +79,8 @@ function Build-Firefox {
         "popup.js",
         "options.html",
         "options.css",
-        "options.js"
+        "options.js",
+        "colors.css"
     )
 
     foreach ($file in $files) {

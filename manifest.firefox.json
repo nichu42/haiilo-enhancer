@@ -7,6 +7,9 @@
     "storage",
     "contextMenus",
     "activeTab",
+    "scripting",
+    "tabs",
+    "webNavigation",
     "https://*.haiilo.app/*",
     "https://*.haiilo.com/*"
   ],
@@ -15,7 +18,7 @@
     "http://*/*"
   ],
   "background": {
-    "scripts": ["background-firefox.js"],
+    "scripts": ["background.js"],
     "persistent": false
   },
   "content_scripts": [],

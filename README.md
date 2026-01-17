@@ -98,6 +98,10 @@ If you find this extension useful, please consider supporting its development.
 
 Contributions are welcome! If you have ideas for new features, bug fixes, or improvements, please feel free to open an issue or submit a pull request.
 
+## Disclaimer
+
+This is an independent, open-source project and is not affiliated with, endorsed by, or in any way officially connected with Haiilo GmbH or any of its subsidiaries or affiliates. The name Haiilo as well as related names, marks, emblems, and images are registered trademarks of their respective owners.
+
 ## License
 
 This project is licensed under the **GNU Affero General Public License v3.0 or later**. See the [LICENSE](LICENSE) file for more details.

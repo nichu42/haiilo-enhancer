@@ -30,31 +30,56 @@ Haiilo Enhancer is a browser extension designed to give you more control over yo
 
 ## Installation
 
-### Chrome / Edge / Brave (and other Chromium-based browsers)
+As this extension is in its early stages, there are no formal releases yet. You can install it for development or testing by loading the extension's source code directly in your browser.
 
-1.  Download the latest release from the [releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases) or clone this repository.
-2.  Unzip the downloaded file.
-3.  Open your browser and navigate to `chrome://extensions/` (or `edge://extensions/` for Edge).
-4.  Enable "Developer mode" using the toggle switch, usually found in the top-right corner.
-5.  Click the "Load unpacked" button.
-6.  Select the directory where you unzipped the files.
-7.  The Haiilo Enhancer icon will appear in your browser's toolbar.
+First, [download the repository files](https://codeberg.org/nichu42/haiilo-enhancer/archive/main.zip) and unzip them.
 
-### Firefox
+### Loading the Extension in Your Browser
 
-1.  Download the latest `firefox` release from the [releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
-2.  Open Firefox and navigate to `about:addons`.
-3.  Click the gear icon and select "Install Add-on From File...".
-4.  Select the downloaded `.xpi` file.
+#### Chromium-based browser (Vivaldi, Brave, Chrome, Edge, etc.)
 
-For development, you can load the add-on temporarily:
+You can load the extension directly from the source folder.
 
-1.  Clone this repository.
-2.  Rename `manifest.firefox.json` to `manifest.json`.
-3.  Rename `background-firefox.js` to `background.js`.
-4.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
-5.  Click "Load Temporary Add-on...".
-6.  Select the `manifest.json` file in the project directory.
+1.  Navigate to `chrome://extensions/` (or `edge://extensions/`).
+2.  Enable "Developer mode".
+3.  Click "Load unpacked" and select the project's root directory (the one containing `manifest.json`).
+
+#### Firefox (NOTE: NOT SUPPORTED YET)
+
+For Firefox, a build step is required to use the correct manifest file.
+
+1.  Follow the build instructions in the section below for your operating system.
+2.  Navigate to `about:debugging#/runtime/this-firefox`.
+3.  Click "Load Temporary Add-on...".
+4.  Select the `manifest.json` file inside the `dist/firefox` directory.
+
+### Building the Extension (for Firefox & Distribution)
+
+While Chromium users can load the source code directly, a build step is required for Firefox. This script also prepares clean packages for distribution.
+
+#### Windows
+
+This project uses a PowerShell script to build the packages. Before running it, you may need to adjust your PowerShell execution policy by running this command in a terminal:
+`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
+
+To build the extension, run the script from the project's root directory:
+
+-   **For Firefox:** `.\build.ps1 -Firefox`
+-   **For Chrome (optional):** `.\build.ps1 -Chrome`
+-   **For both:** `.\build.ps1`
+
+#### macOS / Linux
+
+On macOS or Linux, use the provided shell script. First, make the script executable:
+`chmod +x build.sh`
+
+Then, run the script to build the extension:
+
+-   **For Firefox:** `./build.sh -Firefox`
+-   **For Chrome (optional):** `./build.sh -Chrome`
+-   **For both:** `./build.sh`
+
+The build script will create a `dist` folder containing the packaged extension files.
 
 ## Usage
 
@@ -88,15 +113,17 @@ The main Haiilo logo will now redirect to this page. You can manage your set hom
 #### Date & Time Formatting
 In the settings, you can change the display format for dates and times across Haiilo to match your preference (e.g., DD.MM.YYYY and 24-hour time).
 
-## Support the Project
+## Issues, and Community
+
+If you encounter any bugs or have ideas for new features, please [report them on Codeberg](https://codeberg.org/nichu42/haiilo-enhancer/issues).
+
+For updates, questions, and general discussion, you can join our chatroom on Matrix: [#haiiloenhancer:blueplanet.social](https://matrix.to/#/#haiiloenhancer:blueplanet.social).
+
+Contributions are always welcome! If you'd like to contribute, please feel free to open an issue or submit a pull request.
 
 If you find this extension useful, please consider supporting its development.
 
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/nichu42/donate)
-
-## Contributing
-
-Contributions are welcome! If you have ideas for new features, bug fixes, or improvements, please feel free to open an issue or submit a pull request.
 
 ## Disclaimer
 

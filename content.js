@@ -83,6 +83,8 @@
   let messengerOverlayObserver = null;
   let keepMessengerExpandedActive = false;
   let bodyStyleObserver = null;
+  let backdropCheckInterval = null;
+  let classObserver = null;
 
   // Debug logging helper
   function debugLog(...args) {
@@ -101,81 +103,13 @@
     if (currentStyle && (currentStyle.includes('position: fixed') ||
                          currentStyle.includes('overflow: hidden') ||
                          currentStyle.includes('top:'))) {
-      console.log('[Content] Removing body lock styles:', currentStyle);
+      debugLog('[Content] Removing body lock styles:', currentStyle);
       // Remove the inline style attributes that lock the body
       body.style.position = '';
       body.style.overflow = '';
       body.style.top = '';
-      console.log('[Content] Body lock removed');
+      debugLog('[Content] Body lock removed');
     }
-  }
-
-  // Function to determine if an element is an interactive popup that should be allowed
-  function isInteractiveOverlayElement(target) {
-    // Check for known interactive popup components
-    const interactiveComponents = [
-      'coyo-search-quick-search',
-      'coyo-quick-search-item',
-      'coyo-notification-center',
-      'coyo-user-menu',
-      'coyo-settings-panel',
-      'coyo-create-menu',
-      'coyo-dialog',
-      'coyo-modal',
-      'coyo-dropdown',
-      'coyo-tooltip',
-      'cat-dialog',
-      'cat-modal',
-      'cat-dropdown',
-      'cat-tooltip',
-      'cdk-overlay-connected-position-bounding-box'
-    ];
-
-    // Check if target or any parent matches known interactive components
-    for (const component of interactiveComponents) {
-      if (target.closest(component)) {
-        return true;
-      }
-    }
-
-    // Check for common popup indicators in class names
-    const className = target.className || '';
-    const popupIndicators = ['popup', 'modal', 'dialog', 'dropdown', 'menu', 'tooltip', 'notification'];
-    if (popupIndicators.some(indicator => className.includes(indicator))) {
-      return true;
-    }
-
-    // Check for interactive role attributes
-    const role = target.getAttribute('role');
-    const interactiveRoles = ['dialog', 'menu', 'tooltip', 'alertdialog'];
-    if (role && interactiveRoles.includes(role)) {
-      return true;
-    }
-
-    // Check if the element has interactive attributes that suggest it's a popup
-    const interactiveAttributes = ['tabindex', 'aria-haspopup', 'aria-expanded'];
-    if (interactiveAttributes.some(attr => target.hasAttribute(attr))) {
-      return true;
-    }
-
-    // Check for common overlay/popup class patterns
-    const overlayPatterns = [
-      '[class*="overlay"]',
-      '[class*="popup"]', 
-      '[class*="modal"]',
-      '[class*="dialog"]',
-      '[class*="dropdown"]',
-      '[class*="menu"]',
-      '[class*="tooltip"]'
-    ];
-
-    for (const pattern of overlayPatterns) {
-      if (target.closest(pattern)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   // Function to block overlay click events
@@ -184,56 +118,103 @@
 
     const target = e.target;
 
-    // Check for Angular overlay divs by their inline styles
-    // Looking for divs with position:fixed, z-index, and semi-transparent background
-    const style = target.getAttribute('style');
-    if (style &&
-        style.includes('position: fixed') &&
-        style.includes('z-index') &&
-        (style.includes('background: rgba') || style.includes('background:rgba'))) {
-      console.log('[Content] Blocking Angular overlay click');
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      e.preventDefault();
+    // Check if messenger panel is open
+    const messengerPanel = document.querySelector('coyo-messaging-panel');
+    if (!messengerPanel) {
+      // Messenger not open - don't block anything
+      debugLog('[Content] No messenger panel, allowing all clicks');
+      return;
+    }
+
+    // Check if click is on messenger panel itself or its children
+    if (target === messengerPanel || messengerPanel.contains(target)) {
+      // Allow clicks within the messenger
+      debugLog('[Content] Click inside messenger, allowing');
+      return;
+    }
+
+    // Check if the click is on a backdrop element
+    const isBackdropClick = target.classList && (
+      target.classList.contains('cdk-overlay-backdrop') ||
+      target.classList.contains('menu-overlay') ||
+      target.classList.contains('cdk-overlay-dark-backdrop') ||
+      target.classList.contains('cdk-overlay-transparent-backdrop')
+    );
+
+    // Also check for Angular backdrop divs
+    const style = target.getAttribute && target.getAttribute('style');
+    const isAngularBackdrop = style &&
+      style.includes('position: fixed') &&
+      style.includes('background: rgba') &&
+      style.includes('width: 100%') &&
+      style.includes('height: 100%');
+
+    // If clicking on a backdrop, always allow it through
+    // Backdrop clicks are meant to close overlays (modals, search, etc.)
+    if (isBackdropClick || isAngularBackdrop) {
+      debugLog('[Content] Backdrop click detected, allowing through');
+      return;
+    }
+
+    // Not a backdrop click and messenger is open - this is a click on page content
+    // Block it to prevent messenger from closing
+    debugLog('[Content] Content click outside messenger while messenger open, blocking');
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  // Function to determine if a backdrop should be removed
+  function isMessengerBackdrop(element) {
+    // Only process if the feature is active
+    if (!keepMessengerExpandedActive) return false;
+
+    // Check if element has backdrop classes OR looks like an Angular backdrop
+    const hasBackdropClass = element.classList && (
+      element.classList.contains('cdk-overlay-backdrop') ||
+      element.classList.contains('menu-overlay') ||
+      element.classList.contains('cdk-overlay-dark-backdrop') ||
+      element.classList.contains('cdk-overlay-transparent-backdrop')
+    );
+
+    // Also check for Angular-generated backdrop divs (position: fixed, background rgba, full screen)
+    const style = element.getAttribute && element.getAttribute('style');
+    const isAngularBackdrop = style &&
+      style.includes('position: fixed') &&
+      style.includes('background: rgba') &&
+      style.includes('width: 100%') &&
+      style.includes('height: 100%');
+
+    if (!hasBackdropClass && !isAngularBackdrop) {
       return false;
     }
 
-    // Check if click is on overlay elements with class names
-    if (target.classList.contains('cdk-overlay-backdrop') ||
-        target.classList.contains('cdk-overlay-dark-backdrop') ||
-        target.classList.contains('cdk-overlay-transparent-backdrop') ||
-        target.classList.contains('menu-overlay') ||
-        target.closest('.cdk-overlay-backdrop') ||
-        target.closest('.cdk-overlay-dark-backdrop') ||
-        target.closest('.cdk-overlay-transparent-backdrop') ||
-        target.closest('.menu-overlay')) {
-      console.log('[Content] Blocking overlay click event on:', target.className);
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      e.preventDefault();
+    // CRITICAL: Check if messenger panel actually exists
+    // If no messenger panel, this backdrop belongs to a modal/search, not messenger
+    const messengerPanel = document.querySelector('coyo-messaging-panel');
+    if (!messengerPanel) {
+      debugLog('[Content] No messenger panel - NOT removing backdrop (belongs to modal/search)');
       return false;
     }
 
-    // Also check if the target or any parent is part of the cdk-overlay-container
-    // but NOT part of the messenger panel itself
-    const overlayContainer = target.closest('.cdk-overlay-container');
-    const messengerPanel = target.closest('coyo-messaging-panel, coyo-messenger, [class*="messaging"], [class*="messenger"]');
-    
-    // Check if this is an interactive popup/overlay that should be allowed
-    const isInteractivePopup = isInteractiveOverlayElement(target);
+    // Count how many backdrops currently exist in the DOM
+    const allBackdrops = document.querySelectorAll('.cdk-overlay-backdrop, .menu-overlay, div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]');
 
-    if (overlayContainer && !messengerPanel && !isInteractivePopup) {
-      console.log('[Content] Blocking click in overlay container but outside messenger and interactive popups');
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      e.preventDefault();
+    // If there are multiple backdrops, don't remove any of them
+    // This means a modal is open on top of the messenger
+    if (allBackdrops.length > 1) {
+      debugLog('[Content] Multiple backdrops detected (' + allBackdrops.length + ') with messenger open, not removing any');
       return false;
     }
+
+    // Messenger is open AND only one backdrop exists - it's the messenger backdrop, remove it
+    debugLog('[Content] Single backdrop with messenger open - WILL REMOVE:', element.className || element.tagName);
+    return true;
   }
 
   // Function to apply CSS for keeping messenger expanded
   function applyMessengerExpandedCSS(expanded, adjustLayout = false) {
-    console.log('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'adjustLayout =', adjustLayout);
+    debugLog('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'adjustLayout =', adjustLayout);
     let styleElement = document.getElementById('haiilo-enhancer-messenger-style');
 
     keepMessengerExpandedActive = expanded;
@@ -243,7 +224,7 @@
         styleElement = document.createElement('style');
         styleElement.id = 'haiilo-enhancer-messenger-style';
         document.head.appendChild(styleElement);
-        console.log('[Content] Created new style element');
+        debugLog('[Content] Created new style element');
       }
 
       // Measure messenger panel width dynamically (only if layout adjustment is enabled)
@@ -255,7 +236,7 @@
         if (messengerPanel) {
           const computedStyle = window.getComputedStyle(messengerPanel);
           messengerWidth = parseFloat(computedStyle.width);
-          console.log('[Content] Detected messenger width:', messengerWidth + 'px');
+          debugLog('[Content] Detected messenger width:', messengerWidth + 'px');
         }
 
         layoutAdjustmentCSS = `
@@ -272,89 +253,40 @@
         `;
       }
 
-      // CSS to disable the blocking backdrop and remove dimming + optional layout adjustment
-      styleElement.textContent = `
-        /* Make backdrop completely invisible and non-interactive */
-        .cdk-overlay-backdrop,
-        .cdk-overlay-dark-backdrop,
-        .cdk-overlay-transparent-backdrop {
+      // Add CSS to ensure page remains interactive
+      // CRITICAL: Hide Angular backdrops via CSS (per CLAUDE.md lines 84-91)
+      // This solves the race condition - CSS applies immediately, no need to wait for DOM
+      // Modal backdrops are hidden but still clickable via blockOverlayClicks allowing clicks through
+      const messengerCSS = `
+        /* Hide Angular backdrop divs created for messenger */
+        div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"] {
           display: none !important;
-          opacity: 0 !important;
           pointer-events: none !important;
-          visibility: hidden !important;
         }
 
-        /* Make menu overlay completely invisible and non-interactive */
-        .menu-overlay {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-          visibility: hidden !important;
+        /* Ensure body and content remain interactive */
+        body {
+          pointer-events: auto !important;
         }
 
-        /* Target Angular overlay divs with ng-trigger-openClose */
-        div[class*="ng-trigger-openClose"] {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-          visibility: hidden !important;
+        /* Ensure main content stays interactive */
+        .main-content,
+        coyo-timeline,
+        [class*="content"] {
+          pointer-events: auto !important;
         }
-
-        /* Target fixed position divs with rgba background (Angular overlays) */
-        div[style*="position: fixed"][style*="rgba"] {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-          visibility: hidden !important;
-        }
-
-        /* Exclude interactive popups and overlays from being hidden */
-        /* Search popups */
-        coyo-search-quick-search,
-        coyo-search-quick-search *,
-        coyo-quick-search-item,
-        coyo-quick-search-item *,
-        /* Notification centers */
-        coyo-notification-center,
-        coyo-notification-center *,
-        /* User menus and settings */
-        coyo-user-menu,
-        coyo-user-menu *,
-        coyo-settings-panel,
-        coyo-settings-panel *,
-        /* Dialogs and modals */
-        coyo-dialog,
-        coyo-dialog *,
-        coyo-modal,
-        coyo-modal *,
-        cat-dialog,
-        cat-dialog *,
-        cat-modal,
-        cat-modal *,
-        /* Dropdowns and tooltips */
-        coyo-dropdown,
-        coyo-dropdown *,
-        coyo-tooltip,
-        coyo-tooltip *,
-        cat-dropdown,
-        cat-dropdown *,
-        cat-tooltip,
-        cat-tooltip *,
-        /* Create menus */
-        coyo-create-menu,
-        coyo-create-menu * {
-          display: revert !important;
-          opacity: revert !important;
-          pointer-events: revert !important;
-          visibility: revert !important;
-        }
-
-        ${layoutAdjustmentCSS}
       `;
-      console.log('[Content] Applied CSS to remove overlays and adjust layout');
+
+      // Combine with layout adjustments
+      styleElement.textContent = messengerCSS + layoutAdjustmentCSS;
+      debugLog('[Content] Applied messenger CSS with backdrop removal and interactivity fixes');
 
       // Remove any existing body lock styles
       removeBodyLockStyles();
+
+      // Don't do initial backdrop removal here - let the MutationObserver
+      // and periodic check handle it. This avoids timing issues with
+      // messenger panel not being in DOM yet.
 
       // Set up click event blockers on capture phase (before other handlers)
       // Use multiple event types to catch all possible interaction methods
@@ -363,47 +295,246 @@
       document.addEventListener('mouseup', blockOverlayClicks, true);
       document.addEventListener('pointerdown', blockOverlayClicks, true);
       document.addEventListener('pointerup', blockOverlayClicks, true);
-      console.log('[Content] Added click event blockers');
+      debugLog('[Content] Added click event blockers');
 
       // Set up MutationObserver to watch for body style changes
       if (!bodyStyleObserver) {
         bodyStyleObserver = new MutationObserver((mutations) => {
+          if (!keepMessengerExpandedActive) return;
+
           for (const mutation of mutations) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-              console.log('[Content] Body style changed, removing lock');
-              removeBodyLockStyles();
+              const body = document.body;
+              const currentStyle = body.getAttribute('style');
+
+              // Check if body has locking styles
+              if (currentStyle && (
+                currentStyle.includes('position: fixed') ||
+                currentStyle.includes('position:fixed') ||
+                currentStyle.includes('overflow: hidden') ||
+                currentStyle.includes('overflow:hidden')
+              )) {
+                debugLog('[Content] Body lock detected, removing immediately:', currentStyle);
+                removeBodyLockStyles();
+              }
             }
           }
         });
 
         bodyStyleObserver.observe(document.body, {
           attributes: true,
-          attributeFilter: ['style']
+          attributeFilter: ['style', 'class']
         });
-        console.log('[Content] Set up body style observer');
+        debugLog('[Content] Set up body style observer');
       }
+
+      // Also watch for 'cdk-global-scrollblock' class being added
+      if (!classObserver) {
+        classObserver = new MutationObserver(() => {
+          if (!keepMessengerExpandedActive) return;
+
+          const html = document.documentElement;
+          if (html.classList.contains('cdk-global-scrollblock')) {
+            debugLog('[Content] Removing cdk-global-scrollblock from html');
+            html.classList.remove('cdk-global-scrollblock');
+          }
+        });
+
+        classObserver.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['class']
+        });
+        debugLog('[Content] Set up class observer');
+      }
+
+      // Set up MutationObserver to watch for backdrop elements being added
+      setupBackdropObserver();
 
       debugLog('Applied CSS and body unlock for messenger expansion');
     } else {
       // Clean up when feature is disabled
       if (styleElement) {
         styleElement.remove();
-        console.log('[Content] Removed messenger expanded CSS');
+        debugLog('[Content] Removed messenger expanded CSS');
       }
 
       // Remove event listeners
       document.removeEventListener('click', blockOverlayClicks, true);
       document.removeEventListener('mousedown', blockOverlayClicks, true);
-      console.log('[Content] Removed click event blockers');
+      document.removeEventListener('mouseup', blockOverlayClicks, true);
+      document.removeEventListener('pointerdown', blockOverlayClicks, true);
+      document.removeEventListener('pointerup', blockOverlayClicks, true);
+      debugLog('[Content] Removed click event blockers');
 
       if (bodyStyleObserver) {
         bodyStyleObserver.disconnect();
         bodyStyleObserver = null;
-        console.log('[Content] Disconnected body style observer');
+        debugLog('[Content] Disconnected body style observer');
+      }
+
+      if (classObserver) {
+        classObserver.disconnect();
+        classObserver = null;
+        debugLog('[Content] Disconnected class observer');
+      }
+
+      if (messengerOverlayObserver) {
+        messengerOverlayObserver.disconnect();
+        messengerOverlayObserver = null;
+        debugLog('[Content] Disconnected messenger overlay observer');
+      }
+
+      if (backdropCheckInterval) {
+        clearInterval(backdropCheckInterval);
+        backdropCheckInterval = null;
+        debugLog('[Content] Cleared backdrop check interval');
       }
 
       debugLog('Removed messenger expanded CSS and observer');
     }
+  }
+
+  // Setup observer to detect and hide messenger backdrops as they're added
+  function setupBackdropObserver() {
+    if (messengerOverlayObserver) {
+      messengerOverlayObserver.disconnect();
+    }
+
+    // Function to check and remove/hide backdrop
+    const checkAndHideBackdrop = (element) => {
+      // For Angular backdrops with inline styles, wait a bit for messenger panel to appear
+      const style = element.getAttribute && element.getAttribute('style');
+      const isAngularBackdrop = style &&
+        style.includes('position: fixed') &&
+        style.includes('background: rgba') &&
+        style.includes('width: 100%') &&
+        style.includes('height: 100%');
+
+      if (isAngularBackdrop) {
+        // Wait for messenger panel to appear before checking
+        setTimeout(() => {
+          if (isMessengerBackdrop(element)) {
+            debugLog('[Content] Removing messenger backdrop from DOM:', {
+              tagName: element.tagName,
+              className: element.className,
+              id: element.id,
+              hasParent: !!element.parentNode
+            });
+
+            // Instead of just hiding, completely remove it from DOM
+            if (element.parentNode) {
+              element.parentNode.removeChild(element);
+              debugLog('[Content] Successfully removed backdrop element');
+            } else {
+              debugLog('[Content] Could not remove backdrop - no parent node');
+            }
+          }
+        }, 150); // Increased delay for messenger panel to appear
+      } else {
+        // For standard CDK backdrops, check immediately
+        if (isMessengerBackdrop(element)) {
+          debugLog('[Content] Removing messenger backdrop from DOM:', {
+            tagName: element.tagName,
+            className: element.className,
+            id: element.id,
+            hasParent: !!element.parentNode
+          });
+
+          if (element.parentNode) {
+            element.parentNode.removeChild(element);
+            debugLog('[Content] Successfully removed backdrop element');
+          } else {
+            debugLog('[Content] Could not remove backdrop - no parent node');
+          }
+        }
+      }
+    };
+
+    messengerOverlayObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+          // Check if this node is a backdrop
+          checkAndHideBackdrop(node);
+
+          // Also check children
+          const backdrops = node.querySelectorAll('.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, .cdk-overlay-transparent-backdrop, .menu-overlay, div[style*="position: fixed"]');
+          backdrops.forEach(checkAndHideBackdrop);
+        }
+      }
+    });
+
+    messengerOverlayObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    // Function to periodically check for existing backdrops
+    const checkExistingBackdrops = () => {
+      if (!keepMessengerExpandedActive) return;
+
+      // Only check if messenger panel exists
+      const messengerPanel = document.querySelector('coyo-messaging-panel');
+      if (!messengerPanel) {
+        debugLog('[Content] No messenger panel found, skipping backdrop check');
+        return;
+      }
+
+      const selectors = [
+        '.cdk-overlay-backdrop',
+        '.cdk-overlay-dark-backdrop',
+        '.cdk-overlay-transparent-backdrop',
+        '.menu-overlay'
+      ];
+
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(backdrop => {
+          if (isMessengerBackdrop(backdrop)) {
+            debugLog('[Content] Removing existing messenger backdrop:', backdrop);
+            if (backdrop.parentNode) {
+              backdrop.parentNode.removeChild(backdrop);
+            }
+          }
+        });
+      });
+
+      // Also check for Angular backdrops with inline styles
+      const allDivs = document.querySelectorAll('div[style*="position: fixed"]');
+      allDivs.forEach(div => {
+        const style = div.getAttribute('style') || '';
+        if (style.includes('background: rgba') &&
+            style.includes('width: 100%') &&
+            style.includes('height: 100%')) {
+          if (isMessengerBackdrop(div)) {
+            debugLog('[Content] Removing existing Angular messenger backdrop:', div);
+            if (div.parentNode) {
+              div.parentNode.removeChild(div);
+            }
+          }
+        }
+      });
+    };
+
+    // Check existing backdrops immediately
+    checkExistingBackdrops();
+
+    // Clear any existing interval
+    if (backdropCheckInterval) {
+      clearInterval(backdropCheckInterval);
+    }
+
+    // Also check periodically in case we miss any
+    backdropCheckInterval = setInterval(() => {
+      if (!keepMessengerExpandedActive) {
+        clearInterval(backdropCheckInterval);
+        backdropCheckInterval = null;
+        return;
+      }
+      checkExistingBackdrops();
+    }, 100); // Check every 100ms
+
+    debugLog('[Content] Backdrop observer set up');
   }
 
   // Apply styling to avatar based on selected style

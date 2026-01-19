@@ -110,6 +110,74 @@
     }
   }
 
+  // Function to determine if an element is an interactive popup that should be allowed
+  function isInteractiveOverlayElement(target) {
+    // Check for known interactive popup components
+    const interactiveComponents = [
+      'coyo-search-quick-search',
+      'coyo-quick-search-item',
+      'coyo-notification-center',
+      'coyo-user-menu',
+      'coyo-settings-panel',
+      'coyo-create-menu',
+      'coyo-dialog',
+      'coyo-modal',
+      'coyo-dropdown',
+      'coyo-tooltip',
+      'cat-dialog',
+      'cat-modal',
+      'cat-dropdown',
+      'cat-tooltip',
+      'cdk-overlay-connected-position-bounding-box'
+    ];
+
+    // Check if target or any parent matches known interactive components
+    for (const component of interactiveComponents) {
+      if (target.closest(component)) {
+        return true;
+      }
+    }
+
+    // Check for common popup indicators in class names
+    const className = target.className || '';
+    const popupIndicators = ['popup', 'modal', 'dialog', 'dropdown', 'menu', 'tooltip', 'notification'];
+    if (popupIndicators.some(indicator => className.includes(indicator))) {
+      return true;
+    }
+
+    // Check for interactive role attributes
+    const role = target.getAttribute('role');
+    const interactiveRoles = ['dialog', 'menu', 'tooltip', 'alertdialog'];
+    if (role && interactiveRoles.includes(role)) {
+      return true;
+    }
+
+    // Check if the element has interactive attributes that suggest it's a popup
+    const interactiveAttributes = ['tabindex', 'aria-haspopup', 'aria-expanded'];
+    if (interactiveAttributes.some(attr => target.hasAttribute(attr))) {
+      return true;
+    }
+
+    // Check for common overlay/popup class patterns
+    const overlayPatterns = [
+      '[class*="overlay"]',
+      '[class*="popup"]', 
+      '[class*="modal"]',
+      '[class*="dialog"]',
+      '[class*="dropdown"]',
+      '[class*="menu"]',
+      '[class*="tooltip"]'
+    ];
+
+    for (const pattern of overlayPatterns) {
+      if (target.closest(pattern)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Function to block overlay click events
   function blockOverlayClicks(e) {
     if (!keepMessengerExpandedActive) return;
@@ -150,9 +218,12 @@
     // but NOT part of the messenger panel itself
     const overlayContainer = target.closest('.cdk-overlay-container');
     const messengerPanel = target.closest('coyo-messaging-panel, coyo-messenger, [class*="messaging"], [class*="messenger"]');
+    
+    // Check if this is an interactive popup/overlay that should be allowed
+    const isInteractivePopup = isInteractiveOverlayElement(target);
 
-    if (overlayContainer && !messengerPanel) {
-      console.log('[Content] Blocking click in overlay container but outside messenger');
+    if (overlayContainer && !messengerPanel && !isInteractivePopup) {
+      console.log('[Content] Blocking click in overlay container but outside messenger and interactive popups');
       e.stopPropagation();
       e.stopImmediatePropagation();
       e.preventDefault();
@@ -235,6 +306,47 @@
           opacity: 0 !important;
           pointer-events: none !important;
           visibility: hidden !important;
+        }
+
+        /* Exclude interactive popups and overlays from being hidden */
+        /* Search popups */
+        coyo-search-quick-search,
+        coyo-search-quick-search *,
+        coyo-quick-search-item,
+        coyo-quick-search-item *,
+        /* Notification centers */
+        coyo-notification-center,
+        coyo-notification-center *,
+        /* User menus and settings */
+        coyo-user-menu,
+        coyo-user-menu *,
+        coyo-settings-panel,
+        coyo-settings-panel *,
+        /* Dialogs and modals */
+        coyo-dialog,
+        coyo-dialog *,
+        coyo-modal,
+        coyo-modal *,
+        cat-dialog,
+        cat-dialog *,
+        cat-modal,
+        cat-modal *,
+        /* Dropdowns and tooltips */
+        coyo-dropdown,
+        coyo-dropdown *,
+        coyo-tooltip,
+        coyo-tooltip *,
+        cat-dropdown,
+        cat-dropdown *,
+        cat-tooltip,
+        cat-tooltip *,
+        /* Create menus */
+        coyo-create-menu,
+        coyo-create-menu * {
+          display: revert !important;
+          opacity: revert !important;
+          pointer-events: revert !important;
+          visibility: revert !important;
         }
 
         ${layoutAdjustmentCSS}
@@ -1207,6 +1319,24 @@
             return `${month}/${day}/${year}`;
         }
       }
+
+      const shortYearMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2})/);
+      if (shortYearMatch) {
+        const month = shortYearMatch[1].padStart(2, '0');
+        const day = shortYearMatch[2].padStart(2, '0');
+        const year = shortYearMatch[3];
+
+        switch (dateFormat) {
+          case 'DDMM':
+            return `${day}/${month}/${year}`;
+          case 'DD.MM':
+            return `${day}.${month}.${year}`;
+          case 'DD-MM':
+            return `${day}-${month}-${year}`;
+          default: // MMDD
+            return `${month}/${day}/${year}`;
+        }
+      }
     } else {
       // Handle short date (MM/DD)
       const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})/);
@@ -1239,6 +1369,20 @@
     return dateStr;
   }
 
+  // Simple function to validate short date (MM/DD format)
+  function isValidShortDate(month, day) {
+    // Month must be 1-12
+    if (month < 1 || month > 12) {
+      return false;
+    }
+    
+    // Day must be valid for the month (February has 29 days to allow for leap years)
+    const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const maxDays = daysInMonth[month - 1];
+    
+    return day >= 1 && day <= maxDays;
+  }
+
   // Process date/time in text nodes
   function processDateTimeInText(node) {
     if (node.nodeType !== Node.TEXT_NODE) return;
@@ -1265,6 +1409,12 @@
         return convertDateFormat(match, true); // hasYear=true
       });
 
+      // Match and convert full dates with 2-digit year (MM/DD/YY)
+      text = text.replace(/\b(\d{1,2})\/(\d{1,2})\/(\d{2})\b/g, (match) => {
+        modified = true;
+        return convertDateFormat(match, true); // hasYear=true
+      });
+
       // Match and convert long date formats (Month DD, YYYY)
       text = text.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/gi, (match) => {
         modified = true;
@@ -1272,9 +1422,17 @@
       });
 
       // Match and convert short date patterns (MM/DD) - process LAST
-      text = text.replace(/\b(\d{1,2})\/(\d{1,2})\b/g, (match) => {
-        modified = true;
-        return convertDateFormat(match, false); // hasYear=false
+      // Only match zero-padded dates (01/03) to avoid converting fractions (1/3)
+      text = text.replace(/\b(\d{2})\/(\d{2})\b/g, (match, monthStr, dayStr) => {
+        const month = parseInt(monthStr, 10);
+        const day = parseInt(dayStr, 10);
+        
+        // Validate that this is actually a valid date
+        if (isValidShortDate(month, day)) {
+          modified = true;
+          return convertDateFormat(match, false); // hasYear=false
+        }
+        return match; // Don't modify if invalid date
       });
     }
 

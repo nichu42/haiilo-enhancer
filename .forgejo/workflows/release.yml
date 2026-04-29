@@ -19,6 +19,22 @@ jobs:
       - name: Build packages
         run: bash build.sh
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sign Firefox extension
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx --yes web-ext sign \
+            --source-dir dist/firefox \
+            --artifacts-dir dist \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET" \
+            --channel unlisted
+
       - name: Publish release
         env:
           FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,8 +57,9 @@ jobs:
             "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=haiilo-enhancer-chrome.zip" \
             --data-binary @dist/haiilo-enhancer-chrome.zip
 
+          SIGNED_XPI=$(find dist -maxdepth 1 -name "*.xpi" | head -1)
           curl -sf -X POST \
             -H "Authorization: token ${FORGEJO_TOKEN}" \
             -H "Content-Type: application/octet-stream" \
             "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=haiilo-enhancer-firefox.xpi" \
-            --data-binary @dist/haiilo-enhancer-firefox.xpi
+            --data-binary @"$SIGNED_XPI"

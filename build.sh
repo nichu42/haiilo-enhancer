@@ -48,7 +48,7 @@ build_firefox() {
     rm -f "$FIREFOX_DIR/icons"/*.html
     rm -f "$FIREFOX_DIR/icons"/*.svg
 
-    # Create xpi (same format as zip, Firefox recognises the .xpi extension natively)
+    # Create xpi for local development (release builds are signed via web-ext sign)
     (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.xpi" .)
 
     echo "Firefox build complete: $DIST_DIR/haiilo-enhancer-firefox.xpi"

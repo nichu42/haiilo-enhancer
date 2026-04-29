@@ -26,10 +26,10 @@ req = urllib.request.Request(
 )
 data = json.loads(urllib.request.urlopen(req).read())
 match = next((r for r in data["results"] if r["version"] == version), None)
-if not match or not match["files"]:
-    raise RuntimeError(f"No signed files for version {version} on AMO")
+if not match or not match.get("file"):
+    raise RuntimeError(f"No signed file for version {version} on AMO")
 
-url = match["files"][0]["url"]
+url = match["file"]["url"]
 out = f"dist/haiilo_enhancer-{version}.xpi"
 req2 = urllib.request.Request(url, headers={"Authorization": f"JWT {token}"})
 with urllib.request.urlopen(req2) as resp, open(out, "wb") as f:

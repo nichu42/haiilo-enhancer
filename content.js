@@ -3,6 +3,13 @@
 (function() {
   'use strict';
 
+  // Guard against double injection (can happen when both manifest and background inject)
+  if (window.__haiiloEnhancerLoaded) return;
+  window.__haiiloEnhancerLoaded = true;
+
+  // Browser API compatibility: browser.* is promise-based in Firefox; chrome.* in Chrome
+  const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
   // Global flag to track if extension context is valid
   let extensionContextValid = true;
   
@@ -37,7 +44,7 @@
     }
     
     try {
-      return chrome.runtime.sendMessage(message).catch(error => {
+      return browserAPI.runtime.sendMessage(message).catch(error => {
         // If we get context invalidation error, mark context as invalid
         if (error && error.message && 
             (error.message.includes('Extension context invalidated') ||
@@ -871,7 +878,7 @@
 
     // Listen for messages from background script
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
           debugLog('Content script received message:', message.action);
         

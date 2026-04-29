@@ -1,8 +1,11 @@
 // Options page script for Haiilo Enhancer
 
+// Browser API compatibility
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Display version from manifest
-  const manifest = chrome.runtime.getManifest();
+  const manifest = browserAPI.runtime.getManifest();
   document.getElementById('versionInfo').textContent = `Haiilo Enhancer v${manifest.version}`;
 
   // Show Chrome-specific warning only on Chrome/Edge
@@ -19,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadSettings() {
-  const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+  const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
 
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
   document.getElementById('showMutedIndicator').checked = settings.showMutedIndicator !== false;
@@ -58,7 +61,7 @@ async function loadSettings() {
 }
 
 async function loadDomains() {
-  const response = await chrome.runtime.sendMessage({ action: 'getCustomDomains' });
+  const response = await browserAPI.runtime.sendMessage({ action: 'getCustomDomains' });
   const domains = response || [];
 
   const domainsList = document.getElementById('domainsList');
@@ -77,7 +80,7 @@ async function loadDomains() {
 }
 
 async function loadCustomHomepages() {
-  const customHomepages = await chrome.runtime.sendMessage({ action: 'getCustomHomepages' });
+  const customHomepages = await browserAPI.runtime.sendMessage({ action: 'getCustomHomepages' });
   const homepagesList = document.getElementById('homepagesList');
 
   const entries = Object.entries(customHomepages || {});
@@ -273,14 +276,14 @@ async function addDomain() {
 
   try {
     // Check if domain already exists
-    const existingDomains = await chrome.runtime.sendMessage({ action: 'getCustomDomains' });
+    const existingDomains = await browserAPI.runtime.sendMessage({ action: 'getCustomDomains' });
     if (existingDomains && existingDomains.includes(domain)) {
       showStatus('Domain already exists', 'error');
       return;
     }
 
     // Request permission directly from user gesture (must be done in options page, not background)
-    const granted = await chrome.permissions.request({
+    const granted = await browserAPI.permissions.request({
       origins: [
         `https://*.${domain}/*`,
         `https://${domain}/*`,
@@ -295,7 +298,7 @@ async function addDomain() {
     }
 
     // Now add the domain to storage via background script
-    const response = await chrome.runtime.sendMessage({ action: 'addCustomDomain', domain });
+    const response = await browserAPI.runtime.sendMessage({ action: 'addCustomDomain', domain });
     if (response && response.success) {
       input.value = '';
       await loadDomains();
@@ -314,7 +317,7 @@ async function addDomain() {
 async function removeDomain(domain) {
   try {
     // Remove from storage first via background script
-    await chrome.runtime.sendMessage({ action: 'removeCustomDomain', domain });
+    await browserAPI.runtime.sendMessage({ action: 'removeCustomDomain', domain });
 
     // Then attempt to remove permissions
     const permissionsToRemove = {
@@ -327,11 +330,11 @@ async function removeDomain(domain) {
     };
 
     // Check if we have these permissions before removing
-    const hasPermissions = await chrome.permissions.contains(permissionsToRemove);
+    const hasPermissions = await browserAPI.permissions.contains(permissionsToRemove);
     console.log(`Domain ${domain} has permissions:`, hasPermissions);
 
     if (hasPermissions) {
-      const removed = await chrome.permissions.remove(permissionsToRemove);
+      const removed = await browserAPI.permissions.remove(permissionsToRemove);
       console.log(`Attempted to remove permissions for ${domain}, result:`, removed);
 
       // Chrome may report success but not actually remove the permission (known limitation)
@@ -351,7 +354,7 @@ async function removeDomain(domain) {
 
 async function removeCustomHomepage(baseUrl) {
   try {
-    await chrome.runtime.sendMessage({ action: 'removeCustomHomepage', baseUrl });
+    await browserAPI.runtime.sendMessage({ action: 'removeCustomHomepage', baseUrl });
     await loadCustomHomepages();
     showStatus('Custom homepage removed successfully', 'success');
   } catch (error) {
@@ -395,13 +398,13 @@ async function saveSettings() {
     channelAvatarFixedColor: document.getElementById('channelAvatarFixedColor').value
   };
 
-  await chrome.runtime.sendMessage({ action: 'saveSettings', settings });
+  await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
   showStatus('Settings saved', 'success');
 }
 
 async function exportData() {
-  const mutedUsers = await chrome.runtime.sendMessage({ action: 'getMutedUsers' });
-  const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+  const mutedUsers = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
+  const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
 
   const exportObj = {
     version: '1.0',
@@ -439,7 +442,7 @@ async function importData(e) {
     let userCount = 0;
     if (data.mutedUsers && Array.isArray(data.mutedUsers)) {
       for (const user of data.mutedUsers) {
-        await chrome.runtime.sendMessage({
+        await browserAPI.runtime.sendMessage({
           action: 'muteUser',
           userName: user.name,
           days: user.permanent ? null : Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))
@@ -450,7 +453,7 @@ async function importData(e) {
 
     // Import all settings if present
     if (data.settings) {
-      await chrome.runtime.sendMessage({ action: 'saveSettings', settings: data.settings });
+      await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: data.settings });
       await loadSettings();
     }
 
@@ -472,14 +475,14 @@ async function clearAllData() {
     return;
   }
 
-  const mutedUsers = await chrome.runtime.sendMessage({ action: 'getMutedUsers' });
+  const mutedUsers = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
 
   for (const user of mutedUsers) {
-    await chrome.runtime.sendMessage({ action: 'unmuteUser', userName: user.name });
+    await browserAPI.runtime.sendMessage({ action: 'unmuteUser', userName: user.name });
   }
 
   // Reset all settings to defaults
-  await chrome.runtime.sendMessage({ action: 'resetSettings' });
+  await browserAPI.runtime.sendMessage({ action: 'resetSettings' });
   await loadSettings();
 
   showStatus('All settings have been reset to defaults', 'success');

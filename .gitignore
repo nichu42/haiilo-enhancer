@@ -14,4 +14,8 @@
 
 #LLM
 .claude/
-claude.md
+CLAUDE.md
+AGENTS.md
+
+# Build output
+dist/

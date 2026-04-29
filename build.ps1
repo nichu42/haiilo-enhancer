@@ -93,14 +93,14 @@ function Build-Firefox {
     Remove-Item "$firefoxDir\icons\*.html" -ErrorAction SilentlyContinue
     Remove-Item "$firefoxDir\icons\*.svg" -ErrorAction SilentlyContinue
 
-    # Create zip (Firefox uses .xpi but .zip works for web-ext)
-    $zipPath = "$distDir\haiilo-enhancer-firefox.zip"
-    if (Test-Path $zipPath) {
-        Remove-Item $zipPath
+    # Create xpi (same format as zip; Firefox recognises the .xpi extension natively)
+    $xpiPath = "$distDir\haiilo-enhancer-firefox.xpi"
+    if (Test-Path $xpiPath) {
+        Remove-Item $xpiPath
     }
-    Compress-Archive -Path "$firefoxDir\*" -DestinationPath $zipPath
+    Compress-Archive -Path "$firefoxDir\*" -DestinationPath $xpiPath
 
-    Write-Host "Firefox build complete: $zipPath" -ForegroundColor Green
+    Write-Host "Firefox build complete: $xpiPath" -ForegroundColor Green
 }
 
 # Determine what to build

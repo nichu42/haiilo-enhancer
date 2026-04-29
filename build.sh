@@ -48,10 +48,10 @@ build_firefox() {
     rm -f "$FIREFOX_DIR/icons"/*.html
     rm -f "$FIREFOX_DIR/icons"/*.svg
 
-    # Create zip
-    (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.zip" .)
+    # Create xpi (same format as zip, Firefox recognises the .xpi extension natively)
+    (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.xpi" .)
 
-    echo "Firefox build complete: $DIST_DIR/haiilo-enhancer-firefox.zip"
+    echo "Firefox build complete: $DIST_DIR/haiilo-enhancer-firefox.xpi"
 }
 
 # Simple argument parsing

@@ -1,5 +1,8 @@
 // Popup script for Haiilo Enhancer
 
+// Browser API compatibility
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 document.addEventListener('DOMContentLoaded', async () => {
   await loadMutedUsers();
   await loadHiddenCount();
@@ -8,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadMutedUsers() {
-  const response = await chrome.runtime.sendMessage({ action: 'getMutedUsers' });
+  const response = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
   const mutedList = document.getElementById('mutedList');
 
   if (!response || response.length === 0) {
@@ -22,7 +25,7 @@ async function loadMutedUsers() {
   mutedList.querySelectorAll('.unmute-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const userName = e.target.dataset.user;
-      await chrome.runtime.sendMessage({ action: 'unmuteUser', userName });
+      await browserAPI.runtime.sendMessage({ action: 'unmuteUser', userName });
       await loadMutedUsers();
     });
   });
@@ -66,9 +69,9 @@ function formatExpiry(timestamp) {
 
 async function loadHiddenCount() {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
     if (tab && (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com'))) {
-      const response = await chrome.tabs.sendMessage(tab.id, { action: 'getHiddenCount' });
+      const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' });
       if (response && typeof response.count === 'number') {
         document.getElementById('hiddenCount').textContent = response.count;
       }
@@ -80,7 +83,7 @@ async function loadHiddenCount() {
 }
 
 async function loadSettings() {
-  const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+  const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
   const messengerCheckbox = document.getElementById('keepMessengerExpanded');
   const layoutCheckbox = document.getElementById('adjustLayoutForMessenger');
 
@@ -91,7 +94,7 @@ async function loadSettings() {
     messengerCheckbox.addEventListener('change', async (e) => {
       try {
         console.log('[Popup] Messenger expanded toggle changed to:', e.target.checked);
-        const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
         settings.keepMessengerExpanded = e.target.checked;
 
         // Disable layout adjustment if messenger expansion is disabled
@@ -108,22 +111,22 @@ async function loadSettings() {
           }
         }
 
-        await chrome.runtime.sendMessage({ action: 'saveSettings', settings });
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
         console.log('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
 
         // Notify all tabs about the change
-        const tabs = await chrome.tabs.query({});
+        const tabs = await browserAPI.tabs.query({});
         console.log('[Popup] Found', tabs.length, 'total tabs');
         tabs.forEach(tab => {
           if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
             console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'expanded:', e.target.checked);
-            chrome.tabs.sendMessage(tab.id, {
+            browserAPI.tabs.sendMessage(tab.id, {
               action: 'toggleMessengerExpanded',
               expanded: e.target.checked,
               adjustLayout: settings.adjustLayoutForMessenger
             }).catch((err) => {
               // Silently ignore errors for tabs where content script isn't loaded
-              if (chrome.runtime.lastError) {
+              if (browserAPI.runtime.lastError) {
                 // Clear the lastError
               }
             });
@@ -142,23 +145,23 @@ async function loadSettings() {
     layoutCheckbox.addEventListener('change', async (e) => {
       try {
         console.log('[Popup] Layout adjustment toggle changed to:', e.target.checked);
-        const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
         settings.adjustLayoutForMessenger = e.target.checked;
-        await chrome.runtime.sendMessage({ action: 'saveSettings', settings });
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
         console.log('[Popup] Settings saved, adjustLayoutForMessenger:', e.target.checked);
 
         // Notify all tabs about the change
-        const tabs = await chrome.tabs.query({});
+        const tabs = await browserAPI.tabs.query({});
         tabs.forEach(tab => {
           if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
             console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'adjustLayout:', e.target.checked);
-            chrome.tabs.sendMessage(tab.id, {
+            browserAPI.tabs.sendMessage(tab.id, {
               action: 'toggleMessengerExpanded',
               expanded: settings.keepMessengerExpanded,
               adjustLayout: e.target.checked
             }).catch((err) => {
               // Silently ignore errors for tabs where content script isn't loaded
-              if (chrome.runtime.lastError) {
+              if (browserAPI.runtime.lastError) {
                 // Clear the lastError
               }
             });
@@ -186,7 +189,7 @@ function setupEventListeners() {
 
     const days = duration === 'permanent' ? null : parseInt(duration, 10);
 
-    await chrome.runtime.sendMessage({
+    await browserAPI.runtime.sendMessage({
       action: 'muteUser',
       userName,
       days
@@ -199,7 +202,7 @@ function setupEventListeners() {
   // Open options
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.runtime.openOptionsPage();
+    browserAPI.runtime.openOptionsPage();
   });
 }
 

@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" manifest.json manifest.firefox.json
+
+      - name: Build packages
+        run: bash build.sh
+
+      - name: Publish release
+        env:
+          FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          IS_PRE=false
+          [[ "$TAG" == *"-"* ]] && IS_PRE=true
+
+          RELEASE=$(curl -sf -X POST \
+            -H "Authorization: token ${FORGEJO_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases" \
+            -d "{\"tag_name\":\"${TAG}\",\"name\":\"${TAG}\",\"prerelease\":${IS_PRE}}")
+
+          RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
+
+          curl -sf -X POST \
+            -H "Authorization: token ${FORGEJO_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=haiilo-enhancer-chrome.zip" \
+            --data-binary @dist/haiilo-enhancer-chrome.zip
+
+          curl -sf -X POST \
+            -H "Authorization: token ${FORGEJO_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=haiilo-enhancer-firefox.xpi" \
+            --data-binary @dist/haiilo-enhancer-firefox.xpi

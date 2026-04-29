@@ -1,6 +1,6 @@
 # Haiilo Enhancer
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![Version](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=version)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)
 
 A browser extension that enhances your Haiilo experience with user muting, UI customizations, custom domain support, and more.
@@ -30,56 +30,72 @@ Haiilo Enhancer is a browser extension designed to give you more control over yo
 
 ## Installation
 
-As this extension is in its early stages, there are no formal releases yet. You can install it for development or testing by loading the extension's source code directly in your browser.
+### Download from Releases
 
-First, [download the repository files](https://codeberg.org/nichu42/haiilo-enhancer/archive/main.zip) and unzip them.
+The easiest way to install is to grab a pre-built package from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
 
-### Loading the Extension in Your Browser
+#### Firefox
 
-#### Chromium-based browser (Vivaldi, Brave, Chrome, Edge, etc.)
+1.  Download `haiilo-enhancer-firefox.xpi`.
+2.  Drag the file onto any Firefox window — or open `about:addons` and choose **Install Add-on From File…**.
 
-You can load the extension directly from the source folder.
+#### Chromium-based browsers (Chrome, Brave, Edge, Vivaldi, …)
 
-1.  Navigate to `chrome://extensions/` (or `edge://extensions/`).
-2.  Enable "Developer mode".
-3.  Click "Load unpacked" and select the project's root directory (the one containing `manifest.json`).
+Chrome and other Chromium browsers do not allow installing self-distributed extensions directly; the extension must be loaded in developer mode.
 
-#### Firefox (NOTE: NOT SUPPORTED YET)
+1.  Download `haiilo-enhancer-chrome.zip` and unzip it.
+2.  Go to `chrome://extensions/` (or the equivalent in your browser).
+3.  Enable **Developer mode**.
+4.  Click **Load unpacked** and select the folder you just unzipped.
 
-For Firefox, a build step is required to use the correct manifest file.
+### Loading from Source (Development)
 
-1.  Follow the build instructions in the section below for your operating system.
-2.  Navigate to `about:debugging#/runtime/this-firefox`.
-3.  Click "Load Temporary Add-on...".
-4.  Select the `manifest.json` file inside the `dist/firefox` directory.
+You can also run the extension straight from the repository.
 
-### Building the Extension (for Firefox & Distribution)
+First, [download the repository](https://codeberg.org/nichu42/haiilo-enhancer/archive/main.zip) and unzip it, or clone it with Git.
 
-While Chromium users can load the source code directly, a build step is required for Firefox. This script also prepares clean packages for distribution.
+#### Chromium-based browsers
+
+No build step needed — load directly from the source folder.
+
+1.  Go to `chrome://extensions/`.
+2.  Enable **Developer mode**.
+3.  Click **Load unpacked** and select the project's root directory (the one containing `manifest.json`).
+
+#### Firefox
+
+A build step is required to use the correct manifest file.
+
+1.  Follow the build instructions below for your operating system.
+2.  Go to `about:debugging#/runtime/this-firefox`.
+3.  Click **Load Temporary Add-on…** and select `dist/firefox/manifest.json`.
+
+### Building the Extension
 
 #### Windows
 
-This project uses a PowerShell script to build the packages. Before running it, you may need to adjust your PowerShell execution policy by running this command in a terminal:
-`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
+You may need to allow the script to run first:
 
-To build the extension, run the script from the project's root directory:
+```
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
 
--   **For Firefox:** `.\build.ps1 -Firefox`
--   **For Chrome (optional):** `.\build.ps1 -Chrome`
--   **For both:** `.\build.ps1`
+Then build from the project's root directory:
+
+-   **Firefox:** `.\build.ps1 -Firefox`
+-   **Chrome:** `.\build.ps1 -Chrome`
+-   **Both:** `.\build.ps1`
 
 #### macOS / Linux
 
-On macOS or Linux, use the provided shell script. First, make the script executable:
-`chmod +x build.sh`
+```bash
+chmod +x build.sh
+./build.sh          # both browsers
+./build.sh -Firefox # Firefox only
+./build.sh -Chrome  # Chrome only
+```
 
-Then, run the script to build the extension:
-
--   **For Firefox:** `./build.sh -Firefox`
--   **For Chrome (optional):** `./build.sh -Chrome`
--   **For both:** `./build.sh`
-
-The build script will create a `dist` folder containing the packaged extension files.
+Packages are written to the `dist/` folder.
 
 ## Usage
 

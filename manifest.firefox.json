@@ -21,7 +21,17 @@
     "scripts": ["background.js"],
     "persistent": false
   },
-  "content_scripts": [],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.haiilo.app/*",
+        "https://*.haiilo.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {

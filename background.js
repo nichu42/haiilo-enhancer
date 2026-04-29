@@ -3,10 +3,12 @@
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+// Firefox MV2 uses browser.browserAction; Chrome MV3 uses chrome.action
+const badgeAPI = typeof browser !== 'undefined' ? browser.browserAction : chrome.action;
 
 // Debug logging helper
 function debugLog(...args) {
-  chrome.storage.local.get('settings').then(data => {
+  browserAPI.storage.local.get('settings').then(data => {
     const settings = data.settings || DEFAULT_SETTINGS;
     if (settings.debugMode) {
       console.log(...args);
@@ -40,24 +42,24 @@ const DEFAULT_SETTINGS = {
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 
 // Initialize extension on install
-chrome.runtime.onInstalled.addListener(async () => {
+browserAPI.runtime.onInstalled.addListener(async () => {
   // Initialize storage with defaults if not set
-  const data = await chrome.storage.local.get(['mutedUsers', 'settings', 'customDomains']);
+  const data = await browserAPI.storage.local.get(['mutedUsers', 'settings', 'customDomains']);
 
   if (!data.mutedUsers) {
-    await chrome.storage.local.set({ mutedUsers: [] });
+    await browserAPI.storage.local.set({ mutedUsers: [] });
   }
 
   if (!data.settings) {
-    await chrome.storage.local.set({ settings: DEFAULT_SETTINGS });
+    await browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS });
   }
 
   if (!data.customDomains) {
-    await chrome.storage.local.set({ customDomains: [] });
+    await browserAPI.storage.local.set({ customDomains: [] });
   }
 
   if (!data.customHomepages) {
-    await chrome.storage.local.set({ customHomepages: {} });
+    await browserAPI.storage.local.set({ customHomepages: {} });
   }
 
   // Create context menu
@@ -71,7 +73,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 // Create context menu on startup and re-register content scripts
-chrome.runtime.onStartup.addListener(async () => {
+browserAPI.runtime.onStartup.addListener(async () => {
   createContextMenu();
 
   // Re-register dynamic content scripts (they don't persist across browser restarts)
@@ -81,10 +83,10 @@ chrome.runtime.onStartup.addListener(async () => {
 // Inject content script when navigating to Haiilo pages
 // Note: Dynamic content scripts handle automatic injection for custom domains
 // This listener serves as a fallback and handles default domains
-chrome.webNavigation.onCompleted.addListener(async (details) => {
+browserAPI.webNavigation.onCompleted.addListener(async (details) => {
   if (await isHaiiloTab({ url: details.url })) {
     try {
-      await chrome.scripting.executeScript({
+      await browserAPI.scripting.executeScript({
         target: { tabId: details.tabId },
         files: ['content.js']
       });
@@ -130,16 +132,16 @@ async function createContextMenu() {
   });
 
   // Remove existing menu items first
-  chrome.contextMenus.removeAll(() => {
+  browserAPI.contextMenus.removeAll(() => {
     // Create parent menu
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'hush-parent',
       title: 'Haiilo Enhancer',
       contexts: ['link', 'selection']
     });
 
     // Mute permanently
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'mute-permanent',
       parentId: 'hush-parent',
       title: 'Mute this user permanently',
@@ -147,7 +149,7 @@ async function createContextMenu() {
     });
 
     // Mute for default days
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'mute-default',
       parentId: 'hush-parent',
       title: 'Mute for default period',
@@ -155,7 +157,7 @@ async function createContextMenu() {
     });
 
     // Separator
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'separator-1',
       parentId: 'hush-parent',
       type: 'separator',
@@ -165,7 +167,7 @@ async function createContextMenu() {
     // Mute for specific durations
     const durations = [1, 3, 7, 14, 30, 90];
     durations.forEach(days => {
-      chrome.contextMenus.create({
+      browserAPI.contextMenus.create({
         id: `mute-${days}`,
         parentId: 'hush-parent',
         title: `Mute for ${days} day${days > 1 ? 's' : ''}`,
@@ -174,7 +176,7 @@ async function createContextMenu() {
     });
 
     // Separator
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'separator-2',
       parentId: 'hush-parent',
       type: 'separator',
@@ -182,7 +184,7 @@ async function createContextMenu() {
     });
 
     // Set as default homepage (only shown for valid homepage links)
-    chrome.contextMenus.create({
+    browserAPI.contextMenus.create({
       id: 'set-homepage',
       parentId: 'hush-parent',
       title: 'Set as default homepage',
@@ -194,7 +196,7 @@ async function createContextMenu() {
 }
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
   debugLog('Context menu clicked:', info);
 
   // Handle setting custom homepage
@@ -211,11 +213,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       // Check if content script is already injected by trying to send a ping
       try {
-        await chrome.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
+        await browserAPI.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
         debugLog('Content script already present');
       } catch (pingError) {
         // Content script not present, inject it
-        await chrome.scripting.executeScript({
+        await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content.js']
         });
@@ -237,7 +239,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   } else if (info.linkUrl) {
     // Try to extract username from the page via content script
     try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
+      const response = await browserAPI.tabs.sendMessage(tab.id, {
         action: 'getUserNameFromElement'
       }).catch(() => null);
       if (response && response.userName) {
@@ -253,7 +255,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!userName) {
     // Ask content script for the last right-clicked username
     try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
+      const response = await browserAPI.tabs.sendMessage(tab.id, {
         action: 'getLastRightClickedUser'
       }).catch(() => null);
       if (response && response.userName) {
@@ -273,7 +275,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   // Determine mute duration
   let muteDays = null; // null = permanent
-  const settings = (await chrome.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
 
   if (info.menuItemId === 'mute-permanent') {
     muteDays = null;
@@ -288,18 +290,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   // Notify content script to update
   try {
-    await chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
+    await browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
     debugLog('Sent refreshFilter message to tab', tab.id);
   } catch (e) {
     console.error('Failed to send refreshFilter message:', e);
     // Try to inject content script and send message again
     try {
-      await chrome.scripting.executeScript({
+      await browserAPI.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content.js']
       });
       debugLog('Re-injected content script, trying refresh again');
-      await chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
+      await browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
     } catch (retryError) {
       console.error('Failed to refresh after re-injection:', retryError);
     }
@@ -309,7 +311,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Mute a user
 async function muteUser(userName, days) {
   debugLog('Muting user:', userName, 'for', days ? `${days} days` : 'permanently');
-  const data = await chrome.storage.local.get('mutedUsers');
+  const data = await browserAPI.storage.local.get('mutedUsers');
   const mutedUsers = data.mutedUsers || [];
 
   // Check if user already exists
@@ -328,13 +330,13 @@ async function muteUser(userName, days) {
     mutedUsers.push(muteEntry);
   }
 
-  await chrome.storage.local.set({ mutedUsers });
+  await browserAPI.storage.local.set({ mutedUsers });
   debugLog(`Muted user: ${userName}`, days ? `for ${days} days` : 'permanently');
   debugLog('Updated muted users list:', mutedUsers);
 }
 
 // Listen for messages from content script or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getMutedUsers') {
     getMutedUsers().then(sendResponse);
     return true; // Keep channel open for async response
@@ -358,21 +360,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'getSettings') {
-    chrome.storage.local.get('settings').then(data => {
+    browserAPI.storage.local.get('settings').then(data => {
       sendResponse(data.settings || DEFAULT_SETTINGS);
     });
     return true;
   }
 
   if (message.action === 'saveSettings') {
-    chrome.storage.local.set({ settings: message.settings }).then(() => {
+    browserAPI.storage.local.set({ settings: message.settings }).then(() => {
       sendResponse({ success: true });
     });
     return true;
   }
 
   if (message.action === 'resetSettings') {
-    chrome.storage.local.set({ settings: DEFAULT_SETTINGS }).then(() => {
+    browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS }).then(() => {
       sendResponse({ success: true });
     });
     return true;
@@ -382,11 +384,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     debugLog('Updating badge for tab', sender.tab.id, 'with count', message.count);
     // Update badge with hidden count
     if (message.count > 0) {
-      chrome.action.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });
-      chrome.action.setBadgeBackgroundColor({ color: '#6366f1', tabId: sender.tab.id });
+      badgeAPI.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });
+      badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: sender.tab.id });
       debugLog('Badge updated with count:', message.count);
     } else {
-      chrome.action.setBadgeText({ text: '', tabId: sender.tab.id });
+      badgeAPI.setBadgeText({ text: '', tabId: sender.tab.id });
       debugLog('Badge cleared');
     }
     sendResponse({ success: true });
@@ -394,7 +396,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'getCustomDomains') {
-    chrome.storage.local.get('customDomains').then(data => {
+    browserAPI.storage.local.get('customDomains').then(data => {
       sendResponse(data.customDomains || []);
     });
     return true;
@@ -426,7 +428,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'getCustomHomepages') {
-    chrome.storage.local.get('customHomepages').then(data => {
+    browserAPI.storage.local.get('customHomepages').then(data => {
       sendResponse(data.customHomepages || {});
     });
     return true;
@@ -451,7 +453,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Get active muted users (filter out expired)
 async function getMutedUsers() {
-  const data = await chrome.storage.local.get('mutedUsers');
+  const data = await browserAPI.storage.local.get('mutedUsers');
   let mutedUsers = data.mutedUsers || [];
   const now = Date.now();
 
@@ -467,7 +469,7 @@ async function getMutedUsers() {
 
   // Save if we filtered any out
   if (activeUsers.length !== mutedUsers.length) {
-    await chrome.storage.local.set({ mutedUsers: activeUsers });
+    await browserAPI.storage.local.set({ mutedUsers: activeUsers });
     debugLog('Saved filtered muted users list');
   }
 
@@ -476,11 +478,11 @@ async function getMutedUsers() {
 
 // Unmute a user
 async function unmuteUser(userName) {
-  const data = await chrome.storage.local.get('mutedUsers');
+  const data = await browserAPI.storage.local.get('mutedUsers');
   const mutedUsers = data.mutedUsers || [];
 
   const filtered = mutedUsers.filter(u => u.name.toLowerCase() !== userName.toLowerCase());
-  await chrome.storage.local.set({ mutedUsers: filtered });
+  await browserAPI.storage.local.set({ mutedUsers: filtered });
 
   console.log(`Unmuted user: ${userName}`);
 }
@@ -490,17 +492,17 @@ async function notifyAllHaiiloTabs() {
   const allDomains = await getAllDomains();
   const urlPatterns = allDomains.map(d => `https://*.${d}/*`).concat(allDomains.map(d => `https://${d}/*`));
 
-  const tabs = await chrome.tabs.query({});
+  const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
     if (await isHaiiloTab(tab)) {
-      chrome.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+      browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
     }
   }
 }
 
 // Get all domains (default + custom)
 async function getAllDomains() {
-  const data = await chrome.storage.local.get('customDomains');
+  const data = await browserAPI.storage.local.get('customDomains');
   const customDomains = data.customDomains || [];
   return [...DEFAULT_DOMAINS, ...customDomains];
 }
@@ -519,7 +521,7 @@ async function isHaiiloTab(tab) {
 
 // Add a custom domain (permission must be granted before calling this)
 async function addCustomDomain(domain) {
-  const data = await chrome.storage.local.get('customDomains');
+  const data = await browserAPI.storage.local.get('customDomains');
   const customDomains = data.customDomains || [];
 
   if (customDomains.includes(domain)) {
@@ -528,7 +530,7 @@ async function addCustomDomain(domain) {
 
   try {
     customDomains.push(domain);
-    await chrome.storage.local.set({ customDomains });
+    await browserAPI.storage.local.set({ customDomains });
     console.log(`Added custom domain: ${domain}`);
 
     // Rebuild context menu to include new domain in targetUrlPatterns
@@ -547,11 +549,11 @@ async function addCustomDomain(domain) {
 
 // Remove a custom domain (permissions should be removed by the options page before calling this)
 async function removeCustomDomain(domain) {
-  const data = await chrome.storage.local.get('customDomains');
+  const data = await browserAPI.storage.local.get('customDomains');
   const customDomains = data.customDomains || [];
 
   const filtered = customDomains.filter(d => d !== domain);
-  await chrome.storage.local.set({ customDomains: filtered });
+  await browserAPI.storage.local.set({ customDomains: filtered });
 
   // Rebuild context menu to remove domain from targetUrlPatterns
   await createContextMenu();
@@ -577,14 +579,14 @@ async function removeCustomDomain(domain) {
 async function registerDynamicContentScripts() {
   try {
     // First, unregister all existing dynamic scripts to avoid duplicates
-    const existingScripts = await chrome.scripting.getRegisteredContentScripts();
+    const existingScripts = await browserAPI.scripting.getRegisteredContentScripts();
     if (existingScripts.length > 0) {
-      await chrome.scripting.unregisterContentScripts();
+      await browserAPI.scripting.unregisterContentScripts();
       debugLog('Unregistered existing content scripts:', existingScripts.map(s => s.id));
     }
 
     // Get custom domains only (default domains use host_permissions)
-    const data = await chrome.storage.local.get('customDomains');
+    const data = await browserAPI.storage.local.get('customDomains');
     const customDomains = data.customDomains || [];
 
     if (customDomains.length === 0) {
@@ -603,7 +605,7 @@ async function registerDynamicContentScripts() {
       ];
 
       // Check if we have permission for this domain
-      const hasPermission = await chrome.permissions.contains({ origins });
+      const hasPermission = await browserAPI.permissions.contains({ origins });
 
       if (!hasPermission) {
         console.warn(`No permission for domain ${domain}, skipping registration`);
@@ -611,7 +613,7 @@ async function registerDynamicContentScripts() {
       }
 
       try {
-        await chrome.scripting.registerContentScripts([
+        await browserAPI.scripting.registerContentScripts([
           {
             id: `haiilo-enhancer-${domain}`,
             matches: origins,
@@ -634,17 +636,17 @@ async function registerDynamicContentScripts() {
 
 // Inject content scripts into all Haiilo tabs
 async function injectContentScripts() {
-  const tabs = await chrome.tabs.query({});
+  const tabs = await browserAPI.tabs.query({});
 
   for (const tab of tabs) {
     if (await isHaiiloTab(tab)) {
       try {
-        await chrome.scripting.executeScript({
+        await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content.js']
         });
 
-        await chrome.scripting.insertCSS({
+        await browserAPI.scripting.insertCSS({
           target: { tabId: tab.id },
           files: ['content.css']
         });
@@ -660,22 +662,22 @@ async function injectContentScripts() {
 
 // Set custom homepage for a specific base URL
 async function setCustomHomepage(baseUrl, homepageUrl) {
-  const data = await chrome.storage.local.get('customHomepages');
+  const data = await browserAPI.storage.local.get('customHomepages');
   const customHomepages = data.customHomepages || {};
 
   customHomepages[baseUrl] = homepageUrl;
-  await chrome.storage.local.set({ customHomepages });
+  await browserAPI.storage.local.set({ customHomepages });
 
   console.log(`Set custom homepage for ${baseUrl}: ${homepageUrl}`);
 }
 
 // Remove custom homepage for a specific base URL
 async function removeCustomHomepage(baseUrl) {
-  const data = await chrome.storage.local.get('customHomepages');
+  const data = await browserAPI.storage.local.get('customHomepages');
   const customHomepages = data.customHomepages || {};
 
   delete customHomepages[baseUrl];
-  await chrome.storage.local.set({ customHomepages });
+  await browserAPI.storage.local.set({ customHomepages });
 
   console.log(`Removed custom homepage for ${baseUrl}`);
 }
@@ -704,9 +706,9 @@ async function handleSetHomepage(info, tab) {
     // Ensure content script is injected
     if (await isHaiiloTab(tab)) {
       try {
-        await chrome.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
+        await browserAPI.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => null);
       } catch (pingError) {
-        await chrome.scripting.executeScript({
+        await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content.js']
         });
@@ -715,7 +717,7 @@ async function handleSetHomepage(info, tab) {
     }
 
     // Ask content script for homepage URL from clicked element
-    const response = await chrome.tabs.sendMessage(tab.id, {
+    const response = await browserAPI.tabs.sendMessage(tab.id, {
       action: 'getHomepageUrl'
     }).catch(() => null);
 
@@ -724,13 +726,13 @@ async function handleSetHomepage(info, tab) {
       console.log(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
 
       // Notify all tabs of the same instance to update
-      const tabs = await chrome.tabs.query({});
+      const tabs = await browserAPI.tabs.query({});
       for (const t of tabs) {
         if (await isHaiiloTab(t)) {
           const url = new URL(t.url);
           const baseUrl = url.protocol + '//' + url.hostname;
           if (baseUrl === response.baseUrl) {
-            chrome.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
+            browserAPI.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
           }
         }
       }

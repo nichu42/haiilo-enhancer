@@ -7,7 +7,8 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: codeberg-tiny
+    runs-on: codeberg-small
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -23,14 +24,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Check AMO secrets
-        env:
-          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
-          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
-        run: |
-          echo "AMO_JWT_ISSUER length: ${#AMO_JWT_ISSUER}"
-          echo "AMO_JWT_SECRET length: ${#AMO_JWT_SECRET}"
-
       - name: Sign Firefox extension
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
@@ -41,7 +34,8 @@ jobs:
             --artifacts-dir dist \
             --api-key "$AMO_JWT_ISSUER" \
             --api-secret "$AMO_JWT_SECRET" \
-            --channel unlisted
+            --channel unlisted \
+            --timeout 900000
 
       - name: Publish release
         env:

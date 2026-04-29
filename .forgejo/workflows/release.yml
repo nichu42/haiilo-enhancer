@@ -23,6 +23,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Check AMO secrets
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          echo "AMO_JWT_ISSUER length: ${#AMO_JWT_ISSUER}"
+          echo "AMO_JWT_SECRET length: ${#AMO_JWT_SECRET}"
+
       - name: Sign Firefox extension
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}

@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: docker
+    runs-on: codeberg-small
     steps:
       - uses: actions/checkout@v4
 

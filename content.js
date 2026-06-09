@@ -90,6 +90,7 @@
   let dateTimeProcessed = false;
   let messengerOverlayObserver = null;
   let keepMessengerExpandedActive = false;
+  let messengerReopenObserver = null;
   let bodyStyleObserver = null;
   let backdropCheckInterval = null;
   let classObserver = null;
@@ -120,56 +121,33 @@
     }
   }
 
-  // Function to block overlay click events
-  function blockOverlayClicks(e) {
+  // Function to keep the messenger open: re-opens it when the page tries to close it
+  // (e.g. via Angular's outside-click handler). It does NOT block any other clicks,
+  // so page content and UI chrome (navbar, bell, etc.) remain interactive.
+  function reopenMessengerIfClosed() {
     if (!keepMessengerExpandedActive) return;
 
-    const target = e.target;
+    const sidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
+    if (!sidebar) return;
 
-    // Check if messenger panel is open
-    const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-    if (!messengerPanel) {
-      // Messenger not open - don't block anything
-      debugLog('[Content] No messenger panel, allowing all clicks');
-      return;
+    const aside = sidebar.querySelector('aside.sidebar-container');
+    if (!aside) return;
+
+    const isCollapsed = aside.classList.contains('one-c');
+    const isOpen =
+      aside.classList.contains('two-c') ||
+      aside.classList.contains('two-columns');
+
+    if (isOpen) return;
+    if (!isCollapsed) return;
+
+    // Re-open by clicking the first channel-list-entry (the previous chat).
+    // Falling back to the first entry keeps the chat stable for the user.
+    const entry = sidebar.querySelector('coyo-messaging-channel-list-entry');
+    if (entry) {
+      debugLog('[Content] Messenger collapsed, re-opening via channel entry');
+      entry.click();
     }
-
-    // Check if click is on messenger panel itself or its children
-    if (target === messengerPanel || messengerPanel.contains(target)) {
-      // Allow clicks within the messenger
-      debugLog('[Content] Click inside messenger, allowing');
-      return;
-    }
-
-    // Check if the click is on a backdrop element
-    const isBackdropClick = target.classList && (
-      target.classList.contains('cdk-overlay-backdrop') ||
-      target.classList.contains('menu-overlay') ||
-      target.classList.contains('cdk-overlay-dark-backdrop') ||
-      target.classList.contains('cdk-overlay-transparent-backdrop')
-    );
-
-    // Also check for Angular backdrop divs
-    const style = target.getAttribute && target.getAttribute('style');
-    const isAngularBackdrop = style &&
-      style.includes('position: fixed') &&
-      style.includes('background: rgba') &&
-      style.includes('width: 100%') &&
-      style.includes('height: 100%');
-
-    // If clicking on a backdrop, always allow it through
-    // Backdrop clicks are meant to close overlays (modals, search, etc.)
-    if (isBackdropClick || isAngularBackdrop) {
-      debugLog('[Content] Backdrop click detected, allowing through');
-      return;
-    }
-
-    // Not a backdrop click and messenger is open - this is a click on page content
-    // Block it to prevent messenger from closing
-    debugLog('[Content] Content click outside messenger while messenger open, blocking');
-    e.stopImmediatePropagation();
-    e.stopPropagation();
-    e.preventDefault();
   }
 
   // Function to determine if a backdrop should be removed
@@ -264,7 +242,7 @@
       // Add CSS to ensure page remains interactive
       // CRITICAL: Hide Angular backdrops via CSS (per CLAUDE.md lines 84-91)
       // This solves the race condition - CSS applies immediately, no need to wait for DOM
-      // Modal backdrops are hidden but still clickable via blockOverlayClicks allowing clicks through
+      // Modal backdrops are hidden by CSS but still clickable, so modals close normally
       const messengerCSS = `
         /* Hide Angular backdrop divs created for messenger */
         div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"] {
@@ -296,14 +274,19 @@
       // and periodic check handle it. This avoids timing issues with
       // messenger panel not being in DOM yet.
 
-      // Set up click event blockers on capture phase (before other handlers)
-      // Use multiple event types to catch all possible interaction methods
-      document.addEventListener('click', blockOverlayClicks, true);
-      document.addEventListener('mousedown', blockOverlayClicks, true);
-      document.addEventListener('mouseup', blockOverlayClicks, true);
-      document.addEventListener('pointerdown', blockOverlayClicks, true);
-      document.addEventListener('pointerup', blockOverlayClicks, true);
-      debugLog('[Content] Added click event blockers');
+      // Watch for the messenger collapsing (e.g. after an outside click)
+      // and re-open it. This keeps the messenger visible without blocking
+      // any page-content clicks.
+      if (!messengerReopenObserver) {
+        messengerReopenObserver = new MutationObserver(reopenMessengerIfClosed);
+        messengerReopenObserver.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class']
+        });
+        debugLog('[Content] Added messenger re-open observer');
+      }
 
       // Set up MutationObserver to watch for body style changes
       if (!bodyStyleObserver) {
@@ -366,13 +349,7 @@
         debugLog('[Content] Removed messenger expanded CSS');
       }
 
-      // Remove event listeners
-      document.removeEventListener('click', blockOverlayClicks, true);
-      document.removeEventListener('mousedown', blockOverlayClicks, true);
-      document.removeEventListener('mouseup', blockOverlayClicks, true);
-      document.removeEventListener('pointerdown', blockOverlayClicks, true);
-      document.removeEventListener('pointerup', blockOverlayClicks, true);
-      debugLog('[Content] Removed click event blockers');
+      // No click listeners to remove — the re-open observer handles everything.
 
       if (bodyStyleObserver) {
         bodyStyleObserver.disconnect();
@@ -390,6 +367,12 @@
         messengerOverlayObserver.disconnect();
         messengerOverlayObserver = null;
         debugLog('[Content] Disconnected messenger overlay observer');
+      }
+
+      if (messengerReopenObserver) {
+        messengerReopenObserver.disconnect();
+        messengerReopenObserver = null;
+        debugLog('[Content] Disconnected messenger re-open observer');
       }
 
       if (backdropCheckInterval) {

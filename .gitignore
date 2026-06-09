@@ -1,12 +1,8 @@
-# VSCode
-.vscode/
-.history/
-*.vsix
-
 #LLM
-.claude/
-CLAUDE.md
 AGENTS.md
 
 # Build output
 dist/
+
+# Local Playwright debug harness
+haiilo-debug/

@@ -4,7 +4,23 @@
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
+// Debug logging helper - reads the debugMode flag from settings on each
+// call so live toggles take effect without reload.
+function debugLog(...args) {
+  browserAPI.storage.local.get('settings').then(data => {
+    const settings = data.settings || {};
+    if (settings.debugMode) {
+      console.log(...args);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  // Display version from manifest
+  const manifest = browserAPI.runtime.getManifest();
+  const versionEl = document.getElementById('versionInfo');
+  if (versionEl) versionEl.textContent = `v${manifest.version}`;
+
   await loadMutedUsers();
   await loadHiddenCount();
   await loadSettings();
@@ -14,13 +30,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadMutedUsers() {
   const response = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
   const mutedList = document.getElementById('mutedList');
+  mutedList.textContent = '';
 
   if (!response || response.length === 0) {
-    mutedList.innerHTML = '<p class="empty-state">No muted users yet. Right-click on a username to mute.</p>';
+    const emptyEl = document.createElement('p');
+    emptyEl.className = 'empty-state';
+    emptyEl.textContent = 'No muted users yet. Right-click on a username to mute.';
+    mutedList.appendChild(emptyEl);
     return;
   }
 
-  mutedList.innerHTML = response.map(user => createUserElement(user)).join('');
+  response.forEach(user => mutedList.appendChild(createUserElement(user)));
 
   // Add event listeners to unmute buttons
   mutedList.querySelectorAll('.unmute-btn').forEach(btn => {
@@ -33,21 +53,34 @@ async function loadMutedUsers() {
 }
 
 function createUserElement(user) {
-  const expiryText = user.permanent
-    ? 'Permanently muted'
-    : `Expires ${formatExpiry(user.expiresAt)}`;
+  const div = document.createElement('div');
+  div.className = 'muted-user';
+
+  const infoDiv = document.createElement('div');
+  infoDiv.className = 'muted-user-info';
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'muted-user-name';
+  nameDiv.textContent = user.name;
+  nameDiv.title = user.name;
 
   const expiryClass = user.permanent ? 'permanent' : '';
+  const expiryDiv = document.createElement('div');
+  expiryDiv.className = `muted-user-expiry ${expiryClass}`;
+  expiryDiv.textContent = user.permanent ? 'Permanently muted' : `Expires ${formatExpiry(user.expiresAt)}`;
 
-  return `
-    <div class="muted-user">
-      <div class="muted-user-info">
-        <div class="muted-user-name" title="${escapeHtml(user.name)}">${escapeHtml(user.name)}</div>
-        <div class="muted-user-expiry ${expiryClass}">${expiryText}</div>
-      </div>
-      <button class="unmute-btn" data-user="${escapeHtml(user.name)}">Unmute</button>
-    </div>
-  `;
+  infoDiv.appendChild(nameDiv);
+  infoDiv.appendChild(expiryDiv);
+
+  const btn = document.createElement('button');
+  btn.className = 'unmute-btn';
+  btn.dataset.user = user.name;
+  btn.textContent = 'Unmute';
+
+  div.appendChild(infoDiv);
+  div.appendChild(btn);
+
+  return div;
 }
 
 function formatExpiry(timestamp) {
@@ -79,7 +112,7 @@ async function loadHiddenCount() {
     }
   } catch (e) {
     // Tab might not have content script loaded
-    console.log('Could not get hidden count:', e);
+    debugLog('Could not get hidden count:', e);
   }
 }
 
@@ -94,7 +127,7 @@ async function loadSettings() {
     // Attach event listener immediately after setting the checkbox
     messengerCheckbox.addEventListener('change', async (e) => {
       try {
-        console.log('[Popup] Messenger expanded toggle changed to:', e.target.checked);
+        debugLog('[Popup] Messenger expanded toggle changed to:', e.target.checked);
         const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
         settings.keepMessengerExpanded = e.target.checked;
 
@@ -113,14 +146,14 @@ async function loadSettings() {
         }
 
         await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
-        console.log('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
+        debugLog('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
 
         // Notify all tabs about the change
         const tabs = await browserAPI.tabs.query({});
-        console.log('[Popup] Found', tabs.length, 'total tabs');
+        debugLog('[Popup] Found', tabs.length, 'total tabs');
         tabs.forEach(tab => {
           if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
-            console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'expanded:', e.target.checked);
+            debugLog('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'expanded:', e.target.checked);
             browserAPI.tabs.sendMessage(tab.id, {
               action: 'toggleMessengerExpanded',
               expanded: e.target.checked,
@@ -145,17 +178,17 @@ async function loadSettings() {
 
     layoutCheckbox.addEventListener('change', async (e) => {
       try {
-        console.log('[Popup] Layout adjustment toggle changed to:', e.target.checked);
+        debugLog('[Popup] Layout adjustment toggle changed to:', e.target.checked);
         const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
         settings.adjustLayoutForMessenger = e.target.checked;
         await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
-        console.log('[Popup] Settings saved, adjustLayoutForMessenger:', e.target.checked);
+        debugLog('[Popup] Settings saved, adjustLayoutForMessenger:', e.target.checked);
 
         // Notify all tabs about the change
         const tabs = await browserAPI.tabs.query({});
         tabs.forEach(tab => {
           if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
-            console.log('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'adjustLayout:', e.target.checked);
+            debugLog('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'adjustLayout:', e.target.checked);
             browserAPI.tabs.sendMessage(tab.id, {
               action: 'toggleMessengerExpanded',
               expanded: settings.keepMessengerExpanded,
@@ -205,10 +238,4 @@ function setupEventListeners() {
     e.preventDefault();
     browserAPI.runtime.openOptionsPage();
   });
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }

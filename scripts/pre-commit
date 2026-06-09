@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+# Pre-commit hook: run the console-output lint on staged JS files.
+# Blocks the commit if any unguarded console.log / console.warn / console.info /
+# console.debug call is found.
+#
+# Install with: sh scripts/install-hooks.sh
+# Or manually:   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+# Get the directory of this hook script (resolve symlinks so the .git/hooks
+# path doesn't break things if the repo lives in a worktree).
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+
+# Only run if the JS files we care about are staged.
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|mjs)$' | grep -E '^(background|content|popup|options)\.js$')
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+# Run the lint.
+if command -v node >/dev/null 2>&1; then
+  cd "$REPO_ROOT" && node scripts/lint-console.mjs
+  EXIT=$?
+  if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "pre-commit: console-output lint failed."
+    echo "Wrap console.log/warn/info/debug calls in debugLog() or change to console.error."
+    echo "If this is a false positive, use 'git commit --no-verify' to bypass."
+    exit $EXIT
+  fi
+else
+  echo "pre-commit: node not found, skipping console lint"
+fi
+
+exit 0

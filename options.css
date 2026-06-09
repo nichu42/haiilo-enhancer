@@ -47,6 +47,19 @@ header .subtitle {
   letter-spacing: 0.5px;
 }
 
+header .version {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary-teal);
+  background: rgba(15, 147, 157, 0.1);
+  border-radius: 999px;
+  letter-spacing: 0;
+  vertical-align: 2px;
+}
+
 section {
   background: var(--color-bg-white);
   border: none;
@@ -224,10 +237,96 @@ footer {
   margin-top: 24px;
 }
 
+footer .footer-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
 footer .credits {
   margin-top: 6px;
   font-style: italic;
 }
+
+footer .footer-spacer {
+  margin-top: 14px;
+}
+
+footer .license-text {
+  margin-top: 12px;
+  line-height: 1.55;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+footer .license-text a {
+  color: var(--color-primary-teal);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+footer .license-text a:hover {
+  color: var(--color-primary-teal-dark);
+  border-bottom-color: var(--color-primary-teal);
+}
+
+footer .license-text a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 147, 157, 0.25);
+  border-radius: 2px;
+}
+
+footer .footer-donate {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+footer .donate-label {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+footer .donate-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-white);
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+footer .donate-link:hover {
+  border-color: var(--color-border-medium);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+footer .donate-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 147, 157, 0.25);
+}
+
+footer .donate-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex-shrink: 0;
+}
+
 
 /* Custom domains section */
 .domain-input-group {

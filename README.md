@@ -81,7 +81,7 @@ Contributions are always welcome — feel free to open an issue or submit a pull
 
 If you find this extension useful, please consider supporting its development:
 
-[![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/nichu42/donate)
+[![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/nichu42/donate) [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nichu42)
 
 ## ⚠️ Disclaimer
 

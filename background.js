@@ -40,7 +40,11 @@ const DEFAULT_SETTINGS = {
   dateFormat: 'MMDD', // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
   timeFormat: '12h', // '12h' or '24h'
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
-  adjustLayoutForMessenger: false // Adjust page layout when messenger is expanded
+  adjustLayoutForMessenger: false, // Adjust page layout when messenger is expanded
+  autoExpandEnabled: false, // Auto-click "Show more" buttons in sidebar lists
+  autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
+  autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
+  autoExpandScope: 'both' // Which lists to expand: 'both', 'workspaces', or 'pages'
 };
 
 // Default domains
@@ -274,7 +278,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 
   if (!userName) {
-    console.log('No username found to mute');
+    debugLog('No username found to mute');
     return;
   }
 
@@ -494,7 +498,7 @@ async function unmuteUser(userName) {
   const filtered = mutedUsers.filter(u => u.name.toLowerCase() !== userName.toLowerCase());
   await browserAPI.storage.local.set({ mutedUsers: filtered });
 
-  console.log(`Unmuted user: ${userName}`);
+  debugLog(`Unmuted user: ${userName}`);
 }
 
 // Notify all Haiilo tabs to refresh their filter
@@ -541,7 +545,7 @@ async function addCustomDomain(domain) {
   try {
     customDomains.push(domain);
     await browserAPI.storage.local.set({ customDomains });
-    console.log(`Added custom domain: ${domain}`);
+    debugLog(`Added custom domain: ${domain}`);
 
     // Rebuild context menu to include new domain in targetUrlPatterns
     await createContextMenu();
@@ -571,7 +575,7 @@ async function removeCustomDomain(domain) {
   // Re-register dynamic content scripts (this will unregister the removed domain)
   await registerDynamicContentScripts();
 
-  console.log(`Removed custom domain: ${domain}`);
+  debugLog(`Removed custom domain: ${domain}`);
 }
 
 // Register dynamic content scripts for custom domains
@@ -618,7 +622,7 @@ async function registerDynamicContentScripts() {
       const hasPermission = await browserAPI.permissions.contains({ origins });
 
       if (!hasPermission) {
-        console.warn(`No permission for domain ${domain}, skipping registration`);
+        debugLog(`No permission for domain ${domain}, skipping registration`);
         continue;
       }
 
@@ -632,7 +636,7 @@ async function registerDynamicContentScripts() {
             runAt: 'document_idle'
           }
         ]);
-        console.log(`Registered content script for custom domain: ${domain}`);
+        debugLog(`Registered content script for custom domain: ${domain}`);
       } catch (error) {
         console.error(`Failed to register content script for ${domain}:`, error);
       }
@@ -661,10 +665,10 @@ async function injectContentScripts() {
           files: ['content.css']
         });
 
-        console.log(`Injected content script into tab ${tab.id}`);
+        debugLog(`Injected content script into tab ${tab.id}`);
       } catch (e) {
         // Tab might not allow script injection (e.g., chrome:// pages)
-        console.log(`Could not inject into tab ${tab.id}:`, e.message);
+        debugLog(`Could not inject into tab ${tab.id}:`, e.message);
       }
     }
   }
@@ -678,7 +682,7 @@ async function setCustomHomepage(baseUrl, homepageUrl) {
   customHomepages[baseUrl] = homepageUrl;
   await browserAPI.storage.local.set({ customHomepages });
 
-  console.log(`Set custom homepage for ${baseUrl}: ${homepageUrl}`);
+  debugLog(`Set custom homepage for ${baseUrl}: ${homepageUrl}`);
 }
 
 // Remove custom homepage for a specific base URL
@@ -689,7 +693,7 @@ async function removeCustomHomepage(baseUrl) {
   delete customHomepages[baseUrl];
   await browserAPI.storage.local.set({ customHomepages });
 
-  console.log(`Removed custom homepage for ${baseUrl}`);
+  debugLog(`Removed custom homepage for ${baseUrl}`);
 }
 
 // Handle setting custom homepage from context menu
@@ -704,11 +708,11 @@ async function handleSetHomepage(info, tab) {
         if (!pathname.startsWith('/home/') &&
             !pathname.startsWith('/pages/') &&
             !pathname.startsWith('/workspaces/')) {
-          console.log('Link URL is not a valid homepage path:', pathname);
+          debugLog('Link URL is not a valid homepage path:', pathname);
           return;
         }
       } catch (e) {
-        console.log('Could not parse link URL:', info.linkUrl);
+        debugLog('Could not parse link URL:', info.linkUrl);
         return;
       }
     }
@@ -733,7 +737,7 @@ async function handleSetHomepage(info, tab) {
 
     if (response && response.homepageUrl && response.baseUrl) {
       await setCustomHomepage(response.baseUrl, response.homepageUrl);
-      console.log(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
+      debugLog(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
 
       // Notify all tabs of the same instance to update
       const tabs = await browserAPI.tabs.query({});
@@ -747,7 +751,7 @@ async function handleSetHomepage(info, tab) {
         }
       }
     } else {
-      console.log('Could not determine homepage URL from clicked element');
+      debugLog('Could not determine homepage URL from clicked element');
     }
   } catch (e) {
     console.error('Error setting custom homepage:', e);

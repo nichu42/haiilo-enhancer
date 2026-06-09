@@ -9,8 +9,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>Haiilo Enhancer</h1>
-      <p class="subtitle">Options</p>
+      <h1>Haiilo Enhancer <span class="version" id="versionInfo">v0.1.2</span></h1>
     </header>
 
     <section>
@@ -165,6 +164,36 @@
     </section>
 
     <section>
+      <h2>Auto-Expand Sidebar Lists</h2>
+      <p class="description">Haiilo's left sidebar shows a limited number of Workspaces and Pages before hiding the rest behind a "Show more" button. Enable this to auto-click that button on page load so all entries are visible at once.</p>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="autoExpandEnabled">
+          <span>Auto-expand sidebar lists on page load</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="autoExpandScope">Which lists to expand:</label>
+        <select id="autoExpandScope">
+          <option value="both">Both Workspaces and Pages</option>
+          <option value="workspaces">Workspaces only</option>
+          <option value="pages">Pages only</option>
+        </select>
+        <small class="help-text">Choose which sidebar lists the auto-expander should affect.</small>
+      </div>
+      <div class="form-group">
+        <label for="autoExpandClicksPerList">"Show more" clicks per list:</label>
+        <input type="number" id="autoExpandClicksPerList" min="0" max="10" step="1" value="3">
+        <small class="help-text">How many times to click "Show more" for each list (Workspaces and Pages are expanded independently). 0 disables clicking for that list. Max 10.</small>
+      </div>
+      <div class="form-group">
+        <label for="autoExpandDelayMs">Delay between clicks (ms):</label>
+        <input type="number" id="autoExpandDelayMs" min="100" max="1000" step="50" value="300">
+        <small class="help-text">How long to wait between consecutive "Show more" clicks. Lower values feel snappier, higher values are gentler on the server. Range: 100-1000 ms.</small>
+      </div>
+    </section>
+
+    <section>
       <h2>Custom Haiilo Domains</h2>
       <p class="description">Add custom domains if your organization uses a custom Haiilo URL instead of *.haiilo.app</p>
       <div id="domainsList" class="domains-list"></div>
@@ -202,8 +231,39 @@
     </section>
 
     <footer>
-      <p id="versionInfo">Haiilo Enhancer</p>
+      <p class="footer-title" id="footerVersion">Haiilo Enhancer</p>
       <p class="credits">Made for a more peaceful Haiilo experience</p>
+      <p class="footer-spacer"></p>
+      <p class="license-text">
+        Copyright &copy; 2026 nichu42 and contributors
+      </p>
+      <p class="license-text">
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as published
+        by the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+      </p>
+      <p class="license-text">
+        This program is distributed in the hope that it will be useful, but
+        WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+        <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">GNU Affero General Public License</a>
+        for more details.
+      </p>
+      <p class="license-text">
+        <a href="https://codeberg.org/nichu42/haiilo-enhancer/issues" target="_blank" rel="noopener">Report a bug / request a feature</a>
+      </p>
+      <p class="license-text footer-donate">
+        <span class="donate-label">Support this project:</span>
+        <a class="donate-link donate-liberapay" href="https://liberapay.com/nichu42/" target="_blank" rel="noopener" aria-label="Donate on Liberapay">
+          <svg class="donate-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#f6c915"/><text x="12" y="16" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="800" font-size="11" fill="#1a171b">lp</text></svg>
+          <span>Liberapay</span>
+        </a>
+        <a class="donate-link donate-kofi" href="https://ko-fi.com/nichu42" target="_blank" rel="noopener" aria-label="Donate on Ko-fi">
+          <svg class="donate-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#FF5E5B"/><path d="M6 10h11v1a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5v-1zm0-2a1 1 0 0 1 1-1h11a1 1 0 0 1 0 2H7a1 1 0 0 1-1-1z" fill="#ffffff"/></svg>
+          <span>Ko-fi</span>
+        </a>
+      </p>
     </footer>
   </div>
 

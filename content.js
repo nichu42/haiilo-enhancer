@@ -92,8 +92,35 @@
   let keepMessengerExpandedActive = false;
   let messengerReopenObserver = null;
   let bodyStyleObserver = null;
-  let backdropCheckInterval = null;
   let classObserver = null;
+  let autoExpandEnabled = false;
+  let autoExpandClicksPerList = 3;
+  let autoExpandDelayMs = 300;
+  let autoExpandScope = 'both';
+  let autoExpandMountObserver = null;
+  // Per-button state. Track whether each show-more button has been
+  // processed in this page load, keyed by its data-test value
+  // ('show-more-workspace' or 'show-more-page'). Each button is
+  // independent - the runner can process workspace and pages at
+  // different times because they may appear at different moments
+  // as Haiilo re-renders the sidebar.
+  const autoExpandProcessed = new Set();
+  const AUTO_EXPAND_SELECTORS = {
+    workspaces: 'button[data-test="show-more-workspace"]',
+    pages: 'button[data-test="show-more-page"]'
+  };
+
+  // Returns the list of selectors we should act on given the current scope.
+  function getAutoExpandSelectors() {
+    if (autoExpandScope === 'workspaces') return [AUTO_EXPAND_SELECTORS.workspaces];
+    if (autoExpandScope === 'pages') return [AUTO_EXPAND_SELECTORS.pages];
+    return [AUTO_EXPAND_SELECTORS.workspaces, AUTO_EXPAND_SELECTORS.pages];
+  }
+
+  // Normalize a stored scope value to one of the three valid strings.
+  function normalizeAutoExpandScope(value) {
+    return (value === 'workspaces' || value === 'pages') ? value : 'both';
+  }
 
   // Debug logging helper
   function debugLog(...args) {
@@ -276,16 +303,55 @@
 
       // Watch for the messenger collapsing (e.g. after an outside click)
       // and re-open it. This keeps the messenger visible without blocking
-      // any page-content clicks.
+      // any page-content clicks. We observe the messenger's sidebar host
+      // for childList + the aside for class changes, then re-resolve the
+      // aside on each fire. This is much cheaper than observing the
+      // entire document for class changes.
       if (!messengerReopenObserver) {
-        messengerReopenObserver = new MutationObserver(reopenMessengerIfClosed);
-        messengerReopenObserver.observe(document.body, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['class']
+        let currentAside = null;
+        const reattach = (sidebar) => {
+          const aside = sidebar.querySelector('aside.sidebar-container');
+          if (aside === currentAside) return;
+          // The observer can only observe one target; re-create it.
+          messengerReopenObserver.disconnect();
+          currentAside = aside;
+          if (!aside) return;
+          messengerReopenObserver.observe(aside, {
+            attributes: true,
+            attributeFilter: ['class']
+          });
+          debugLog('[Content] Messenger re-open observer attached to aside');
+        };
+
+        messengerReopenObserver = new MutationObserver(() => {
+          if (!keepMessengerExpandedActive) return;
+          const sidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
+          if (!sidebar) return;
+          reattach(sidebar);
+          reopenMessengerIfClosed();
         });
-        debugLog('[Content] Added messenger re-open observer');
+
+        // Initial attach: observe the sidebar host for childList changes.
+        const initialSidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
+        if (initialSidebar) {
+          messengerReopenObserver.observe(initialSidebar, {
+            childList: true,
+            subtree: false
+          });
+          reattach(initialSidebar);
+        } else {
+          // Sidebar not in DOM yet; wait for it via a tiny temp observer.
+          const tempObs = new MutationObserver(() => {
+            const sidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
+            if (sidebar) {
+              tempObs.disconnect();
+              messengerReopenObserver.observe(sidebar, { childList: true, subtree: false });
+              reattach(sidebar);
+              debugLog('[Content] Messenger re-open observer attached (delayed)');
+            }
+          });
+          tempObs.observe(document.body, { childList: true, subtree: true });
+        }
       }
 
       // Set up MutationObserver to watch for body style changes
@@ -375,17 +441,18 @@
         debugLog('[Content] Disconnected messenger re-open observer');
       }
 
-      if (backdropCheckInterval) {
-        clearInterval(backdropCheckInterval);
-        backdropCheckInterval = null;
-        debugLog('[Content] Cleared backdrop check interval');
-      }
-
       debugLog('Removed messenger expanded CSS and observer');
     }
   }
 
-  // Setup observer to detect and hide messenger backdrops as they're added
+  // Setup observer to detect and hide messenger backdrops as they're added.
+  // Performance: the previous implementation also ran a 100ms setInterval
+  // that re-scanned the entire DOM for backdrops while the messenger was
+  // expanded. On a 5k-node page that's ~10 calls/sec × several full-tree
+  // querySelectorAll()s = significant CPU. The CSS we inject already hides
+  // messenger backdrops visually, so the MutationObserver alone is enough
+  // to remove them from the DOM when they appear. We just need to debounce
+  // the callback to avoid running on every mutation in a burst.
   function setupBackdropObserver() {
     if (messengerOverlayObserver) {
       messengerOverlayObserver.disconnect();
@@ -405,55 +472,66 @@
         // Wait for messenger panel to appear before checking
         setTimeout(() => {
           if (isMessengerBackdrop(element)) {
-            debugLog('[Content] Removing messenger backdrop from DOM:', {
-              tagName: element.tagName,
-              className: element.className,
-              id: element.id,
-              hasParent: !!element.parentNode
-            });
-
-            // Instead of just hiding, completely remove it from DOM
             if (element.parentNode) {
               element.parentNode.removeChild(element);
-              debugLog('[Content] Successfully removed backdrop element');
-            } else {
-              debugLog('[Content] Could not remove backdrop - no parent node');
+              debugLog('[Content] Removed Angular messenger backdrop');
             }
           }
-        }, 150); // Increased delay for messenger panel to appear
+        }, 150);
       } else {
         // For standard CDK backdrops, check immediately
         if (isMessengerBackdrop(element)) {
-          debugLog('[Content] Removing messenger backdrop from DOM:', {
-            tagName: element.tagName,
-            className: element.className,
-            id: element.id,
-            hasParent: !!element.parentNode
-          });
-
           if (element.parentNode) {
             element.parentNode.removeChild(element);
-            debugLog('[Content] Successfully removed backdrop element');
-          } else {
-            debugLog('[Content] Could not remove backdrop - no parent node');
+            debugLog('[Content] Removed CDK messenger backdrop');
           }
         }
       }
     };
 
-    messengerOverlayObserver = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    // Debounced backdrop check. Haiilo triggers hundreds of mutations/sec
+    // when the chat panel is active, and we don't need to react to each
+    // one individually. Coalesce bursts into one pass.
+    let pending = false;
+    messengerOverlayObserver = new MutationObserver(() => {
+      if (pending) return;
+      if (!keepMessengerExpandedActive) return;
+      pending = true;
+      setTimeout(() => {
+        pending = false;
+        if (!keepMessengerExpandedActive) return;
 
-          // Check if this node is a backdrop
-          checkAndHideBackdrop(node);
+        // Only check the messenger panel subtree; the rest of the
+        // page is irrelevant to backdrops.
+        const panel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
+        if (!panel) return;
 
-          // Also check children
-          const backdrops = node.querySelectorAll('.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, .cdk-overlay-transparent-backdrop, .menu-overlay, div[style*="position: fixed"]');
-          backdrops.forEach(checkAndHideBackdrop);
-        }
-      }
+        // Quick scan of the panel subtree for known backdrop classes.
+        const backdrops = panel.querySelectorAll(
+          '.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, ' +
+          '.cdk-overlay-transparent-backdrop, .menu-overlay'
+        );
+        backdrops.forEach(b => {
+          if (isMessengerBackdrop(b) && b.parentNode) {
+            b.parentNode.removeChild(b);
+            debugLog('[Content] Removed messenger backdrop');
+          }
+        });
+
+        // Angular-style inline-styled backdrops live at document level
+        // (Haiilo's CDK overlay container is appended to body, not the
+        // panel), so we also check there. Capped by selector specificity
+        // so it stays fast.
+        const angularBackdrops = document.querySelectorAll(
+          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]'
+        );
+        angularBackdrops.forEach(div => {
+          if (isMessengerBackdrop(div) && div.parentNode) {
+            div.parentNode.removeChild(div);
+            debugLog('[Content] Removed Angular messenger backdrop');
+          }
+        });
+      }, 100);
     });
 
     messengerOverlayObserver.observe(document.body, {
@@ -461,71 +539,7 @@
       subtree: true
     });
 
-    // Function to periodically check for existing backdrops
-    const checkExistingBackdrops = () => {
-      if (!keepMessengerExpandedActive) return;
-
-      // Only check if messenger panel exists
-      const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-      if (!messengerPanel) {
-        debugLog('[Content] No messenger panel found, skipping backdrop check');
-        return;
-      }
-
-      const selectors = [
-        '.cdk-overlay-backdrop',
-        '.cdk-overlay-dark-backdrop',
-        '.cdk-overlay-transparent-backdrop',
-        '.menu-overlay'
-      ];
-
-      selectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(backdrop => {
-          if (isMessengerBackdrop(backdrop)) {
-            debugLog('[Content] Removing existing messenger backdrop:', backdrop);
-            if (backdrop.parentNode) {
-              backdrop.parentNode.removeChild(backdrop);
-            }
-          }
-        });
-      });
-
-      // Also check for Angular backdrops with inline styles
-      const allDivs = document.querySelectorAll('div[style*="position: fixed"]');
-      allDivs.forEach(div => {
-        const style = div.getAttribute('style') || '';
-        if (style.includes('background: rgba') &&
-            style.includes('width: 100%') &&
-            style.includes('height: 100%')) {
-          if (isMessengerBackdrop(div)) {
-            debugLog('[Content] Removing existing Angular messenger backdrop:', div);
-            if (div.parentNode) {
-              div.parentNode.removeChild(div);
-            }
-          }
-        }
-      });
-    };
-
-    // Check existing backdrops immediately
-    checkExistingBackdrops();
-
-    // Clear any existing interval
-    if (backdropCheckInterval) {
-      clearInterval(backdropCheckInterval);
-    }
-
-    // Also check periodically in case we miss any
-    backdropCheckInterval = setInterval(() => {
-      if (!keepMessengerExpandedActive) {
-        clearInterval(backdropCheckInterval);
-        backdropCheckInterval = null;
-        return;
-      }
-      checkExistingBackdrops();
-    }, 100); // Check every 100ms
-
-    debugLog('[Content] Backdrop observer set up');
+    debugLog('[Content] Backdrop observer set up (debounced 100ms)');
   }
 
   // Apply styling to avatar based on selected style
@@ -574,13 +588,33 @@
         `;
 
         // Add group icon (two overlapping circles representing people)
-        badge.innerHTML = `
-          <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="white" style="display: block;">
-            <circle cx="8" cy="8" r="4"/>
-            <circle cx="16" cy="8" r="4"/>
-            <path d="M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z"/>
-          </svg>
-        `;
+        {
+          const svgNS = 'http://www.w3.org/2000/svg';
+          const svg = document.createElementNS(svgNS, 'svg');
+          svg.setAttribute('width', svgSize);
+          svg.setAttribute('height', svgSize);
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('fill', 'white');
+          svg.style.display = 'block';
+
+          const c1 = document.createElementNS(svgNS, 'circle');
+          c1.setAttribute('cx', '8');
+          c1.setAttribute('cy', '8');
+          c1.setAttribute('r', '4');
+
+          const c2 = document.createElementNS(svgNS, 'circle');
+          c2.setAttribute('cx', '16');
+          c2.setAttribute('cy', '8');
+          c2.setAttribute('r', '4');
+
+          const p = document.createElementNS(svgNS, 'path');
+          p.setAttribute('d', 'M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z');
+
+          svg.appendChild(c1);
+          svg.appendChild(c2);
+          svg.appendChild(p);
+          badge.appendChild(svg);
+        }
         iconContainer.appendChild(badge);
         break;
 
@@ -810,6 +844,356 @@
     });
   }
 
+  // Recursively find all elements matching a selector, piercing open
+  // shadow roots. document.querySelector / querySelectorAll only search
+  // the light DOM of the document and the connected composed trees
+  // of standard elements; they do NOT descend into open shadow roots.
+  // Haiilo's show-more buttons are inside shadow roots (e.g. coyo-*
+  // Stencil components), so plain document.querySelector returns null.
+  //
+  // Performance: this walk costs ~3-5ms per call on a Haiilo page with
+  // 3-5k DOM nodes. The auto-expand mount observer and click loop both
+  // call this many times per second, so we cache results within a
+  // single animation frame to avoid repeated walks when the runner
+  // queries the same selector back-to-back.
+  const _findInShadowsCache = new Map();
+  // Cache key includes a per-root identity so that two different
+  // host elements with the same tag name don't share a cache entry.
+  // For the document root, we use a constant key.
+  function _findInShadowsKey(selector, root) {
+    return root === document ? selector : selector + '|' + (root.host ? _hostId(root.host) : '?');
+  }
+  // Stable per-host key: index assigned in insertion order. Survives
+  // re-renders of unrelated hosts, invalidates when the same host slot
+  // gets a new element (we map host -> id on first sight).
+  const _hostIdMap = new WeakMap();
+  let _nextHostId = 1;
+  function _hostId(host) {
+    if (_hostIdMap.has(host)) return _hostIdMap.get(host);
+    const id = _nextHostId++;
+    _hostIdMap.set(host, id);
+    return id;
+  }
+  function findInShadows(selector, root = document) {
+    const cacheKey = _findInShadowsKey(selector, root);
+    if (_findInShadowsCache.has(cacheKey)) {
+      return _findInShadowsCache.get(cacheKey);
+    }
+    const out = [];
+    try {
+      out.push(...root.querySelectorAll(selector));
+    } catch (e) {
+      // Some selector roots (e.g. a ShadowRoot) accept querySelectorAll;
+      // others may not. Either way, fall through to the recursion below.
+    }
+    const all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+    for (const el of all) {
+      if (el.shadowRoot) {
+        out.push(...findInShadows(selector, el.shadowRoot));
+      }
+    }
+    _findInShadowsCache.set(cacheKey, out);
+    return out;
+  }
+  function clearFindInShadowsCache() {
+    _findInShadowsCache.clear();
+    // _hostIdMap is a WeakMap and is self-cleaning.
+  }
+
+  // Find the list container that a given show-more button belongs to.
+  // We walk up via parentNode (which crosses shadow boundaries via
+  // .host) looking for an ancestor that has more than one child,
+  // so we can detect "did anything get added?" between clicks.
+  function findOwningList(button) {
+    let current = button.parentNode;
+    let depth = 0;
+    const maxDepth = 12;
+
+    while (current && depth < maxDepth) {
+      // If we hit a shadow root, jump up to its host element.
+      if (current.nodeType === 11 /* Node.DOCUMENT_FRAGMENT_NODE */) {
+        current = current.host;
+        continue;
+      }
+      // Containers typically have multiple direct children (>1)
+      // and are not the document body / a button itself.
+      if (current.children && current.children.length > 1 &&
+          current !== document.body && current !== document.documentElement) {
+        return current;
+      }
+      current = current.parentNode;
+      depth++;
+    }
+    return null;
+  }
+
+  // Wait until the list grows (more children than before) or timeout.
+  // Returns the new child count, or the old count if we timed out.
+  function waitForListGrowth(list, previousCount, timeoutMs) {
+    return new Promise(resolve => {
+      const start = Date.now();
+      const check = () => {
+        if (!list || !document.contains(list)) {
+          resolve(previousCount);
+          return;
+        }
+        const currentCount = list.children.length;
+        if (currentCount > previousCount) {
+          resolve(currentCount);
+          return;
+        }
+        if (Date.now() - start >= timeoutMs) {
+          resolve(currentCount);
+          return;
+        }
+        setTimeout(check, 50);
+      };
+      check();
+    });
+  }
+
+  // Dispatch a full click sequence (pointer + mouse + click) on a button.
+  // Haiilo's show-more button is a Stencil `cat-button` web component; it
+  // listens to pointerdown/pointerup/click. Calling HTMLElement.click()
+  // only fires a generic click event and Stencil's pointer handlers
+  // never run, so the list never expands. We synthesize all of them
+  // as non-bubbling + bubbling variants to maximize compatibility.
+  function dispatchFullClick(target) {
+    const rect = target.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const baseInit = {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      button: 0,
+      buttons: 1,
+      clientX: x,
+      clientY: y
+    };
+    const types = [
+      ['pointerdown', { pointerType: 'mouse', isPrimary: true, pointerId: 1 }],
+      ['mousedown',   {}],
+      ['pointerup',   { pointerType: 'mouse', isPrimary: true, pointerId: 1 }],
+      ['mouseup',     {}],
+      ['click',       {}]
+    ];
+    for (const [type, extra] of types) {
+      let ev;
+      try {
+        if (type === 'pointerdown' || type === 'pointerup') {
+          ev = new PointerEvent(type, { ...baseInit, ...extra });
+        } else {
+          ev = new MouseEvent(type, { ...baseInit, ...extra });
+        }
+      } catch (e) {
+        // Older browsers: fall back to a generic Event for pointer events.
+        ev = new Event(type, { bubbles: true, cancelable: true });
+      }
+      target.dispatchEvent(ev);
+    }
+  }
+
+  // Click a single show-more button up to maxClicks times, stopping early
+  // if the button disappears or no new items are added.
+  async function clickShowMoreButton(button, maxClicks) {
+    if (maxClicks <= 0) return;
+
+    // Mark the button as already processed in this session so the
+    // MutationObserver doesn't try to click it again.
+    button.dataset.haiiloEnhancerClicked = '1';
+
+    const list = findOwningList(button);
+    const testAttr = button.getAttribute('data-test');
+    debugLog('[AutoExpand] Starting for', testAttr, 'maxClicks=', maxClicks, 'list=', list ? list.tagName.toLowerCase() : 'null');
+
+    let noGrowthStreak = 0;
+    let clicksDone = 0;
+
+    for (let i = 0; i < maxClicks; i++) {
+      // Re-query every iteration: the button may be replaced by a new
+      // DOM element after each click (Haiilo re-renders the list).
+      // We MUST search through shadow roots - the buttons are inside them.
+      // Clear the findInShadows cache first so we see the new DOM, not
+      // the snapshot from before the click.
+      clearFindInShadowsCache();
+      const candidates = findInShadows(`button[data-test="${testAttr}"]`);
+      // If we already processed this exact button on a previous iteration,
+      // skip to the next unprocessed one.
+      const current = candidates.find(b => b.dataset.haiiloEnhancerClicked !== '1') || candidates[0];
+      if (!current) {
+        debugLog('[AutoExpand]', testAttr, 'button no longer in DOM after', clicksDone, 'clicks - list fully expanded');
+        return;
+      }
+      if (current.disabled || current.getAttribute('aria-disabled') === 'true') {
+        debugLog('[AutoExpand]', testAttr, 'button is disabled, stopping');
+        return;
+      }
+
+      const beforeCount = list && document.contains(list) ? list.children.length : -1;
+
+      // Tag and click.
+      current.dataset.haiiloEnhancerClicked = '1';
+      try {
+        dispatchFullClick(current);
+        // Also fire the native click() as a last-resort fallback for any
+        // listener that only watches the standard click event.
+        current.click();
+        clicksDone++;
+      } catch (e) {
+        debugLog('[AutoExpand] Click failed on', testAttr, e.message);
+        return;
+      }
+
+      // Wait for new items to appear, up to 2x the configured delay.
+      const waitMs = Math.max(200, autoExpandDelayMs * 2);
+      const afterCount = list && document.contains(list)
+        ? await waitForListGrowth(list, beforeCount, waitMs)
+        : -1;
+
+      if (afterCount === beforeCount || afterCount < 0) {
+        noGrowthStreak++;
+        debugLog('[AutoExpand]', testAttr, 'no new items after click', clicksDone, '(streak', noGrowthStreak + ')');
+        // Be patient: Haiilo's XHR can be slow on first click. Only stop
+        // after 3 consecutive no-growth clicks to avoid bailing out
+        // before the first request finishes.
+        if (noGrowthStreak >= 3) {
+          debugLog('[AutoExpand]', testAttr, 'stopping - no growth for', noGrowthStreak, 'consecutive clicks');
+          return;
+        }
+      } else {
+        noGrowthStreak = 0;
+      }
+
+      // Brief pause before next click to avoid hammering the server.
+      await new Promise(r => setTimeout(r, autoExpandDelayMs));
+    }
+
+    debugLog('[AutoExpand] Finished', testAttr, 'after', clicksDone, 'clicks');
+  }
+
+  // Find all show-more buttons and start a click loop on each one that
+  // hasn't been processed yet. Each button is independent: if only the
+  // workspace button is in the DOM when this runs, only that one is
+  // started. When the pages button later appears (Haiilo re-renders
+  // the sidebar), the mount observer will call this again and pick
+  // up the pages button then.
+  function autoExpandShowMoreLists() {
+    if (!autoExpandEnabled) {
+      debugLog('[AutoExpand] Disabled, skipping');
+      return;
+    }
+    if (autoExpandClicksPerList <= 0) {
+      debugLog('[AutoExpand] Clicks per list set to 0, skipping');
+      return;
+    }
+
+    const selectors = getAutoExpandSelectors();
+    const scopeHasUnprocessed = selectors.some(sel => {
+      // fast-path: if we've already processed the data-test key for
+      // this selector, no need to walk the DOM.
+      return !autoExpandProcessed.has(getDataTestForSelector(sel));
+    });
+    if (!scopeHasUnprocessed) {
+      return;
+    }
+
+    const newlyFound = [];
+    selectors.forEach(sel => {
+      findInShadows(sel).forEach(btn => {
+        const key = btn.getAttribute('data-test');
+        if (!autoExpandProcessed.has(key)) {
+          newlyFound.push(btn);
+        }
+      });
+    });
+
+    if (newlyFound.length === 0) {
+      return;
+    }
+
+    // Mark each button as processed BEFORE starting its loop so the
+    // mount observer doesn't queue a duplicate run for the same button.
+    newlyFound.forEach(btn => autoExpandProcessed.add(btn.getAttribute('data-test')));
+
+    debugLog('[AutoExpand] Starting click loop for', newlyFound.length, 'new button(s) (scope=' + autoExpandScope + ', clicksPerList=' + autoExpandClicksPerList + ')');
+
+    // Run each list expansion in parallel; they target different buttons.
+    newlyFound.forEach(btn => {
+      clickShowMoreButton(btn, autoExpandClicksPerList).catch(err => {
+        debugLog('[AutoExpand] Error expanding list:', err && err.message);
+      });
+    });
+
+    // If every button in scope is now processed, the observer has no
+    // further work and we can stop it. (Haiilo can still re-render the
+    // sidebar; if it does, a freshly-mounted button is a new DOM node
+    // and may be re-found. We re-install the observer on the next
+    // mutation if that happens.)
+    maybeStopAutoExpandObserver();
+  }
+
+  // Returns the data-test attribute value for one of the configured
+  // show-more selectors (e.g. 'button[data-test="show-more-page"]' ->
+  // 'show-more-page'). Used as the per-button key in autoExpandProcessed.
+  function getDataTestForSelector(selector) {
+    const m = selector.match(/data-test="([^"]+)"/);
+    return m ? m[1] : selector;
+  }
+
+  // If the runner has processed every button in scope, stop the
+  // observer to save CPU. Re-install from inside clickShowMoreButton
+  // if a click triggers a re-render that re-mounts a button (not
+  // expected today, but cheap insurance).
+  function maybeStopAutoExpandObserver() {
+    if (!autoExpandMountObserver) return;
+    const allProcessed = getAutoExpandSelectors().every(sel =>
+      autoExpandProcessed.has(getDataTestForSelector(sel))
+    );
+    if (allProcessed) {
+      autoExpandMountObserver.disconnect();
+      autoExpandMountObserver = null;
+      debugLog('[AutoExpand] All buttons processed, mount observer stopped');
+    }
+  }
+
+  // Observe the document so we run auto-expand once the sidebar list
+  // is actually rendered. Haiilo's sidebar mounts after initial paint,
+  // and the workspaces and pages lists may appear at different times
+  // (the sidebar re-renders when messenger state or other UI state
+  // changes). Per-button state (autoExpandProcessed) ensures each
+  // list is processed exactly once per page load.
+  //
+  // Performance: Haiilo triggers hundreds of DOM mutations per second
+  // even when idle (chat updates, online-status pings, etc.). Without
+  // throttling, our observer would call findInShadows (a full-tree walk,
+  // ~4ms each) hundreds of times per second. We debounce to 200ms and
+  // clear the findInShadows cache once per tick so the walk sees the
+  // current DOM.
+  function setupAutoExpandMountObserver() {
+    if (autoExpandMountObserver) return;
+    let pending = false;
+    autoExpandMountObserver = new MutationObserver(() => {
+      if (pending) return;
+      if (!autoExpandEnabled) return;
+      pending = true;
+      setTimeout(() => {
+        pending = false;
+        if (!autoExpandEnabled) return;
+        // The DOM has likely changed since the last walk; clear the
+        // findInShadows cache so the runner sees fresh results.
+        clearFindInShadowsCache();
+        autoExpandShowMoreLists();
+        maybeStopAutoExpandObserver();
+      }, 200);
+    });
+    autoExpandMountObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    debugLog('[AutoExpand] Mount observer installed (debounced 200ms)');
+  }
+
   // Initialize
   init();
 
@@ -825,27 +1209,25 @@
       setupRightClickListener();
       setupLogoClickInterceptor();
       hideContent();
-      
-      // Add periodic checking for dynamically loaded content
-      const periodicCheck = () => {
-        // Check if extension context is still valid
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-          hideContent();
-        } else {
-          debugLog('Extension context invalidated, stopping periodic checks');
-          // Clear the interval if context is invalid
-          return false;
-        }
-        return true;
-      };
-      
-      const checkInterval = setInterval(() => {
-        if (!periodicCheck()) {
-          clearInterval(checkInterval);
-        }
-      }, 2000); // Check every 2 seconds
-      debugLog('Started periodic content checking every 2 seconds');
-      
+
+      // Auto-expand sidebar lists (Workspaces / Pages) if enabled.
+      // Try once now; if the sidebar isn't mounted yet, the observer
+      // below will catch it when it appears.
+      debugLog('[AutoExpand] init - enabled=', autoExpandEnabled,
+               'scope=', autoExpandScope,
+               'clicksPerList=', autoExpandClicksPerList,
+               'delayMs=', autoExpandDelayMs);
+      autoExpandShowMoreLists();
+      setupAutoExpandMountObserver();
+
+      // NOTE: Previously this block started a setInterval(..., 2000)
+      // that periodically re-ran hideContent() to filter muted users.
+      // That interval was redundant: the MutationObserver installed
+      // by setupMutationObserver() already catches DOM changes and
+      // re-filters on a 50ms debounce. The interval added ~3ms of
+      // hideContent() work every 2 seconds even when nothing changed,
+      // and (more importantly) it kept the page busy on long sessions.
+
       // Replace generic channel avatars and process date/times
       setTimeout(() => {
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
@@ -919,18 +1301,33 @@
 
           if (message.action === 'toggleMessengerExpanded') {
             // Toggle messenger expanded state
-            console.log('Content script received toggleMessengerExpanded:', message.expanded, 'adjustLayout:', message.adjustLayout);
+            debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'adjustLayout:', message.adjustLayout);
             applyMessengerExpandedCSS(message.expanded, message.adjustLayout);
-            console.log('Applied messenger expanded CSS for:', message.expanded, 'with layout adjustment:', message.adjustLayout);
+            debugLog('Applied messenger expanded CSS for:', message.expanded, 'with layout adjustment:', message.adjustLayout);
             sendResponse({ success: true });
+          }
+
+          if (message.action === 'settingsUpdated') {
+            // Reload settings; the auto-expand runner will pick up the
+            // new values (including the master switch, scope, and click
+            // counts). If the scope changed (e.g. user enabled workspaces
+            // but not pages), clear the per-button state so the new
+            // scope gets a chance to run.
+            loadSettings().then(() => {
+              autoExpandProcessed.clear();
+              autoExpandShowMoreLists();
+              if (!autoExpandMountObserver) {
+                setupAutoExpandMountObserver();
+              }
+              sendResponse({ success: true });
+            });
+            return true;
           }
         } catch (e) {
           console.error('Error in message handler:', e);
           sendResponse({ success: false, error: e.message });
         }
       });
-    } else {
-      console.warn('chrome.runtime.onMessage not available, message handling disabled');
     }
   }
 
@@ -952,10 +1349,16 @@
           fixedColor = settings.channelAvatarFixedColor || '#0f939d';
           dateFormat = settings.dateFormat || 'MMDD';
           timeFormat = settings.timeFormat || '12h';
-          console.log('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
-          console.log('[Content] adjustLayoutForMessenger setting:', settings.adjustLayoutForMessenger);
+          autoExpandEnabled = settings.autoExpandEnabled === true;
+          const rawClicks = parseInt(settings.autoExpandClicksPerList, 10);
+          autoExpandClicksPerList = isNaN(rawClicks) ? 3 : Math.max(0, Math.min(10, rawClicks));
+          const rawDelay = parseInt(settings.autoExpandDelayMs, 10);
+          autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
+          autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
+          debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
+          debugLog('[Content] adjustLayoutForMessenger setting:', settings.adjustLayoutForMessenger);
           if (settings.keepMessengerExpanded) {
-            console.log('[Content] Applying messenger expanded CSS on page load');
+            debugLog('[Content] Applying messenger expanded CSS on page load');
             applyMessengerExpandedCSS(true, settings.adjustLayoutForMessenger || false);
           }
           debugLog('Debug mode:', debugMode);
@@ -977,6 +1380,10 @@
           badgePosition = 'bottom-left';
           colorMode = 'random';
           fixedColor = '#0f939d';
+          autoExpandEnabled = false;
+          autoExpandClicksPerList = 3;
+          autoExpandDelayMs = 300;
+          autoExpandScope = 'both';
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
@@ -991,6 +1398,10 @@
         badgePosition = 'bottom-left';
         colorMode = 'random';
         fixedColor = '#0f939d';
+        autoExpandEnabled = false;
+        autoExpandClicksPerList = 3;
+        autoExpandDelayMs = 300;
+        autoExpandScope = 'both';
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -1005,6 +1416,10 @@
       badgePosition = 'bottom-left';
       colorMode = 'random';
       fixedColor = '#0f939d';
+      autoExpandEnabled = false;
+      autoExpandClicksPerList = 3;
+      autoExpandDelayMs = 300;
+      autoExpandScope = 'both';
     }
   }
 
@@ -1085,7 +1500,7 @@
       const userName = findUserNameFromElement(e.target);
       if (userName) {
         lastRightClickedUser = userName;
-        console.log('Right-click detected on user:', userName);
+        debugLog('Right-click detected on user:', userName);
       }
     }, true);
   }

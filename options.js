@@ -4,10 +4,22 @@
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
+// Debug logging helper - reads the debugMode flag from settings on each
+// call so live toggles take effect without reload.
+function debugLog(...args) {
+  browserAPI.storage.local.get('settings').then(data => {
+    const settings = data.settings || {};
+    if (settings.debugMode) {
+      console.log(...args);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
-  document.getElementById('versionInfo').textContent = `Haiilo Enhancer v${manifest.version}`;
+  document.getElementById('versionInfo').textContent = `v${manifest.version}`;
+  document.getElementById('footerVersion').textContent = `Haiilo Enhancer v${manifest.version}`;
 
   // Show Chrome-specific warning only on Chrome/Edge
   const isChrome = typeof browser === 'undefined';
@@ -52,6 +64,13 @@ async function loadSettings() {
   document.getElementById('colorModeFixed').checked = colorMode === 'fixed';
   document.getElementById('channelAvatarFixedColor').value = settings.channelAvatarFixedColor || '#0f939d';
 
+  // Auto-expand sidebar lists
+  document.getElementById('autoExpandEnabled').checked = settings.autoExpandEnabled === true;
+  document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
+  document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
+  const scope = settings.autoExpandScope;
+  document.getElementById('autoExpandScope').value = (scope === 'workspaces' || scope === 'pages') ? scope : 'both';
+
   // Show/hide channel avatar settings based on checkbox
   toggleChannelAvatarSettings();
   toggleStyleSettings();
@@ -66,33 +85,51 @@ async function loadDomains() {
   const domains = response || [];
 
   const domainsList = document.getElementById('domainsList');
+  domainsList.textContent = '';
 
   if (domains.length === 0) {
-    domainsList.innerHTML = '<p class="empty-state">No custom domains added. Default: *.haiilo.app and *.haiilo.com</p>';
+    const emptyEl = document.createElement('p');
+    emptyEl.className = 'empty-state';
+    emptyEl.textContent = 'No custom domains added. Default: *.haiilo.app and *.haiilo.com';
+    domainsList.appendChild(emptyEl);
     return;
   }
 
-  domainsList.innerHTML = domains.map(domain => `
-    <div class="domain-item">
-      <span class="domain-item-text">${escapeHtml(domain)}</span>
-      <button class="danger remove-domain-btn" data-domain="${escapeHtml(domain)}">Remove</button>
-    </div>
-  `).join('');
+  domains.forEach(domain => {
+    const div = document.createElement('div');
+    div.className = 'domain-item';
+
+    const span = document.createElement('span');
+    span.className = 'domain-item-text';
+    span.textContent = domain;
+
+    const btn = document.createElement('button');
+    btn.className = 'danger remove-domain-btn';
+    btn.dataset.domain = domain;
+    btn.textContent = 'Remove';
+
+    div.appendChild(span);
+    div.appendChild(btn);
+    domainsList.appendChild(div);
+  });
 }
 
 async function loadCustomHomepages() {
   const customHomepages = await browserAPI.runtime.sendMessage({ action: 'getCustomHomepages' });
   const homepagesList = document.getElementById('homepagesList');
+  homepagesList.textContent = '';
 
   const entries = Object.entries(customHomepages || {});
 
   if (entries.length === 0) {
-    homepagesList.innerHTML = '<p class="empty-state">No custom homepages set. Use the context menu on a homepage tab to set one.</p>';
+    const emptyEl = document.createElement('p');
+    emptyEl.className = 'empty-state';
+    emptyEl.textContent = 'No custom homepages set. Use the context menu on a homepage tab to set one.';
+    homepagesList.appendChild(emptyEl);
     return;
   }
 
-  homepagesList.innerHTML = entries.map(([baseUrl, homepageUrl]) => {
-    // Extract path from full URL for display
+  entries.forEach(([baseUrl, homepageUrl]) => {
     let displayPath = homepageUrl;
     let displayName = '';
 
@@ -100,15 +137,13 @@ async function loadCustomHomepages() {
       const url = new URL(homepageUrl);
       displayPath = url.pathname;
 
-      // Generate a friendly name based on the path
       if (displayPath.startsWith('/home/')) {
-        const section = displayPath.substring(6); // Remove '/home/'
+        const section = displayPath.substring(6);
         if (section === 'members') {
           displayName = 'Home';
         } else if (section === 'timeline') {
           displayName = 'Home (soft)';
         } else {
-          // Capitalize first letter and format other sections
           displayName = 'Home (' + section.charAt(0).toUpperCase() + section.slice(1) + ')';
         }
       } else if (displayPath.startsWith('/pages/')) {
@@ -116,31 +151,44 @@ async function loadCustomHomepages() {
       } else if (displayPath.startsWith('/workspaces/')) {
         displayName = 'Workspaces';
       } else {
-        // Fallback to just the path
         displayName = displayPath;
       }
     } catch (e) {
-      // If parsing fails, use the full URL
       displayName = homepageUrl;
       displayPath = homepageUrl;
     }
 
-    return `
-      <div class="domain-item">
-        <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span class="domain-item-text" style="font-weight: 500;">${escapeHtml(baseUrl)}</span>
-          <span class="domain-item-text" style="font-size: 0.9em; opacity: 0.7;">${escapeHtml(displayName)} [${escapeHtml(displayPath)}]</span>
-        </div>
-        <button class="danger remove-homepage-btn" data-baseurl="${escapeHtml(baseUrl)}">Remove</button>
-      </div>
-    `;
-  }).join('');
+    const div = document.createElement('div');
+    div.className = 'domain-item';
+
+    const textContainer = document.createElement('div');
+    textContainer.style.cssText = 'display: flex; flex-direction: column; gap: 2px;';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'domain-item-text';
+    nameSpan.style.fontWeight = '500';
+    nameSpan.textContent = baseUrl;
+
+    const descSpan = document.createElement('span');
+    descSpan.className = 'domain-item-text';
+    descSpan.style.cssText = 'font-size: 0.9em; opacity: 0.7;';
+    descSpan.textContent = displayName + ' [' + displayPath + ']';
+
+    const btn = document.createElement('button');
+    btn.className = 'danger remove-homepage-btn';
+    btn.dataset.baseurl = baseUrl;
+    btn.textContent = 'Remove';
+
+    textContainer.appendChild(nameSpan);
+    textContainer.appendChild(descSpan);
+    div.appendChild(textContainer);
+    div.appendChild(btn);
+    homepagesList.appendChild(div);
+  });
 }
 
 function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function setupEventListeners() {
@@ -207,6 +255,27 @@ function setupEventListeners() {
 
   document.getElementById('channelAvatarFixedColor').addEventListener('input', () => {
     updatePreview(true);
+    saveSettings();
+  });
+
+  // Auto-expand settings
+  document.getElementById('autoExpandEnabled').addEventListener('change', saveSettings);
+  document.getElementById('autoExpandScope').addEventListener('change', saveSettings);
+  document.getElementById('autoExpandClicksPerList').addEventListener('change', () => {
+    // Clamp the value client-side as a safety net.
+    const input = document.getElementById('autoExpandClicksPerList');
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) v = 3;
+    v = Math.max(0, Math.min(10, v));
+    input.value = v;
+    saveSettings();
+  });
+  document.getElementById('autoExpandDelayMs').addEventListener('change', () => {
+    const input = document.getElementById('autoExpandDelayMs');
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) v = 300;
+    v = Math.max(100, Math.min(1000, v));
+    input.value = v;
     saveSettings();
   });
 
@@ -332,11 +401,11 @@ async function removeDomain(domain) {
 
     // Check if we have these permissions before removing
     const hasPermissions = await browserAPI.permissions.contains(permissionsToRemove);
-    console.log(`Domain ${domain} has permissions:`, hasPermissions);
+    debugLog(`Domain ${domain} has permissions:`, hasPermissions);
 
     if (hasPermissions) {
       const removed = await browserAPI.permissions.remove(permissionsToRemove);
-      console.log(`Attempted to remove permissions for ${domain}, result:`, removed);
+      debugLog(`Attempted to remove permissions for ${domain}, result:`, removed);
 
       // Chrome may report success but not actually remove the permission (known limitation)
       // Inform user they may need to manually revoke
@@ -396,10 +465,28 @@ async function saveSettings() {
     channelAvatarBadgeSize: parseInt(document.getElementById('channelAvatarBadgeSize').value, 10),
     channelAvatarBadgePosition: document.getElementById('channelAvatarBadgePosition').value,
     channelAvatarColorMode: colorMode,
-    channelAvatarFixedColor: document.getElementById('channelAvatarFixedColor').value
+    channelAvatarFixedColor: document.getElementById('channelAvatarFixedColor').value,
+    autoExpandEnabled: document.getElementById('autoExpandEnabled').checked,
+    autoExpandClicksPerList: parseInt(document.getElementById('autoExpandClicksPerList').value, 10) || 3,
+    autoExpandDelayMs: parseInt(document.getElementById('autoExpandDelayMs').value, 10) || 300,
+    autoExpandScope: document.getElementById('autoExpandScope').value
   };
 
   await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
+
+  // Broadcast to all Haiilo tabs so the auto-expand runner picks up the
+  // new values without a full page reload.
+  try {
+    const tabs = await browserAPI.tabs.query({});
+    for (const tab of tabs) {
+      if (tab && tab.url && /haiilo\.(app|com)/.test(tab.url)) {
+        browserAPI.tabs.sendMessage(tab.id, { action: 'settingsUpdated' }).catch(() => {});
+      }
+    }
+  } catch (e) {
+    console.error('Failed to broadcast settingsUpdated:', e);
+  }
+
   showStatus('Settings saved', 'success');
 }
 
@@ -593,13 +680,34 @@ function updatePreview(shouldUpdateColor = false) {
         justify-content: center;
       `;
 
-      badge.innerHTML = `
-        <svg width="${Math.floor(badgeSize * 0.6)}" height="${Math.floor(badgeSize * 0.6)}" viewBox="0 0 24 24" fill="white" style="display: block;">
-          <circle cx="8" cy="8" r="4"/>
-          <circle cx="16" cy="8" r="4"/>
-          <path d="M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z"/>
-        </svg>
-      `;
+      {
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        const svgSize = Math.floor(badgeSize * 0.6);
+        svg.setAttribute('width', svgSize);
+        svg.setAttribute('height', svgSize);
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'white');
+        svg.style.display = 'block';
+
+        const c1 = document.createElementNS(svgNS, 'circle');
+        c1.setAttribute('cx', '8');
+        c1.setAttribute('cy', '8');
+        c1.setAttribute('r', '4');
+
+        const c2 = document.createElementNS(svgNS, 'circle');
+        c2.setAttribute('cx', '16');
+        c2.setAttribute('cy', '8');
+        c2.setAttribute('r', '4');
+
+        const p = document.createElementNS(svgNS, 'path');
+        p.setAttribute('d', 'M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z');
+
+        svg.appendChild(c1);
+        svg.appendChild(c2);
+        svg.appendChild(p);
+        badge.appendChild(svg);
+      }
 
       previewAvatar.appendChild(badge);
       break;

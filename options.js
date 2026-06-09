@@ -1,4 +1,5 @@
 // Options page script for Haiilo Enhancer
+//# sourceURL=haiilo-enhancer/options.js
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;

@@ -1,10 +1,15 @@
 // Background service worker for Haiilo Enhancer
 // Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
+//# sourceURL=haiilo-enhancer/background.js
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-// Firefox MV2 uses browser.browserAction; Chrome MV3 uses chrome.action
-const badgeAPI = typeof browser !== 'undefined' ? browser.browserAction : chrome.action;
+// Firefox MV2 uses browser.browserAction; Chrome MV3 uses chrome.action (or browser.action)
+// Chrome also exposes the `browser` namespace in MV3 for compatibility, but only with `action`,
+// not `browserAction` — so we must detect the actual API surface, not just the global.
+const badgeAPI = (typeof browser !== 'undefined' && browser.browserAction)
+  ? browser.browserAction
+  : (browserAPI.action || chrome.action);
 
 // Debug logging helper
 function debugLog(...args) {
@@ -382,6 +387,11 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'updateHiddenCount') {
     debugLog('Updating badge for tab', sender.tab.id, 'with count', message.count);
+    if (!badgeAPI || typeof badgeAPI.setBadgeText !== 'function') {
+      debugLog('Badge API not available, skipping update');
+      sendResponse({ success: false, error: 'Badge API unavailable' });
+      return true;
+    }
     // Update badge with hidden count
     if (message.count > 0) {
       badgeAPI.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });

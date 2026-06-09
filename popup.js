@@ -1,4 +1,5 @@
 // Popup script for Haiilo Enhancer
+//# sourceURL=haiilo-enhancer/popup.js
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;

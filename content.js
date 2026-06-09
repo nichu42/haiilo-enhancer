@@ -1,4 +1,5 @@
 // Content script for Haiilo Enhancer
+//# sourceURL=haiilo-enhancer/content.js
 
 (function() {
   'use strict';
@@ -126,7 +127,7 @@
     const target = e.target;
 
     // Check if messenger panel is open
-    const messengerPanel = document.querySelector('coyo-messaging-panel');
+    const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
     if (!messengerPanel) {
       // Messenger not open - don't block anything
       debugLog('[Content] No messenger panel, allowing all clicks');
@@ -198,7 +199,7 @@
 
     // CRITICAL: Check if messenger panel actually exists
     // If no messenger panel, this backdrop belongs to a modal/search, not messenger
-    const messengerPanel = document.querySelector('coyo-messaging-panel');
+    const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
     if (!messengerPanel) {
       debugLog('[Content] No messenger panel - NOT removing backdrop (belongs to modal/search)');
       return false;
@@ -239,7 +240,7 @@
       let layoutAdjustmentCSS = '';
 
       if (adjustLayout) {
-        const messengerPanel = document.querySelector('coyo-messaging-panel, coyo-messenger');
+        const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel, coyo-messenger');
         if (messengerPanel) {
           const computedStyle = window.getComputedStyle(messengerPanel);
           messengerWidth = parseFloat(computedStyle.width);
@@ -482,7 +483,7 @@
       if (!keepMessengerExpandedActive) return;
 
       // Only check if messenger panel exists
-      const messengerPanel = document.querySelector('coyo-messaging-panel');
+      const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
       if (!messengerPanel) {
         debugLog('[Content] No messenger panel found, skipping backdrop check');
         return;

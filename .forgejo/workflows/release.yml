@@ -8,7 +8,7 @@ on:
 jobs:
   build-and-release:
     runs-on: codeberg-medium
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +47,9 @@ jobs:
             if grep -q "already exists" /tmp/web-ext-out.txt; then
               echo "Version already signed on AMO — downloading existing XPI..."
               python3 .forgejo/amo_download.py
+            elif grep -q "approval" /tmp/web-ext-out.txt; then
+              echo "Extension is pending AMO review — downloading XPI via API..."
+              python3 .forgejo/amo_download.py
             else
               exit $EXIT
             fi
@@ -59,6 +62,17 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           IS_PRE=false
           [[ "$TAG" == *"-"* ]] && IS_PRE=true
+
+          # Wait briefly for AMO to finish processing after download
+          sleep 5
+
+          # Verify we have an XPI before publishing
+          SIGNED_XPI=$(find dist -maxdepth 1 -name "*.xpi" | head -1)
+          if [ -z "$SIGNED_XPI" ]; then
+            echo "ERROR: No signed XPI found in dist/"
+            exit 1
+          fi
+          echo "Found signed XPI: $SIGNED_XPI"
 
           RELEASE=$(curl -sf -X POST \
             -H "Authorization: token ${FORGEJO_TOKEN}" \
@@ -74,7 +88,6 @@ jobs:
             "https://codeberg.org/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=haiilo-enhancer-chrome.zip" \
             --data-binary @dist/haiilo-enhancer-chrome.zip
 
-          SIGNED_XPI=$(find dist -maxdepth 1 -name "*.xpi" | head -1)
           curl -sf -X POST \
             -H "Authorization: token ${FORGEJO_TOKEN}" \
             -H "Content-Type: application/octet-stream" \

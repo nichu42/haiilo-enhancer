@@ -1,4 +1,13 @@
-"""Download an already-signed XPI from AMO when web-ext sign reports a version conflict."""
+"""Download a signed XPI from AMO.
+
+Handles two scenarios:
+- Version already exists on AMO (re-release / retry)
+- Extension pending AMO review (web-ext sign timed out waiting for approval)
+
+AMO signs listed extensions immediately after automated validation passes,
+even before human review. The signed XPI is available via the authenticated API,
+just not yet publicly listed on addons.mozilla.org.
+"""
 
 import base64
 import hashlib
@@ -7,7 +16,6 @@ import json
 import os
 import time
 import urllib.request
-import uuid
 from typing import Any
 
 
@@ -57,7 +65,11 @@ def download_file(token: str, url: str, dest: str) -> None:
 
 
 def main() -> None:
-    """Entry point: locate and download the signed XPI for the current version."""
+    """Entry point: locate and download the signed XPI for the current version.
+
+    Retries up to 3 times with 30-second delays, because AMO may need a
+    moment to finish processing a freshly submitted version.
+    """
     iss = os.environ["AMO_JWT_ISSUER"]
     sec = os.environ["AMO_JWT_SECRET"]
     token = make_jwt(iss, sec)
@@ -70,12 +82,25 @@ def main() -> None:
         f"https://addons.mozilla.org/api/v5/addons/addon/{gecko_id}/versions/"
         f"?filter=all_with_listed"
     )
-    data = api_get(token, url)
 
-    match = find_version(data["results"], version)
-    if not match or not match.get("file"):
-        msg = f"No signed file for version {version} on AMO"
-        raise RuntimeError(msg)
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        data = api_get(token, url)
+        match = find_version(data["results"], version)
+
+        if match and match.get("file"):
+            break
+
+        if attempt < max_attempts:
+            print(
+                f"Version {version} not yet available on AMO (attempt {attempt}/{max_attempts}). "
+                f"Waiting 30 seconds before retry..."
+            )
+            time.sleep(30)
+            token = make_jwt(iss, sec)  # Refresh JWT (5-min lifetime)
+        else:
+            msg = f"No signed file for version {version} on AMO after {max_attempts} attempts"
+            raise RuntimeError(msg)
 
     download_url: str = match["file"]["url"]
     out = f"dist/haiilo_enhancer-{version}.xpi"

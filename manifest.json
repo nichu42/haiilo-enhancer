@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Haiilo Enhancer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
   "permissions": [
     "storage",
@@ -11,14 +11,8 @@
     "tabs",
     "webNavigation"
   ],
-  "host_permissions": [
-    "https://*.haiilo.app/*",
-    "https://*.haiilo.com/*"
-  ],
-  "optional_host_permissions": [
-    "https://*/*",
-    "http://*/*"
-  ],
+  "host_permissions": ["https://*.haiilo.app/*", "https://*.haiilo.com/*"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
   "background": {
     "service_worker": "background.js"
   },

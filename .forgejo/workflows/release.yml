@@ -20,6 +20,9 @@ jobs:
       - name: Build packages
         run: bash build.sh
 
+      - name: Remove unsigned XPI
+        run: rm -f dist/haiilo-enhancer-firefox.xpi
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"

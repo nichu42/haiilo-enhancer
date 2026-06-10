@@ -46,7 +46,6 @@ function Build-Chrome {
     Copy-Item -Recurse "icons" "$chromeDir\icons"
     Remove-Item "$chromeDir\icons\*.ps1" -ErrorAction SilentlyContinue
     Remove-Item "$chromeDir\icons\*.html" -ErrorAction SilentlyContinue
-    Remove-Item "$chromeDir\icons\*.svg" -ErrorAction SilentlyContinue
 
     # Create zip
     $zipPath = "$distDir\haiilo-enhancer-chrome.zip"
@@ -92,7 +91,6 @@ function Build-Firefox {
     Copy-Item -Recurse "icons" "$firefoxDir\icons"
     Remove-Item "$firefoxDir\icons\*.ps1" -ErrorAction SilentlyContinue
     Remove-Item "$firefoxDir\icons\*.html" -ErrorAction SilentlyContinue
-    Remove-Item "$firefoxDir\icons\*.svg" -ErrorAction SilentlyContinue
 
     # Create xpi (same format as zip; Firefox recognises the .xpi extension natively)
     $xpiPath = "$distDir\haiilo-enhancer-firefox.xpi"

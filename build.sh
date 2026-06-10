@@ -24,7 +24,6 @@ build_chrome() {
     cp -r icons "$CHROME_DIR/icons"
     rm -f "$CHROME_DIR/icons"/*.ps1
     rm -f "$CHROME_DIR/icons"/*.html
-    rm -f "$CHROME_DIR/icons"/*.svg
 
     # Create zip
     (cd "$CHROME_DIR" && zip -r "../haiilo-enhancer-chrome.zip" .)
@@ -46,7 +45,6 @@ build_firefox() {
     cp -r icons "$FIREFOX_DIR/icons"
     rm -f "$FIREFOX_DIR/icons"/*.ps1
     rm -f "$FIREFOX_DIR/icons"/*.html
-    rm -f "$FIREFOX_DIR/icons"/*.svg
 
     # Create xpi for local development (release builds are signed via web-ext sign)
     (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.xpi" .)

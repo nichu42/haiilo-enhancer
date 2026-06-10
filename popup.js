@@ -4,6 +4,50 @@
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
+const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
+const MESSENGER_WIDTH_MIN = 50;
+const MESSENGER_WIDTH_MAX = 125;
+const MESSENGER_WIDTH_DEFAULT = 100;
+
+function clampMessengerPanelWidthPercent(value) {
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) return MESSENGER_WIDTH_DEFAULT;
+  return Math.max(MESSENGER_WIDTH_MIN, Math.min(MESSENGER_WIDTH_MAX, parsed));
+}
+
+async function getHaiiloDomains() {
+  const data = await browserAPI.storage.local.get('customDomains');
+  return [...DEFAULT_DOMAINS, ...(data.customDomains || [])];
+}
+
+async function isHaiiloUrl(url) {
+  if (!url) return false;
+
+  try {
+    const hostname = new URL(url).hostname;
+    const domains = await getHaiiloDomains();
+    return domains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+  } catch (e) {
+    return false;
+  }
+}
+
+async function notifyMessengerSettingChanged(expanded, messengerPanelWidthPercent) {
+  const tabs = await browserAPI.tabs.query({});
+
+  for (const tab of tabs) {
+    if (await isHaiiloUrl(tab.url)) {
+      browserAPI.tabs.sendMessage(tab.id, {
+        action: 'toggleMessengerExpanded',
+        expanded,
+        messengerPanelWidthPercent
+      }).catch(() => {
+        // Silently ignore tabs where the content script is not available.
+      });
+    }
+  }
+}
+
 // Debug logging helper - reads the debugMode flag from settings on each
 // call so live toggles take effect without reload.
 function debugLog(...args) {
@@ -119,93 +163,76 @@ async function loadHiddenCount() {
 async function loadSettings() {
   const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
   const messengerCheckbox = document.getElementById('keepMessengerExpanded');
-  const layoutCheckbox = document.getElementById('adjustLayoutForMessenger');
+  const widthSlider = document.getElementById('messengerPanelWidthPercent');
+  const widthValue = document.getElementById('messengerPanelWidthValue');
+
+  let messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
+
+  const updateWidthLabel = (value) => {
+    if (widthValue) {
+      widthValue.textContent = `${clampMessengerPanelWidthPercent(value)}%`;
+    }
+  };
+
+  const updateWidthControls = () => {
+    const enabled = messengerCheckbox ? messengerCheckbox.checked : false;
+
+    if (widthSlider) {
+      widthSlider.disabled = !enabled;
+      widthSlider.title = enabled ? 'Adjust the open messenger panel width' : 'Enable keep messenger expanded first';
+    }
+  };
+
+  if (widthSlider) {
+    widthSlider.value = messengerPanelWidthPercent;
+    updateWidthLabel(messengerPanelWidthPercent);
+
+    widthSlider.addEventListener('input', (e) => {
+      updateWidthLabel(e.target.value);
+    });
+
+    widthSlider.addEventListener('change', async (e) => {
+      try {
+        messengerPanelWidthPercent = clampMessengerPanelWidthPercent(e.target.value);
+        widthSlider.value = messengerPanelWidthPercent;
+        updateWidthLabel(messengerPanelWidthPercent);
+
+        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+        settings.messengerPanelWidthPercent = messengerPanelWidthPercent;
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
+        debugLog('[Popup] Settings saved, messengerPanelWidthPercent:', messengerPanelWidthPercent);
+
+        if (messengerCheckbox && messengerCheckbox.checked) {
+          await notifyMessengerSettingChanged(true, messengerPanelWidthPercent);
+        }
+      } catch (error) {
+        console.error('[Popup] Error saving messenger width:', error);
+      }
+    });
+  }
 
   if (messengerCheckbox) {
     messengerCheckbox.checked = settings.keepMessengerExpanded || false;
 
-    // Attach event listener immediately after setting the checkbox
     messengerCheckbox.addEventListener('change', async (e) => {
       try {
         debugLog('[Popup] Messenger expanded toggle changed to:', e.target.checked);
         const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
         settings.keepMessengerExpanded = e.target.checked;
-
-        // Disable layout adjustment if messenger expansion is disabled
-        if (!e.target.checked) {
-          settings.adjustLayoutForMessenger = false;
-          if (layoutCheckbox) {
-            layoutCheckbox.checked = false;
-            layoutCheckbox.disabled = true;
-          }
-        } else {
-          // Enable the layout adjustment checkbox when messenger expansion is enabled
-          if (layoutCheckbox) {
-            layoutCheckbox.disabled = false;
-          }
-        }
+        settings.messengerPanelWidthPercent = messengerPanelWidthPercent;
 
         await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
         debugLog('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
 
-        // Notify all tabs about the change
-        const tabs = await browserAPI.tabs.query({});
-        debugLog('[Popup] Found', tabs.length, 'total tabs');
-        tabs.forEach(tab => {
-          if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
-            debugLog('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'expanded:', e.target.checked);
-            browserAPI.tabs.sendMessage(tab.id, {
-              action: 'toggleMessengerExpanded',
-              expanded: e.target.checked,
-              adjustLayout: settings.adjustLayoutForMessenger
-            }).catch((err) => {
-              // Silently ignore errors for tabs where content script isn't loaded
-              if (browserAPI.runtime.lastError) {
-                // Clear the lastError
-              }
-            });
-          }
-        });
+        updateWidthControls();
+        await notifyMessengerSettingChanged(e.target.checked, messengerPanelWidthPercent);
       } catch (error) {
         console.error('[Popup] Error in messenger expanded toggle:', error);
       }
     });
   }
 
-  if (layoutCheckbox) {
-    layoutCheckbox.checked = settings.adjustLayoutForMessenger || false;
-    layoutCheckbox.disabled = !settings.keepMessengerExpanded;
-
-    layoutCheckbox.addEventListener('change', async (e) => {
-      try {
-        debugLog('[Popup] Layout adjustment toggle changed to:', e.target.checked);
-        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-        settings.adjustLayoutForMessenger = e.target.checked;
-        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
-        debugLog('[Popup] Settings saved, adjustLayoutForMessenger:', e.target.checked);
-
-        // Notify all tabs about the change
-        const tabs = await browserAPI.tabs.query({});
-        tabs.forEach(tab => {
-          if (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com')) {
-            debugLog('[Popup] Sending toggleMessengerExpanded message to tab:', tab.url, 'adjustLayout:', e.target.checked);
-            browserAPI.tabs.sendMessage(tab.id, {
-              action: 'toggleMessengerExpanded',
-              expanded: settings.keepMessengerExpanded,
-              adjustLayout: e.target.checked
-            }).catch((err) => {
-              // Silently ignore errors for tabs where content script isn't loaded
-              if (browserAPI.runtime.lastError) {
-                // Clear the lastError
-              }
-            });
-          }
-        });
-      } catch (error) {
-        console.error('[Popup] Error in layout adjustment toggle:', error);
-      }
-    });
-  }
+  updateWidthControls();
 }
 
 function setupEventListeners() {

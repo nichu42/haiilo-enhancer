@@ -299,6 +299,57 @@ section h2 {
   cursor: not-allowed;
 }
 
+.slider-group {
+  margin-bottom: 0;
+}
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.slider-header label {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.slider-header output {
+  min-width: 44px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 147, 157, 0.1);
+  color: var(--color-primary-teal);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--color-primary-teal);
+  cursor: pointer;
+}
+
+.slider-row input[type="range"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.slider-help {
+  margin-top: 6px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 footer {
   text-align: center;
   padding: 16px;

@@ -40,12 +40,29 @@ const DEFAULT_SETTINGS = {
   dateFormat: 'MMDD', // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
   timeFormat: '12h', // '12h' or '24h'
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
-  adjustLayoutForMessenger: false, // Adjust page layout when messenger is expanded
+  messengerPanelWidthPercent: 100, // Messenger width scale (50-125, 100 = Haiilo default)
   autoExpandEnabled: false, // Auto-click "Show more" buttons in sidebar lists
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
   autoExpandScope: 'both' // Which lists to expand: 'both', 'workspaces', or 'pages'
 };
+
+function clampMessengerPanelWidthPercent(value) {
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) return DEFAULT_SETTINGS.messengerPanelWidthPercent;
+  return Math.max(50, Math.min(125, parsed));
+}
+
+function normalizeSettings(settings = {}) {
+  const normalized = { ...DEFAULT_SETTINGS };
+  Object.keys(DEFAULT_SETTINGS).forEach(key => {
+    if (Object.prototype.hasOwnProperty.call(settings, key)) {
+      normalized[key] = settings[key];
+    }
+  });
+  normalized.messengerPanelWidthPercent = clampMessengerPanelWidthPercent(normalized.messengerPanelWidthPercent);
+  return normalized;
+}
 
 // Default domains
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
@@ -61,6 +78,8 @@ browserAPI.runtime.onInstalled.addListener(async () => {
 
   if (!data.settings) {
     await browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS });
+  } else {
+    await browserAPI.storage.local.set({ settings: normalizeSettings(data.settings) });
   }
 
   if (!data.customDomains) {
@@ -370,13 +389,14 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'getSettings') {
     browserAPI.storage.local.get('settings').then(data => {
-      sendResponse(data.settings || DEFAULT_SETTINGS);
+      sendResponse(normalizeSettings(data.settings));
     });
     return true;
   }
 
   if (message.action === 'saveSettings') {
-    browserAPI.storage.local.set({ settings: message.settings }).then(() => {
+    const settings = normalizeSettings(message.settings);
+    browserAPI.storage.local.set({ settings }).then(() => {
       sendResponse({ success: true });
     });
     return true;

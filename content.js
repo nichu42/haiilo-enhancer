@@ -98,6 +98,36 @@
   let autoExpandDelayMs = 300;
   let autoExpandScope = 'both';
   let autoExpandMountObserver = null;
+
+  const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
+  const MESSENGER_PANEL_WIDTH_MAX_PERCENT = 125;
+  const MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT = 100;
+  const HAIILO_DEFAULT_MESSENGER_WIDTH_PERCENT = 80;
+  const HAIILO_DEFAULT_MESSENGER_MAX_WIDTH_PX = 600;
+
+  function clampMessengerPanelWidthPercent(value) {
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed)) return MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT;
+    return Math.max(MESSENGER_PANEL_WIDTH_MIN_PERCENT, Math.min(MESSENGER_PANEL_WIDTH_MAX_PERCENT, parsed));
+  }
+
+  function getMessengerPanelWidthCSS(widthPercent) {
+    const clampedPercent = clampMessengerPanelWidthPercent(widthPercent);
+    const scale = clampedPercent / 100;
+    const scaledWidthPercent = HAIILO_DEFAULT_MESSENGER_WIDTH_PERCENT * scale;
+    const scaledMaxWidthPx = HAIILO_DEFAULT_MESSENGER_MAX_WIDTH_PX * scale;
+
+    return `
+        /* Scale Haiilo's default open messenger width (80%, capped at 600px) */
+        coyo-messaging-sidebar aside.sidebar-container.two-columns,
+        coyo-messaging-sidebar aside.sidebar-container.two-c,
+        coyo-messaging-panel aside.sidebar-container.two-columns,
+        coyo-messaging-panel aside.sidebar-container.two-c {
+          width: ${scaledWidthPercent}% !important;
+          max-width: ${scaledMaxWidthPx}px !important;
+        }
+      `;
+  }
   // Per-button state. Track whether each show-more button has been
   // processed in this page load, keyed by its data-test value
   // ('show-more-workspace' or 'show-more-page'). Each button is
@@ -226,8 +256,9 @@
   }
 
   // Function to apply CSS for keeping messenger expanded
-  function applyMessengerExpandedCSS(expanded, adjustLayout = false) {
-    debugLog('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'adjustLayout =', adjustLayout);
+  function applyMessengerExpandedCSS(expanded, messengerPanelWidthPercent = MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT) {
+    const clampedWidthPercent = clampMessengerPanelWidthPercent(messengerPanelWidthPercent);
+    debugLog('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'messengerPanelWidthPercent =', clampedWidthPercent);
     let styleElement = document.getElementById('haiilo-enhancer-messenger-style');
 
     keepMessengerExpandedActive = expanded;
@@ -240,31 +271,7 @@
         debugLog('[Content] Created new style element');
       }
 
-      // Measure messenger panel width dynamically (only if layout adjustment is enabled)
-      let messengerWidth = 400; // Default fallback
-      let layoutAdjustmentCSS = '';
-
-      if (adjustLayout) {
-        const messengerPanel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel, coyo-messenger');
-        if (messengerPanel) {
-          const computedStyle = window.getComputedStyle(messengerPanel);
-          messengerWidth = parseFloat(computedStyle.width);
-          debugLog('[Content] Detected messenger width:', messengerWidth + 'px');
-        }
-
-        layoutAdjustmentCSS = `
-        /* Prevent horizontal scroll */
-        html {
-          overflow-x: hidden !important;
-        }
-
-        /* Add right margin to body to prevent content from going under messenger */
-        body {
-          margin-right: ${messengerWidth}px !important;
-          overflow-x: hidden !important;
-        }
-        `;
-      }
+      const messengerPanelWidthCSS = getMessengerPanelWidthCSS(clampedWidthPercent);
 
       // Add CSS to ensure page remains interactive
       // CRITICAL: Hide Angular backdrops via CSS (per CLAUDE.md lines 84-91)
@@ -290,9 +297,8 @@
         }
       `;
 
-      // Combine with layout adjustments
-      styleElement.textContent = messengerCSS + layoutAdjustmentCSS;
-      debugLog('[Content] Applied messenger CSS with backdrop removal and interactivity fixes');
+      styleElement.textContent = messengerCSS + messengerPanelWidthCSS;
+      debugLog('[Content] Applied messenger CSS with backdrop removal, width scaling, and interactivity fixes');
 
       // Remove any existing body lock styles
       removeBodyLockStyles();
@@ -900,6 +906,15 @@
     // _hostIdMap is a WeakMap and is self-cleaning.
   }
 
+  function runWhenIdle(callback, timeout = 1000) {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(callback, { timeout });
+      return;
+    }
+
+    setTimeout(callback, 0);
+  }
+
   // Find the list container that a given show-more button belongs to.
   // We walk up via parentNode (which crosses shadow boundaries via
   // .host) looking for an ancestor that has more than one child,
@@ -1166,10 +1181,10 @@
   //
   // Performance: Haiilo triggers hundreds of DOM mutations per second
   // even when idle (chat updates, online-status pings, etc.). Without
-  // throttling, our observer would call findInShadows (a full-tree walk,
-  // ~4ms each) hundreds of times per second. We debounce to 200ms and
-  // clear the findInShadows cache once per tick so the walk sees the
-  // current DOM.
+  // throttling, our observer would call findInShadows (a full-tree walk)
+  // hundreds of times per second. We debounce to 200ms, then schedule the
+  // full shadow-DOM scan for idle time so the timer callback itself stays
+  // cheap and avoids Chrome long-task warnings.
   function setupAutoExpandMountObserver() {
     if (autoExpandMountObserver) return;
     let pending = false;
@@ -1178,13 +1193,15 @@
       if (!autoExpandEnabled) return;
       pending = true;
       setTimeout(() => {
-        pending = false;
-        if (!autoExpandEnabled) return;
-        // The DOM has likely changed since the last walk; clear the
-        // findInShadows cache so the runner sees fresh results.
-        clearFindInShadowsCache();
-        autoExpandShowMoreLists();
-        maybeStopAutoExpandObserver();
+        runWhenIdle(() => {
+          pending = false;
+          if (!autoExpandEnabled) return;
+          // The DOM has likely changed since the last walk; clear the
+          // findInShadows cache so the runner sees fresh results.
+          clearFindInShadowsCache();
+          autoExpandShowMoreLists();
+          maybeStopAutoExpandObserver();
+        });
       }, 200);
     });
     autoExpandMountObserver.observe(document.body, {
@@ -1301,9 +1318,10 @@
 
           if (message.action === 'toggleMessengerExpanded') {
             // Toggle messenger expanded state
-            debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'adjustLayout:', message.adjustLayout);
-            applyMessengerExpandedCSS(message.expanded, message.adjustLayout);
-            debugLog('Applied messenger expanded CSS for:', message.expanded, 'with layout adjustment:', message.adjustLayout);
+            const widthPercent = clampMessengerPanelWidthPercent(message.messengerPanelWidthPercent);
+            debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'messengerPanelWidthPercent:', widthPercent);
+            applyMessengerExpandedCSS(message.expanded, widthPercent);
+            debugLog('Applied messenger expanded CSS for:', message.expanded, 'with width percent:', widthPercent);
             sendResponse({ success: true });
           }
 
@@ -1355,11 +1373,12 @@
           const rawDelay = parseInt(settings.autoExpandDelayMs, 10);
           autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
+          const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
-          debugLog('[Content] adjustLayoutForMessenger setting:', settings.adjustLayoutForMessenger);
+          debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
           if (settings.keepMessengerExpanded) {
             debugLog('[Content] Applying messenger expanded CSS on page load');
-            applyMessengerExpandedCSS(true, settings.adjustLayoutForMessenger || false);
+            applyMessengerExpandedCSS(true, messengerPanelWidthPercent);
           }
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);

@@ -58,11 +58,15 @@
           <span>Keep messenger panel expanded</span>
         </label>
       </div>
-      <div class="form-group checkbox-group">
-        <label>
-          <input type="checkbox" id="adjustLayoutForMessenger" disabled>
-          <span>Adjust page layout to prevent content overlap (experimental)</span>
-        </label>
+      <div class="form-group slider-group" id="messengerWidthGroup">
+        <div class="slider-header">
+          <label for="messengerPanelWidthPercent">Messenger panel width</label>
+          <output id="messengerPanelWidthValue" for="messengerPanelWidthPercent">100%</output>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="messengerPanelWidthPercent" min="50" max="125" step="5" value="100" disabled>
+        </div>
+        <p class="slider-help">Saved and applied when changed.</p>
       </div>
     </section>
 

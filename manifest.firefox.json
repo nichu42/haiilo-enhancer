@@ -13,20 +13,14 @@
     "https://*.haiilo.app/*",
     "https://*.haiilo.com/*"
   ],
-  "optional_permissions": [
-    "https://*/*",
-    "http://*/*"
-  ],
+  "optional_permissions": ["https://*/*", "http://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://*.haiilo.app/*",
-        "https://*.haiilo.com/*"
-      ],
+      "matches": ["https://*.haiilo.app/*", "https://*.haiilo.com/*"],
       "js": ["content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
@@ -56,7 +50,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "haiilo-enhancer@nichu42.de",
-      "strict_min_version": "109.0",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["none"]
       }

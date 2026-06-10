@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-and-release:
@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Sign Firefox extension
         env:
@@ -35,7 +35,7 @@ jobs:
             --artifacts-dir dist \
             --api-key "$AMO_JWT_ISSUER" \
             --api-secret "$AMO_JWT_SECRET" \
-            --channel unlisted \
+            --channel listed \
             --timeout 900000 2>&1 | tee /tmp/web-ext-out.txt
           EXIT=${PIPESTATUS[0]}
           set -e

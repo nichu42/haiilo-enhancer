@@ -40,7 +40,7 @@ build_firefox() {
 
     # Copy files (Firefox uses different manifest)
     cp manifest.firefox.json "$FIREFOX_DIR/manifest.json"
-    cp background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css "$FIREFOX_DIR"
+    cp LICENSE background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css "$FIREFOX_DIR"
 
     # Copy icons
     cp -r icons "$FIREFOX_DIR/icons"

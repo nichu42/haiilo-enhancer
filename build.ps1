@@ -71,6 +71,7 @@ function Build-Firefox {
     Copy-Item "manifest.firefox.json" "$firefoxDir\manifest.json"
 
     $files = @(
+        "LICENSE",
         "background.js",
         "content.js",
         "content.css",

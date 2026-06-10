@@ -36,7 +36,7 @@ jobs:
             --api-key "$AMO_JWT_ISSUER" \
             --api-secret "$AMO_JWT_SECRET" \
             --channel listed \
-            --amo-license AGPL-3.0-only \
+            --amo-metadata amo-metadata.json \
             --timeout 900000 2>&1 | tee /tmp/web-ext-out.txt
           EXIT=${PIPESTATUS[0]}
           set -e

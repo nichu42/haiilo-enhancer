@@ -31,6 +31,10 @@ header {
 }
 
 header h1 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   font-size: 32px;
   font-weight: 700;
   background: var(--gradient-primary);
@@ -38,6 +42,19 @@ header h1 {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 8px;
+}
+
+header h1 .app-icon {
+  width: 36px;
+  height: 36px;
+  display: block;
+  border-radius: 8px;
+  /* The icon is a solid teal block with a purple mark, so it does not
+   * benefit from the gradient text-fill on the heading. Reset it
+   * explicitly so it renders at its native colors. */
+  -webkit-text-fill-color: initial;
+  background: none;
+  flex-shrink: 0;
 }
 
 header .subtitle {

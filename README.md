@@ -2,84 +2,32 @@
 
 [![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
-A browser extension that enhances your Haiilo experience — mute users, customize the UI, set a custom homepage, and more.
+A browser extension for a more peaceful Haiilo experience — mute users, expand the sidebar, customize the UI, and more.
 
 ## ✨ Features
 
-### 🔇 Content Filtering
-- **User Muting**: Hide posts and comments from specific users for a more peaceful feed.
-- **Right-Click to Mute**: Add users to your mute list directly from their posts or comments.
-- **Flexible Mute Durations**: Mute permanently or for 1, 3, 7, 14, 30, or 90 days.
-- **Hidden Content Counter**: The extension icon shows how many items are currently hidden on the page.
-
-### 🎨 Interface Customization
-- **Channel Avatar Customization**: Replace generic group chat icons with colorful, styled avatars.
-- **Custom Homepage**: Set a custom landing page per Haiilo domain.
-- **Date & Time Formatting**: Switch from US-style to European or 24-hour formats.
-- **Keep Messenger Expanded**: Force the Haiilo messenger panel to stay open.
-
-### ⚙️ Settings & Data
-- **Custom Domain Support**: Works with your organization's custom Haiilo domain.
-- **Import/Export**: Back up and restore your muted users and all settings to a JSON file.
-- **Full Data Reset**: Wipe all settings and the mute list from the options page.
+- **🔇 Mute users** — right-click any username to hide their posts and comments, temporarily or permanently.
+- **📂 Auto-expand sidebar** — Haiilo hides most Workspaces and Pages behind a "Show more" button. This extension can auto-click it on page load.
+- **🎨 Color the group chats** — replace Haiilo's generic group icon with the channel's initials, in a color you can tune.
+- **🏠 Custom homepage** — set which page the Haiilo logo opens, per domain.
+- **🕒 Date & time format** — switch from US to European or 24-hour, even when your Haiilo language is English.
+- **💬 Keep messenger open** — prevents outside clicks from collapsing the chat panel.
+- **🛠️ Custom domains** — works on your organization's custom Haiilo URL, not just haiilo.app.
+- **💾 Import / export / reset** — back up your muted users and all settings to a JSON file.
 
 ## 📥 Installation
 
 ### 🦊 Firefox
-
-1. Go to the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases) and download `haiilo-enhancer-firefox.xpi`.
-2. Drag the file onto any Firefox window — or open `about:addons` and choose **Install Add-on From File…**.
+Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases) and drag it onto any Firefox window (or use **Install Add-on From File…** in `about:addons`).
 
 ### 🌐 Chrome, Vivaldi, Brave, Edge, …
-
-Chrome and other Chromium-based browsers require extensions to be loaded in developer mode for self-distributed installs.
-
-1. Go to the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases) and download `haiilo-enhancer-chrome.zip`, then unzip it.
-2. Open `chrome://extensions/` (or the equivalent in your browser).
-3. Enable **Developer mode**.
-4. Click **Load unpacked** and select the folder you just unzipped.
-
-## 🖱️ Usage
-
-### Muting a User
-
-- **From the feed**: Right-click a user's name or profile link, choose **Haiilo Enhancer** from the context menu, and pick a mute duration.
-- **Manually**: Click the extension icon in your toolbar, enter a username, select a duration, and click **Mute**.
-
-### Managing Muted Users and Settings
-
-- Click the extension icon to open the popup — view and unmute users from there.
-- Click **Settings** inside the popup to configure all features.
-
-## 🎛️ Advanced Customization
-
-### Channel Avatar Customization
-
-In settings, enable **Enhance Channel Avatars** to replace generic group chat icons with colorful avatars. You can customize:
-
-- **Avatar Style**: Choose between a ring border, a rounded square, or a small badge overlay.
-- **Colors**: Use a random color per channel or set a fixed color for all of them.
-- **Fine-tuning**: Adjust the border width and color of the ring/square, or the size and position of the badge.
-
-### Custom Homepage
-
-1. Navigate to your preferred page in Haiilo.
-2. Right-click the navigation link for that page.
-3. Select **Haiilo Enhancer → Set as default homepage** from the context menu.
-
-The Haiilo logo will now redirect to that page. You can manage your set homepages in Settings.
-
-### Date & Time Formatting
-
-In settings, change the display format for dates and times across Haiilo (e.g., DD.MM.YYYY with a 24-hour clock).
+Download and unzip `haiilo-enhancer-chrome.zip` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases), then in `chrome://extensions/` enable **Developer mode** and **Load unpacked** the folder.
 
 ## 💬 Issues & Community
 
-Found a bug or have a feature idea? [Open an issue on Codeberg](https://codeberg.org/nichu42/haiilo-enhancer/issues).
+Found a bug or have a feature idea? [Open an issue on Codeberg](https://codeberg.org/nichu42/haiilo-enhancer/issues). Contributions are welcome.
 
-Contributions are always welcome — feel free to open an issue or submit a pull request.
-
-If you find this extension useful, please consider supporting its development:
+If you find this extension useful:
 
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/nichu42/donate) [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nichu42)
 
@@ -89,58 +37,29 @@ This is an independent, open-source project not affiliated with, endorsed by, or
 
 ## 📄 License
 
-Licensed under the **GNU Affero General Public License v3.0 or later**. See the [LICENSE](LICENSE) file for details.
+GNU Affero General Public License v3.0 or later. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🛠️ Advanced
+## 🛠️ Development
 
-### Loading from Source (Development)
+### Build
 
-You can also run the extension straight from the repository. First, [download the repository](https://codeberg.org/nichu42/haiilo-enhancer/archive/main.zip) and unzip it, or clone it with Git.
+```sh
+# Windows
+.\build.ps1            # both browsers
+.\build.ps1 -Firefox
+.\build.ps1 -Chrome
 
-#### Chromium-based browsers
-
-No build step needed.
-
-1. Open `chrome://extensions/`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked** and select the project root (the folder containing `manifest.json`).
-
-#### Firefox
-
-A build step is required for Firefox.
-
-1. Follow the build instructions below.
-2. Open `about:debugging#/runtime/this-firefox`.
-3. Click **Load Temporary Add-on…** and select `dist/firefox/manifest.json`.
-
-### Building the Extension
-
-#### Windows
-
-You may need to allow the script to run first:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+# macOS / Linux
+./build.sh             # both browsers
+./build.sh -Firefox
+./build.sh -Chrome
 ```
 
-Then build from the project root:
+Packages are written to `dist/`. The Windows script may need `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` once.
 
-| Target | Command |
-|--------|---------|
-| Both | `.\build.ps1` |
-| Firefox | `.\build.ps1 -Firefox` |
-| Chrome | `.\build.ps1 -Chrome` |
+### Load from source
 
-#### macOS / Linux
-
-```bash
-chmod +x build.sh
-./build.sh          # both browsers
-./build.sh -Firefox # Firefox only
-./build.sh -Chrome  # Chrome only
-```
-
-Packages are written to the `dist/` folder.
-
+- **Chromium-based**: open `chrome://extensions/`, enable Developer mode, **Load unpacked** the project root.
+- **Firefox**: build first, then **Load Temporary Add-on…** in `about:debugging` and pick `dist/firefox/manifest.json`.

@@ -4,17 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Haiilo Enhancer</title>
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Haiilo Enhancer <span class="version" id="versionInfo">v0.1.2</span></h1>
+      <h1>Haiilo Enhancer <span class="version" id="versionInfo"></span></h1>
+      <a href="#" id="openOptions" class="options-button" aria-label="Open all extension options">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M19.14 12.94a7.49 7.49 0 0 0 .05-1.94 7.49 7.49 0 0 0-.05-1.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.68-.97l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.15.56-1.68.97l-2.39-.96a.5.5 0 0 0-.6.22L2.7 7.84a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0-.05 1.94 7.49 7.49 0 0 0 .05 1.94L2.82 15.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.53.41 1.09.73 1.68.97l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.59-.24 1.15-.56 1.68-.97l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+        </svg>
+        <span>More Options</span>
+        <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M9.29 6.71a1 1 0 0 0 0 1.41L13.17 12l-3.88 3.88a1 1 0 1 0 1.41 1.41l4.59-4.58a1 1 0 0 0 0-1.42L10.7 6.7a1 1 0 0 0-1.41 0z"/>
+        </svg>
+      </a>
     </header>
-
-    <div class="header-actions">
-      <a href="#" id="openOptions" class="options-link">Options</a>
-    </div>
 
     <div class="stats">
       <span id="hiddenCount">0</span> items hidden on this page

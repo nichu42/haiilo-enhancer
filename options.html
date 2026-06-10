@@ -4,19 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Haiilo Enhancer - Options</title>
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Haiilo Enhancer <span class="version" id="versionInfo">v0.1.2</span></h1>
+      <h1>
+        <img class="app-icon" src="icons/icon.svg" alt="" width="32" height="32">
+        Haiilo Enhancer
+        <span class="version" id="versionInfo"></span>
+      </h1>
     </header>
 
     <section>
       <h2>Muting Options</h2>
-      <p class="description">When using "Mute for default period" from the context menu, users will be muted for this duration.</p>
+      <p class="description">
+        <strong>Right-click any username on Haiilo</strong> and choose
+        <em>Haiilo Enhancer → Mute for …</em>. Muted users' posts and
+        comments are hidden on every page until they expire. Unmute
+        them from this extension's toolbar popup, or via the context
+        menu, or by adding them again with "Permanently" off and
+        waiting it out.
+      </p>
       <div class="form-group">
-        <label for="defaultMuteDays">Default mute period:</label>
+        <label for="defaultMuteDays">Default mute period (used by "Mute for default period"):</label>
         <select id="defaultMuteDays">
           <option value="1">1 day</option>
           <option value="3">3 days</option>
@@ -29,14 +41,14 @@
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="showMutedIndicator">
-          <span>Show badge with hidden content count</span>
+          <span>Show badge with hidden content count on the extension icon</span>
         </label>
       </div>
     </section>
 
     <section>
       <h2>Date & Time Format</h2>
-      <p class="description">When English as selected in your Haiilo preferences, date and time are shown in US format by default. You can customize this here.</p>
+      <p class="description">Override Haiilo's default date and time display. Useful if your account language is set to English but you'd prefer European or 24-hour formatting. Affects only this browser.</p>
 
       <div class="form-group">
         <label for="dateFormat">Date format:</label>
@@ -195,7 +207,7 @@
 
     <section>
       <h2>Custom Haiilo Domains</h2>
-      <p class="description">Add custom domains if your organization uses a custom Haiilo URL instead of *.haiilo.app</p>
+      <p class="description">If your organization uses a custom Haiilo URL (not *.haiilo.app or *.haiilo.com), add it here. The browser will ask you to grant access the first time — that's expected, it just means "yes, run on this site too."</p>
       <div id="domainsList" class="domains-list"></div>
       <div class="form-group">
         <label for="newDomain">Add custom domain:</label>
@@ -210,6 +222,7 @@
 
     <section>
       <h2>Data Management</h2>
+      <p class="description">Export your settings and muted users to a JSON file as a backup, or import a previous export to restore them. <strong>Reset to Defaults</strong> wipes everything; export first if you might want to undo it.</p>
       <div class="button-group">
         <button id="exportData" class="secondary">Export All Settings</button>
         <button id="importData" class="secondary">Import All Settings</button>

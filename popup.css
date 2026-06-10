@@ -11,9 +11,16 @@ body {
   font-size: 14px;
   color: var(--color-text-primary);
   background: var(--gradient-primary);
-  min-width: 380px;
-  width: 380px;
+  min-width: 460px;
+  width: 460px;
   line-height: 1.6;
+  /* Cap the popup height so it never gets clipped on small screens.
+   * On a typical 1080p display the browser viewport is ~900-1000px
+   * tall; the OS taskbar + browser chrome leave ~700-800px. We cap at
+   * 640px so the popup fits comfortably on a 720p display too. */
+  max-height: 640px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .container {
@@ -58,29 +65,59 @@ header .version {
   vertical-align: 2px;
 }
 
-.header-actions {
-  margin-bottom: 12px;
-  text-align: center;
-  padding: 12px 16px;
-  background: var(--color-bg-white);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-}
-
-.options-link {
-  color: var(--color-primary-purple);
-  text-decoration: none;
+/* Options button: a clearly-labeled gradient pill below the title. Tells
+ * the user that more options live behind it, instead of a hidden icon. */
+header .options-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 16px;
+  background: var(--gradient-primary);
+  color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  transition: color 0.2s ease;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 147, 157, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-.options-link:hover {
-  color: var(--color-primary-teal);
+header .options-button svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  flex-shrink: 0;
+}
+
+header .options-button .chevron {
+  width: 12px;
+  height: 12px;
+  opacity: 0.85;
+  margin-left: 2px;
+}
+
+header .options-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 147, 157, 0.35);
+  filter: brightness(1.05);
+}
+
+header .options-button:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+header .options-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 147, 157, 0.3), 0 2px 6px rgba(15, 147, 157, 0.25);
 }
 
 .stats {
-  background: white;
+  background: var(--color-bg-white);
   padding: 14px 16px;
   border-radius: 12px;
   text-align: center;
@@ -114,8 +151,6 @@ section h2 {
 }
 
 .muted-list {
-  max-height: 240px;
-  overflow-y: auto;
   border: 2px solid var(--color-bg-lighter);
   border-radius: 8px;
   background: var(--color-bg-light);
@@ -348,21 +383,22 @@ footer a:hover {
   flex-shrink: 0;
 }
 
-/* Scrollbar styling */
-.muted-list::-webkit-scrollbar {
-  width: 8px;
+/* Scrollbar styling - applies to the popup body, which scrolls
+ * internally when the content exceeds the 640px cap. */
+body::-webkit-scrollbar {
+  width: 10px;
 }
 
-.muted-list::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track {
   background: var(--color-bg-lighter);
-  border-radius: 4px;
 }
 
-.muted-list::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb {
   background: var(--gradient-primary);
-  border-radius: 4px;
+  border-radius: 5px;
+  border: 2px solid var(--color-bg-lighter);
 }
 
-.muted-list::-webkit-scrollbar-thumb:hover {
+body::-webkit-scrollbar-thumb:hover {
   background: var(--gradient-primary-dark);
 }

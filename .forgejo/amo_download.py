@@ -89,7 +89,7 @@ def main() -> None:
         data = api_get(token, url)
         match = find_version(data["results"], version)
 
-        if match and match.get("files"):
+        if match and match.get("file"):
             break
 
         if attempt < max_attempts:
@@ -103,7 +103,7 @@ def main() -> None:
             msg = f"No signed file for version {version} on AMO after {max_attempts} attempts"
             raise RuntimeError(msg)
 
-    download_url: str = match["files"][0]["url"]
+    download_url: str = match["file"]["url"]
     out = f"dist/haiilo_enhancer-{version}.xpi"
     download_file(token, download_url, out)
 

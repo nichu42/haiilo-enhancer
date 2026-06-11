@@ -55,6 +55,17 @@ jobs:
             fi
           fi
 
+      - name: Upload & Publish to Chrome Web Store
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          npx --yes --package=chrome-webstore-upload-cli chrome-webstore-upload \
+            --source dist/haiilo-enhancer-chrome.zip \
+            --extension-id "inaciekpbcbhkboeoopdkoimkmiajfie"
+
       - name: Publish release
         env:
           FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}

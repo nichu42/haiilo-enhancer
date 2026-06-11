@@ -1,6 +1,6 @@
-# Haiilo Enhancer
+# <img src="icons/icon48.png" width="38" height="38" align="center" style="vertical-align: middle;"> Haiilo Enhancer
 
-[![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
 A browser extension for a more peaceful Haiilo experience — mute users, expand the sidebar, customize the UI, and more.
 
@@ -27,20 +27,21 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 
 ## 📥 Installation
 
+### 🌐 Chromium-based browsers (Chrome, Edge, Brave, Vivaldi, etc.)
+
+<a href="https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie">
+  <img src="icons/chrome-web-store-badge.png" alt="Available in the Chrome Web Store" width="180">
+</a>
+
+*(Or see the manual installation section below.)*
+
 ### 🦊 Firefox
 
 1. Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
 2. Drag the file onto a Firefox window, or open `about:addons` and choose **Install Add-on From File…**.
 3. Open Haiilo and use the toolbar popup or options page to configure the extension.
 
-### 🌐 Chromium (Chrome, Vivaldi, Edge, Brave, etc.)
-
-1. Download `haiilo-enhancer-chrome.zip` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
-2. Unzip the archive.
-3. Open your browser's extensions page, for example `chrome://extensions/`.
-4. Enable **Developer mode**.
-5. Click **Load unpacked** and select the unzipped folder.
-6. Open Haiilo and use the toolbar popup or options page to configure the extension.
+---
 
 ## 🔐 Permissions and privacy
 
@@ -70,6 +71,19 @@ This is an independent, open-source project not affiliated with, endorsed by, or
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Affero General Public License](LICENSE) for more details.
+
+---
+
+### ⚙️ Advanced: Manual Installation (Chromium)
+
+If you prefer to install the extension manually from the zip archive:
+
+1. Download `haiilo-enhancer-chrome.zip` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
+2. Unzip the archive.
+3. Open your browser's extensions page, for example `chrome://extensions/`.
+4. Enable **Developer mode**.
+5. Click **Load unpacked** and select the unzipped folder.
+6. Open Haiilo and use the toolbar popup or options page to configure the extension.
 
 ---
 

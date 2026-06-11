@@ -51,7 +51,11 @@ jobs:
               echo "Extension is pending AMO review — downloading XPI via API..."
               python3 .forgejo/amo_download.py
             else
-              exit $EXIT
+              echo "web-ext sign failed with: $(cat /tmp/web-ext-out.txt)"
+              echo "Attempting to download existing XPI from AMO as fallback..."
+              if ! python3 .forgejo/amo_download.py; then
+                exit $EXIT
+              fi
             fi
           fi
 

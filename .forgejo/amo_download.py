@@ -81,7 +81,7 @@ def main() -> None:
 
     url = (
         f"https://addons.mozilla.org/api/v5/addons/addon/{gecko_id}/versions/"
-        f"?filter=all_with_listed"
+        f"?filter=all_with_unlisted"
     )
 
     max_attempts = 3

@@ -1,6 +1,6 @@
 # <img src="icons/icon48.png" width="38" height="38" align="center" style="vertical-align: middle;"> Haiilo Enhancer
 
-[![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Firefox Add-on](https://img.shields.io/amo/v/haiilo-enhancer?logo=firefox&logoColor=white&label=Firefox%20Add-on)](https://addons.mozilla.org/firefox/addon/haiilo-enhancer/) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
 A browser extension for a more peaceful Haiilo experience — mute users, expand the sidebar, customize the UI, and more.
 
@@ -37,9 +37,11 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 
 ### 🦊 Firefox
 
-1. Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
-2. Drag the file onto a Firefox window, or open `about:addons` and choose **Install Add-on From File…**.
-3. Open Haiilo and use the toolbar popup or options page to configure the extension.
+<a href="https://addons.mozilla.org/firefox/addon/haiilo-enhancer/">
+  <img src="icons/firefox-add-on-badge.png" alt="Get the Add-on" width="180">
+</a>
+
+*(Or see the manual installation section below.)*
 
 ---
 
@@ -74,7 +76,9 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 ---
 
-### ⚙️ Advanced: Manual Installation (Chromium)
+### ⚙️ Advanced: Manual Installation
+
+#### Chromium-based browsers (Chrome, Edge, Brave, Vivaldi, etc.)
 
 If you prefer to install the extension manually from the zip archive:
 
@@ -84,6 +88,14 @@ If you prefer to install the extension manually from the zip archive:
 4. Enable **Developer mode**.
 5. Click **Load unpacked** and select the unzipped folder.
 6. Open Haiilo and use the toolbar popup or options page to configure the extension.
+
+#### Firefox
+
+If you prefer to install the extension manually from the `.xpi` package:
+
+1. Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
+2. Drag the file onto a Firefox window, or open `about:addons` and choose **Install Add-on From File…**.
+3. Open Haiilo and use the toolbar popup or options page to configure the extension.
 
 ---
 

@@ -88,6 +88,7 @@
   let dateFormat = 'MMDD'; // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
   let timeFormat = '12h'; // '12h' or '24h'
   let dateTimeProcessed = false;
+  let isTyping = false;
   let messengerOverlayObserver = null;
   let keepMessengerExpandedActive = false;
   let messengerReopenObserver = null;
@@ -1223,6 +1224,7 @@
       await loadMutedUsers();
       await loadCustomHomepage();
       setupMutationObserver();
+      setupTypingPauseListener();
       setupRightClickListener();
       setupLogoClickInterceptor();
       hideContent();
@@ -1472,6 +1474,8 @@
     }
 
     observer = new MutationObserver((mutations) => {
+      if (isTyping) return;
+
       let shouldFilter = false;
 
       for (const mutation of mutations) {
@@ -1508,6 +1512,42 @@
     });
     
     debugLog('Mutation observer set up');
+  }
+
+  function setupTypingPauseListener() {
+    const isTextInput = (el) => {
+      if (!el) return false;
+      if (el.tagName === 'TEXTAREA') return true;
+      if (el.tagName === 'INPUT') {
+        const type = (el.type || 'text').toLowerCase();
+        return ['text', 'search', 'email', 'url', 'tel', 'password', 'number'].includes(type);
+      }
+      if (el.isContentEditable) return true;
+      return false;
+    };
+
+    document.addEventListener('focusin', (e) => {
+      if (isTextInput(e.target)) {
+        isTyping = true;
+        debugLog('[Content] Typing started, pausing date processing');
+      }
+    });
+
+    document.addEventListener('focusout', (e) => {
+      if (!isTextInput(e.target)) return;
+      setTimeout(() => {
+        if (isTextInput(document.activeElement)) return;
+        isTyping = false;
+        debugLog('[Content] Typing ended, resuming date processing');
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+          processAllDateTimes();
+        }
+      }, 0);
+    });
+
+    document.addEventListener('compositionstart', () => {
+      isTyping = true;
+    });
   }
 
   function setupRightClickListener() {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Haiilo Enhancer",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
   "permissions": [
     "storage",

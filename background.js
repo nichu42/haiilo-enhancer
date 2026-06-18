@@ -69,35 +69,51 @@ const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 
 // Initialize extension on install
 browserAPI.runtime.onInstalled.addListener(async () => {
-  // Initialize storage with defaults if not set
-  const data = await browserAPI.storage.local.get(['mutedUsers', 'settings', 'customDomains']);
+  try {
+    // Initialize storage with defaults if not set
+    const data = await browserAPI.storage.local.get(['mutedUsers', 'settings', 'customDomains', 'customHomepages']);
 
-  if (!data.mutedUsers) {
-    await browserAPI.storage.local.set({ mutedUsers: [] });
+    if (!data.mutedUsers) {
+      await browserAPI.storage.local.set({ mutedUsers: [] });
+    }
+
+    if (!data.settings) {
+      await browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS });
+    } else {
+      await browserAPI.storage.local.set({ settings: normalizeSettings(data.settings) });
+    }
+
+    if (!data.customDomains) {
+      await browserAPI.storage.local.set({ customDomains: [] });
+    }
+
+    if (!data.customHomepages) {
+      await browserAPI.storage.local.set({ customHomepages: {} });
+    }
+
+    // Create context menu
+    try {
+      await createContextMenu();
+    } catch (e) {
+      console.error('Error creating context menu on install:', e);
+    }
+
+    // Register dynamic content scripts for custom domains
+    try {
+      await registerDynamicContentScripts();
+    } catch (e) {
+      console.error('Error registering dynamic content scripts on install:', e);
+    }
+
+    // Inject content scripts into existing tabs
+    try {
+      await injectContentScripts();
+    } catch (e) {
+      console.error('Error injecting content scripts on install:', e);
+    }
+  } catch (err) {
+    console.error('Error in onInstalled listener:', err);
   }
-
-  if (!data.settings) {
-    await browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS });
-  } else {
-    await browserAPI.storage.local.set({ settings: normalizeSettings(data.settings) });
-  }
-
-  if (!data.customDomains) {
-    await browserAPI.storage.local.set({ customDomains: [] });
-  }
-
-  if (!data.customHomepages) {
-    await browserAPI.storage.local.set({ customHomepages: {} });
-  }
-
-  // Create context menu
-  createContextMenu();
-
-  // Register dynamic content scripts for custom domains
-  await registerDynamicContentScripts();
-
-  // Inject content scripts into existing tabs
-  await injectContentScripts();
 });
 
 // Create context menu on startup and re-register content scripts
@@ -545,12 +561,17 @@ async function getAllDomains() {
 async function isHaiiloTab(tab) {
   if (!tab || !tab.url) return false;
 
-  const allDomains = await getAllDomains();
-  const url = new URL(tab.url);
+  try {
+    const allDomains = await getAllDomains();
+    const url = new URL(tab.url);
 
-  return allDomains.some(domain => {
-    return url.hostname === domain || url.hostname.endsWith('.' + domain);
-  });
+    return allDomains.some(domain => {
+      return url.hostname === domain || url.hostname.endsWith('.' + domain);
+    });
+  } catch (e) {
+    debugLog('Error parsing URL in isHaiiloTab:', tab.url, e);
+    return false;
+  }
 }
 
 // Add a custom domain (permission must be granted before calling this)

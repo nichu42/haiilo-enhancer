@@ -18,20 +18,20 @@
   function isExtensionContextValid() {
     try {
       // Comprehensive check for extension context
-      if (typeof chrome === 'undefined') return false;
-      if (typeof chrome.runtime === 'undefined') return false;
-      if (typeof chrome.runtime.sendMessage === 'undefined') return false;
-      if (!chrome.runtime.id) return false;
+      if (typeof browserAPI === 'undefined') return false;
+      if (typeof browserAPI.runtime === 'undefined') return false;
+      if (typeof browserAPI.runtime.sendMessage === 'undefined') return false;
+      if (!browserAPI.runtime.id) return false;
       
       // Additional check: try to access a runtime property
       try {
-        const id = chrome.runtime.id;
+        const id = browserAPI.runtime.id;
         if (!id || id.length === 0) return false;
       } catch (e) {
         return false;
       }
       
-      return true;
+      return extensionContextValid;
     } catch (e) {
       return false;
     }
@@ -1249,7 +1249,7 @@
 
       // Replace generic channel avatars and process date/times
       setTimeout(() => {
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        if (isExtensionContextValid()) {
           replaceChannelAvatars();
           replaceHeaderAvatars();
           processAllDateTimes();
@@ -1262,7 +1262,7 @@
     }
 
     // Listen for messages from background script
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    if (isExtensionContextValid() && browserAPI.runtime.onMessage) {
       browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
           debugLog('Content script received message:', message.action);
@@ -1490,7 +1490,7 @@
         clearTimeout(window.hushFilterTimeout);
         window.hushFilterTimeout = setTimeout(() => {
           // Wrap in context check to prevent errors when extension context is invalid
-          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+          if (isExtensionContextValid()) {
             debugLog('Mutation detected, re-filtering content');
             hideContent();
             replaceChannelAvatars(); // Also check for new channel avatars
@@ -1539,7 +1539,7 @@
         if (isTextInput(document.activeElement)) return;
         isTyping = false;
         debugLog('[Content] Typing ended, resuming date processing');
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        if (isExtensionContextValid()) {
           processAllDateTimes();
         }
       }, 0);
@@ -1731,15 +1731,6 @@
 
   function updateBadge() {
     try {
-      // Check if we're still in a valid extension context
-      if (typeof chrome === 'undefined' ||
-          typeof chrome.runtime === 'undefined' ||
-          typeof chrome.runtime.sendMessage === 'undefined' ||
-          !chrome.runtime.id) {
-        debugLog('Extension context invalidated, skipping badge update');
-        return;
-      }
-
       // Check context first
       if (!isExtensionContextValid()) {
         debugLog('Skipping badge update: extension context invalid');
@@ -1797,17 +1788,21 @@
     while (current && depth < maxDepth) {
       // Check if this is an anchor element with href
       if (current.tagName === 'A' && current.href) {
-        const url = new URL(current.href);
+        try {
+          const url = new URL(current.href);
 
-        // Check if it's a valid homepage path (/home/*, /pages/*, or /workspaces/*)
-        if (url.pathname.startsWith('/home/') ||
-            url.pathname.startsWith('/pages/') ||
-            url.pathname.startsWith('/workspaces/')) {
-          debugLog('Found homepage URL:', current.href);
-          return {
-            homepageUrl: current.href,
-            baseUrl: baseUrl
-          };
+          // Check if it's a valid homepage path (/home/*, /pages/*, or /workspaces/*)
+          if (url.pathname.startsWith('/home/') ||
+              url.pathname.startsWith('/pages/') ||
+              url.pathname.startsWith('/workspaces/')) {
+            debugLog('Found homepage URL:', current.href);
+            return {
+              homepageUrl: current.href,
+              baseUrl: baseUrl
+            };
+          }
+        } catch (e) {
+          debugLog('Error parsing URL in getHomepageFromElement:', current.href, e);
         }
       }
 

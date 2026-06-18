@@ -93,11 +93,16 @@ function Build-Firefox {
     Remove-Item "$firefoxDir\icons\*.html" -ErrorAction SilentlyContinue
 
     # Create xpi (same format as zip; Firefox recognises the .xpi extension natively)
+    $zipPath = "$distDir\haiilo-enhancer-firefox.zip"
     $xpiPath = "$distDir\haiilo-enhancer-firefox.xpi"
+    if (Test-Path $zipPath) {
+        Remove-Item $zipPath
+    }
     if (Test-Path $xpiPath) {
         Remove-Item $xpiPath
     }
-    Compress-Archive -Path "$firefoxDir\*" -DestinationPath $xpiPath
+    Compress-Archive -Path "$firefoxDir\*" -DestinationPath $zipPath
+    Rename-Item -Path $zipPath -NewName "haiilo-enhancer-firefox.xpi"
 
     Write-Host "Firefox build complete: $xpiPath" -ForegroundColor Green
 }

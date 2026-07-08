@@ -59,7 +59,13 @@ function debugLog(...args) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPopup);
+} else {
+  initPopup();
+}
+
+async function initPopup() {
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
   const versionEl = document.getElementById('versionInfo');
@@ -69,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadHiddenCount();
   await loadSettings();
   setupEventListeners();
-});
+}
 
 async function loadMutedUsers() {
   const response = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
@@ -174,14 +180,21 @@ async function loadSettings() {
     }
   };
 
-  const updateWidthControls = () => {
-    const enabled = messengerCheckbox ? messengerCheckbox.checked : false;
-
-    if (widthSlider) {
-      widthSlider.disabled = !enabled;
-      widthSlider.title = enabled ? 'Adjust the open messenger panel width' : 'Enable keep messenger expanded first';
-    }
-  };
+  const extensionEnabledToggle = document.getElementById('extensionEnabledToggle');
+  if (extensionEnabledToggle) {
+    extensionEnabledToggle.checked = settings.extensionEnabled !== false;
+    
+    extensionEnabledToggle.addEventListener('change', async (e) => {
+      try {
+        const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+        currentSettings.extensionEnabled = e.target.checked;
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
+        updatePopupDisabledState();
+      } catch (error) {
+        console.error('[Popup] Error saving extension toggle:', error);
+      }
+    });
+  }
 
   if (widthSlider) {
     widthSlider.value = messengerPanelWidthPercent;
@@ -197,9 +210,9 @@ async function loadSettings() {
         widthSlider.value = messengerPanelWidthPercent;
         updateWidthLabel(messengerPanelWidthPercent);
 
-        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-        settings.messengerPanelWidthPercent = messengerPanelWidthPercent;
-        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
+        const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+        currentSettings.messengerPanelWidthPercent = messengerPanelWidthPercent;
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
         debugLog('[Popup] Settings saved, messengerPanelWidthPercent:', messengerPanelWidthPercent);
 
         if (messengerCheckbox && messengerCheckbox.checked) {
@@ -217,11 +230,11 @@ async function loadSettings() {
     messengerCheckbox.addEventListener('change', async (e) => {
       try {
         debugLog('[Popup] Messenger expanded toggle changed to:', e.target.checked);
-        const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-        settings.keepMessengerExpanded = e.target.checked;
-        settings.messengerPanelWidthPercent = messengerPanelWidthPercent;
+        const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+        currentSettings.keepMessengerExpanded = e.target.checked;
+        currentSettings.messengerPanelWidthPercent = messengerPanelWidthPercent;
 
-        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
+        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
         debugLog('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
 
         updateWidthControls();
@@ -232,6 +245,45 @@ async function loadSettings() {
     });
   }
 
+  updatePopupDisabledState();
+}
+
+function updateWidthControls() {
+  const isEnabledToggle = document.getElementById('extensionEnabledToggle');
+  const isEnabled = isEnabledToggle ? isEnabledToggle.checked : true;
+  const messengerCheckbox = document.getElementById('keepMessengerExpanded');
+  const widthSlider = document.getElementById('messengerPanelWidthPercent');
+  const messengerEnabled = messengerCheckbox ? messengerCheckbox.checked : false;
+
+  if (widthSlider) {
+    widthSlider.disabled = !isEnabled || !messengerEnabled;
+    widthSlider.title = !isEnabled 
+      ? 'Extension is disabled'
+      : (messengerEnabled ? 'Adjust the open messenger panel width' : 'Enable keep messenger expanded first');
+  }
+}
+
+function updatePopupDisabledState() {
+  const isEnabledToggle = document.getElementById('extensionEnabledToggle');
+  if (!isEnabledToggle) return;
+  const isEnabled = isEnabledToggle.checked;
+  if (isEnabled) {
+    document.body.classList.remove('extension-disabled');
+  } else {
+    document.body.classList.add('extension-disabled');
+  }
+  
+  // Disable / Enable form inputs
+  const addUserInputs = document.querySelectorAll('#addUserForm input, #addUserForm select, #addUserForm button');
+  addUserInputs.forEach(input => {
+    input.disabled = !isEnabled;
+  });
+  
+  const keepMessengerExpanded = document.getElementById('keepMessengerExpanded');
+  if (keepMessengerExpanded) {
+    keepMessengerExpanded.disabled = !isEnabled;
+  }
+  
   updateWidthControls();
 }
 

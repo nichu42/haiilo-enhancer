@@ -10,12 +10,27 @@
 <body>
   <div class="container">
     <header>
-      <h1>
-        <img class="app-icon" src="icons/icon.svg" alt="" width="32" height="32">
-        Haiilo Enhancer
+      <div class="title-container">
+        <h1>
+          <img class="app-icon" src="icons/icon.svg" alt="" width="32" height="32">
+          Haiilo Enhancer
+        </h1>
         <span class="version" id="versionInfo"></span>
-      </h1>
+      </div>
     </header>
+
+    <section class="extension-toggle-section">
+      <div class="extension-toggle-container">
+        <div class="extension-toggle-text">
+          <h2>Extension Status</h2>
+          <p class="description">Temporarily turn off all extension features (muting, avatar styling, messenger expansion, date overrides) without uninstalling the extension.</p>
+        </div>
+        <label class="switch-toggle" aria-label="Toggle Extension">
+          <input type="checkbox" id="extensionEnabled" checked>
+          <span class="slider-round"></span>
+        </label>
+      </div>
+    </section>
 
     <section>
       <h2>Muting Options</h2>

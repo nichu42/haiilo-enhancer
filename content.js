@@ -73,6 +73,7 @@
   let lastRightClickedElement = null;
   let observer = null;
   let debugMode = false;
+  let extensionEnabled = true;
   let enhanceChannelAvatars = false;
   let channelAvatarsProcessed = false;
   let avatarStyle = 'ring';
@@ -1215,12 +1216,128 @@
   // Initialize
   init();
 
+  let messageListenerRegistered = false;
+
   async function init() {
     try {
       debugLog('Content script initialized');
       // Reset the processed flag on each initialization
       channelAvatarsProcessed = false;
       await loadSettings();
+
+      // Register message listener once so we can receive notifications to re-enable
+      if (!messageListenerRegistered && isExtensionContextValid() && browserAPI.runtime.onMessage) {
+        browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
+          try {
+            debugLog('Content script received message:', message.action);
+          
+            if (message.action === 'refreshFilter') {
+              if (!extensionEnabled) {
+                sendResponse({ success: true });
+                return;
+              }
+              debugLog('Refreshing filter...');
+              loadMutedUsers().then(() => {
+                debugLog('Muted users loaded:', mutedUsers);
+                // Only show all content if we actually have muted users
+                if (mutedUsers.length > 0) {
+                  showAllContent();
+                  hideContent();
+                }
+                debugLog('Filter refresh complete');
+                sendResponse({ success: true });
+              }).catch(error => {
+                console.error('Error refreshing filter:', error);
+                sendResponse({ success: false, error: error.message });
+              });
+              return true; // Keep message port open for async response
+            }
+
+            if (message.action === 'getHiddenCount') {
+              sendResponse({ count: hiddenCount });
+            }
+
+            if (message.action === 'getLastRightClickedUser') {
+              sendResponse({ userName: lastRightClickedUser });
+            }
+
+            if (message.action === 'ping') {
+              // Simple ping response to check if content script is alive
+              sendResponse({ status: 'active' });
+              return true;
+            }
+
+            if (message.action === 'getUserNameFromElement') {
+              const activeElement = document.activeElement;
+              const userName = findUserNameFromElement(activeElement) || lastRightClickedUser;
+              sendResponse({ userName: userName });
+            }
+
+            if (message.action === 'getHomepageUrl') {
+              const homepageInfo = getHomepageFromElement(lastRightClickedElement);
+              sendResponse(homepageInfo);
+            }
+
+            if (message.action === 'updateHomepageRedirect') {
+              if (!extensionEnabled) {
+                sendResponse({ success: true });
+                return;
+              }
+              loadCustomHomepage();
+              sendResponse({ success: true });
+            }
+
+            if (message.action === 'toggleMessengerExpanded') {
+              if (!extensionEnabled) {
+                sendResponse({ success: true });
+                return;
+              }
+              const widthPercent = clampMessengerPanelWidthPercent(message.messengerPanelWidthPercent);
+              debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'messengerPanelWidthPercent:', widthPercent);
+              applyMessengerExpandedCSS(message.expanded, widthPercent);
+              debugLog('Applied messenger expanded CSS for:', message.expanded, 'with width percent:', widthPercent);
+              sendResponse({ success: true });
+            }
+
+            if (message.action === 'settingsUpdated') {
+              const wasEnabled = extensionEnabled;
+              loadSettings().then(() => {
+                if (wasEnabled !== extensionEnabled) {
+                  debugLog('Extension enabled state changed from', wasEnabled, 'to', extensionEnabled, '- reloading page');
+                  window.location.reload();
+                  sendResponse({ success: true });
+                  return;
+                }
+
+                if (!extensionEnabled) {
+                  sendResponse({ success: true });
+                  return;
+                }
+
+                autoExpandProcessed.clear();
+                autoExpandShowMoreLists();
+                if (!autoExpandMountObserver) {
+                  setupAutoExpandMountObserver();
+                }
+                sendResponse({ success: true });
+              });
+              return true;
+            }
+          } catch (e) {
+            console.error('Error in message handler:', e);
+            sendResponse({ success: false, error: e.message });
+          }
+        });
+        messageListenerRegistered = true;
+      }
+
+      if (!extensionEnabled) {
+        debugLog('Extension is disabled via kill-switch. Skipping initialization.');
+        hiddenCount = 0;
+        updateBadge();
+        return;
+      }
+
       await loadMutedUsers();
       await loadCustomHomepage();
       setupMutationObserver();
@@ -1239,14 +1356,6 @@
       autoExpandShowMoreLists();
       setupAutoExpandMountObserver();
 
-      // NOTE: Previously this block started a setInterval(..., 2000)
-      // that periodically re-ran hideContent() to filter muted users.
-      // That interval was redundant: the MutationObserver installed
-      // by setupMutationObserver() already catches DOM changes and
-      // re-filters on a 50ms debounce. The interval added ~3ms of
-      // hideContent() work every 2 seconds even when nothing changed,
-      // and (more importantly) it kept the page busy on long sessions.
-
       // Replace generic channel avatars and process date/times
       setTimeout(() => {
         if (isExtensionContextValid()) {
@@ -1260,95 +1369,6 @@
     } catch (e) {
       console.error('Error initializing content script:', e);
     }
-
-    // Listen for messages from background script
-    if (isExtensionContextValid() && browserAPI.runtime.onMessage) {
-      browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        try {
-          debugLog('Content script received message:', message.action);
-        
-          if (message.action === 'refreshFilter') {
-            debugLog('Refreshing filter...');
-            loadMutedUsers().then(() => {
-              debugLog('Muted users loaded:', mutedUsers);
-              // Only show all content if we actually have muted users
-              if (mutedUsers.length > 0) {
-                showAllContent();
-                hideContent();
-              }
-              debugLog('Filter refresh complete');
-              sendResponse({ success: true });
-            }).catch(error => {
-              console.error('Error refreshing filter:', error);
-              sendResponse({ success: false, error: error.message });
-            });
-            return true; // Keep message port open for async response
-          }
-
-          if (message.action === 'getHiddenCount') {
-            sendResponse({ count: hiddenCount });
-          }
-
-          if (message.action === 'getLastRightClickedUser') {
-            sendResponse({ userName: lastRightClickedUser });
-          }
-
-          if (message.action === 'ping') {
-            // Simple ping response to check if content script is alive
-            sendResponse({ status: 'active' });
-            return true;
-          }
-
-          if (message.action === 'getUserNameFromElement') {
-            // Try to find username from the currently focused or clicked element
-            const activeElement = document.activeElement;
-            const userName = findUserNameFromElement(activeElement) || lastRightClickedUser;
-            sendResponse({ userName: userName });
-          }
-
-          if (message.action === 'getHomepageUrl') {
-            // Extract homepage URL from last right-clicked element
-            const homepageInfo = getHomepageFromElement(lastRightClickedElement);
-            sendResponse(homepageInfo);
-          }
-
-          if (message.action === 'updateHomepageRedirect') {
-            // Reload custom homepage setting
-            loadCustomHomepage();
-            sendResponse({ success: true });
-          }
-
-          if (message.action === 'toggleMessengerExpanded') {
-            // Toggle messenger expanded state
-            const widthPercent = clampMessengerPanelWidthPercent(message.messengerPanelWidthPercent);
-            debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'messengerPanelWidthPercent:', widthPercent);
-            applyMessengerExpandedCSS(message.expanded, widthPercent);
-            debugLog('Applied messenger expanded CSS for:', message.expanded, 'with width percent:', widthPercent);
-            sendResponse({ success: true });
-          }
-
-          if (message.action === 'settingsUpdated') {
-            // Reload settings; the auto-expand runner will pick up the
-            // new values (including the master switch, scope, and click
-            // counts). If the scope changed (e.g. user enabled workspaces
-            // but not pages), clear the per-button state so the new
-            // scope gets a chance to run.
-            loadSettings().then(() => {
-              autoExpandProcessed.clear();
-              autoExpandShowMoreLists();
-              if (!autoExpandMountObserver) {
-                setupAutoExpandMountObserver();
-              }
-              sendResponse({ success: true });
-            });
-            return true;
-          }
-        } catch (e) {
-          console.error('Error in message handler:', e);
-          sendResponse({ success: false, error: e.message });
-        }
-      });
-    }
   }
 
   async function loadSettings() {
@@ -1356,6 +1376,7 @@
       if (isExtensionContextValid()) {
         try {
           const settings = await safeSendMessage({ action: 'getSettings' });
+          extensionEnabled = settings.extensionEnabled !== false; // Default to true
           debugMode = settings.debugMode || false;
           enhanceChannelAvatars = settings.enhanceChannelAvatars !== false; // Default to true
           avatarStyle = settings.channelAvatarStyle || 'ring';
@@ -1378,7 +1399,7 @@
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
-          if (settings.keepMessengerExpanded) {
+          if (extensionEnabled && settings.keepMessengerExpanded) {
             debugLog('[Content] Applying messenger expanded CSS on page load');
             applyMessengerExpandedCSS(true, messengerPanelWidthPercent);
           }
@@ -1390,6 +1411,7 @@
         } catch (error) {
           // safeSendMessage already handles context errors
           console.error('Failed to load settings:', error);
+          extensionEnabled = true;
           debugMode = false;
           enhanceChannelAvatars = true; // Default to enabled
           avatarStyle = 'ring';
@@ -1408,6 +1430,7 @@
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
+        extensionEnabled = true;
         debugMode = false;
         enhanceChannelAvatars = true; // Default to enabled
         avatarStyle = 'ring';

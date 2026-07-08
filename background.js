@@ -23,6 +23,7 @@ function debugLog(...args) {
 
 // Default settings
 const DEFAULT_SETTINGS = {
+  extensionEnabled: true,
   defaultMuteDays: 7,
   showMutedIndicator: true,
   debugMode: false,
@@ -142,6 +143,12 @@ browserAPI.webNavigation.onCompleted.addListener(async (details) => {
 });
 
 async function createContextMenu() {
+  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  if (settings.extensionEnabled === false) {
+    browserAPI.contextMenus.removeAll();
+    return;
+  }
+
   // Get all domains (default + custom) for targetUrlPatterns
   const allDomains = await getAllDomains();
 
@@ -241,6 +248,12 @@ async function createContextMenu() {
 
 // Handle context menu clicks
 browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
+  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  if (!settings.extensionEnabled) {
+    debugLog('Extension is disabled, ignoring context menu click');
+    return;
+  }
+
   debugLog('Context menu clicked:', info);
 
   // Handle setting custom homepage
@@ -319,7 +332,6 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
 
   // Determine mute duration
   let muteDays = null; // null = permanent
-  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
 
   if (info.menuItemId === 'mute-permanent') {
     muteDays = null;
@@ -412,14 +424,20 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'saveSettings') {
     const settings = normalizeSettings(message.settings);
-    browserAPI.storage.local.set({ settings }).then(() => {
+    browserAPI.storage.local.set({ settings }).then(async () => {
+      await createContextMenu();
+      await updateAllBadges();
+      await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
       sendResponse({ success: true });
     });
     return true;
   }
 
   if (message.action === 'resetSettings') {
-    browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS }).then(() => {
+    browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS }).then(async () => {
+      await createContextMenu();
+      await updateAllBadges();
+      await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
       sendResponse({ success: true });
     });
     return true;
@@ -432,16 +450,26 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, error: 'Badge API unavailable' });
       return true;
     }
-    // Update badge with hidden count
-    if (message.count > 0) {
-      badgeAPI.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });
-      badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: sender.tab.id });
-      debugLog('Badge updated with count:', message.count);
-    } else {
-      badgeAPI.setBadgeText({ text: '', tabId: sender.tab.id });
-      debugLog('Badge cleared');
-    }
-    sendResponse({ success: true });
+    // Update badge with hidden count or OFF status
+    browserAPI.storage.local.get('settings').then(data => {
+      const settings = data.settings || DEFAULT_SETTINGS;
+      if (settings.extensionEnabled === false) {
+        badgeAPI.setBadgeText({ text: 'OFF', tabId: sender.tab.id });
+        badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: sender.tab.id });
+        debugLog('Badge updated with OFF status');
+      } else if (message.count > 0) {
+        badgeAPI.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id });
+        badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: sender.tab.id });
+        debugLog('Badge updated with count:', message.count);
+      } else {
+        badgeAPI.setBadgeText({ text: '', tabId: sender.tab.id });
+        debugLog('Badge cleared');
+      }
+      sendResponse({ success: true });
+    }).catch(error => {
+      console.error('Error in updateHiddenCount badge update:', error);
+      sendResponse({ success: false, error: error.message });
+    });
     return true;
   }
 
@@ -539,13 +567,50 @@ async function unmuteUser(userName) {
 
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
-  const allDomains = await getAllDomains();
-  const urlPatterns = allDomains.map(d => `https://*.${d}/*`).concat(allDomains.map(d => `https://${d}/*`));
-
   const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
     if (await isHaiiloTab(tab)) {
       browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+    }
+  }
+}
+
+// Broadcast a message to all Haiilo tabs
+async function broadcastMessageToAllHaiiloTabs(message) {
+  const tabs = await browserAPI.tabs.query({});
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
+    }
+  }
+}
+
+// Update badges for all Haiilo tabs based on extensionEnabled setting
+async function updateAllBadges() {
+  if (!badgeAPI || typeof badgeAPI.setBadgeText !== 'function') return;
+  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  const tabs = await browserAPI.tabs.query({});
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      if (settings.extensionEnabled === false) {
+        badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
+        badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
+      } else {
+        // Query tab for hidden count, if not available, clear badge
+        try {
+          const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' }).catch(() => null);
+          if (response && typeof response.count === 'number' && response.count > 0) {
+            badgeAPI.setBadgeText({ text: response.count.toString(), tabId: tab.id });
+            badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: tab.id });
+          } else {
+            badgeAPI.setBadgeText({ text: '', tabId: tab.id });
+          }
+        } catch (e) {
+          badgeAPI.setBadgeText({ text: '', tabId: tab.id });
+        }
+      }
+    } else {
+      badgeAPI.setBadgeText({ text: '', tabId: tab.id });
     }
   }
 }

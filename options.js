@@ -15,7 +15,13 @@ function debugLog(...args) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initOptions);
+} else {
+  initOptions();
+}
+
+async function initOptions() {
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
   document.getElementById('versionInfo').textContent = `v${manifest.version}`;
@@ -32,10 +38,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadDomains();
   await loadCustomHomepages();
   setupEventListeners();
-});
+}
 
 async function loadSettings() {
   const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+
+  const extensionEnabledInput = document.getElementById('extensionEnabled');
+  if (extensionEnabledInput) {
+    extensionEnabledInput.checked = settings.extensionEnabled !== false;
+  }
 
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
   document.getElementById('showMutedIndicator').checked = settings.showMutedIndicator !== false;
@@ -78,6 +89,8 @@ async function loadSettings() {
   // Generate random initials and color for preview
   generateRandomPreview();
   updatePreview(false); // Don't regenerate color - use the one from generateRandomPreview
+  
+  updatePageDisabledState();
 }
 
 async function loadDomains() {
@@ -193,6 +206,13 @@ function escapeHtml(text) {
 
 function setupEventListeners() {
   // Auto-save on change
+  const extensionEnabledInput = document.getElementById('extensionEnabled');
+  if (extensionEnabledInput) {
+    extensionEnabledInput.addEventListener('change', () => {
+      updatePageDisabledState();
+      saveSettings();
+    });
+  }
   document.getElementById('defaultMuteDays').addEventListener('change', saveSettings);
   document.getElementById('showMutedIndicator').addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
@@ -451,6 +471,7 @@ async function saveSettings() {
   const colorMode = document.getElementById('colorModeRandom').checked ? 'random' : 'fixed';
 
   const settings = {
+    extensionEnabled: document.getElementById('extensionEnabled').checked,
     defaultMuteDays: parseInt(document.getElementById('defaultMuteDays').value, 10),
     showMutedIndicator: document.getElementById('showMutedIndicator').checked,
     debugMode: document.getElementById('debugMode').checked,
@@ -736,4 +757,18 @@ function resetBadgeSettings() {
   updatePreview(false);
   saveSettings();
   showStatus('Badge settings reset to default', 'success');
+}
+
+function updatePageDisabledState() {
+  const isEnabledCheckbox = document.getElementById('extensionEnabled');
+  if (!isEnabledCheckbox) return;
+  const isEnabled = isEnabledCheckbox.checked;
+  const sections = document.querySelectorAll('section:not(.extension-toggle-section)');
+  sections.forEach(sec => {
+    if (isEnabled) {
+      sec.classList.remove('section-disabled');
+    } else {
+      sec.classList.add('section-disabled');
+    }
+  });
 }

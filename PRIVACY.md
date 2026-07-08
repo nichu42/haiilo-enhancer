@@ -24,3 +24,7 @@ The extension requests only the minimum permissions necessary for its local func
 - **`tabs`**: To instantly synchronize settings across all open Haiilo tabs without reloading.
 - **`webNavigation`**: To detect when a Haiilo page loads so that muted posts can be hidden instantly on page load.
 - **Host Permissions** (`*.haiilo.app`, `*.haiilo.com`): To allow the extension to run on official Haiilo platforms.
+
+## 4. Contact & Support
+Haiilo Enhancer is an open-source project. You can inspect the source code, report bugs, or contact the maintainers at:
+https://codeberg.org/nichu42/haiilo-enhancer

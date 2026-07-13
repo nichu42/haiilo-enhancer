@@ -3,7 +3,7 @@
   "name": "Haiilo Enhancer",
   "version": "0.3.4",
   "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
-  "homepage_url": "https://codeberg.org/nichu42/haiilo-enhancer",
+  "homepage_url": "https://github.com/nichu42/haiilo-enhancer",
   "permissions": [
     "storage",
     "contextMenus",

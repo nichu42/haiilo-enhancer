@@ -1,0 +1,11 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    uses: nichu42/shared-workflows/.github/workflows/release-extension.yml@main
+    secrets: inherit

@@ -27,4 +27,4 @@ The extension requests only the minimum permissions necessary for its local func
 
 ## 4. Contact & Support
 Haiilo Enhancer is an open-source project. You can inspect the source code, report bugs, or contact the maintainers at:
-https://codeberg.org/nichu42/haiilo-enhancer
+https://github.com/nichu42/haiilo-enhancer

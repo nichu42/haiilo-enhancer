@@ -1,6 +1,6 @@
 # <img src="icons/icon48.png" width="38" height="38" align="center" style="vertical-align: middle;"> Haiilo Enhancer
 
-[![Latest Release](https://img.shields.io/gitea/v/release/nichu42/haiilo-enhancer?gitea_url=https://codeberg.org&sort=semver&label=Latest+Release)](https://codeberg.org/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Firefox Add-on](https://img.shields.io/amo/v/haiilo-enhancer?logo=firefox&logoColor=white&label=Firefox%20Add-on)](https://addons.mozilla.org/firefox/addon/haiilo-enhancer/) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/nichu42/haiilo-enhancer?sort=semver&label=Latest+Release)](https://github.com/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Firefox Add-on](https://img.shields.io/amo/v/haiilo-enhancer?logo=firefox&logoColor=white&label=Firefox%20Add-on)](https://addons.mozilla.org/firefox/addon/haiilo-enhancer/) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
 A browser extension for a more peaceful Haiilo experience — mute users, expand the sidebar, customize the UI, and more.
 
@@ -52,13 +52,13 @@ The extension does not send your Haiilo content, muted users, or settings to any
 
 ## ⚠️ Known limitations
 
-- Haiilo is a dynamic web application, so UI selectors can occasionally change after Haiilo updates. Please [report any issues](https://codeberg.org/nichu42/haiilo-enhancer/issues) if you encounter problems.
+- Haiilo is a dynamic web application, so UI selectors can occasionally change after Haiilo updates. Please [report any issues](https://github.com/nichu42/haiilo-enhancer/issues) if you encounter problems.
 - Custom domains require explicit browser permission before the extension can run on them.
 - In Chromium-based browsers, optional host permissions may remain visible in the browser's extension settings even after removing a custom domain from the extension. To remove them, you may need to remove and re-install the extension.
 
 ## 💬 Issues & Community
 
-Found a bug or have a feature idea? [Open an issue on Codeberg](https://codeberg.org/nichu42/haiilo-enhancer/issues). Contributions are welcome.
+Found a bug or have a feature idea? [Open an issue on GitHub](https://github.com/nichu42/haiilo-enhancer/issues). Contributions are welcome.
 
 If you find this extension useful:
 
@@ -82,7 +82,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 If you prefer to install the extension manually from the zip archive:
 
-1. Download `haiilo-enhancer-chrome.zip` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
+1. Download `haiilo-enhancer-chrome.zip` from the [Releases page](https://github.com/nichu42/haiilo-enhancer/releases).
 2. Unzip the archive.
 3. Open your browser's extensions page, for example `chrome://extensions/`.
 4. Enable **Developer mode**.
@@ -93,7 +93,7 @@ If you prefer to install the extension manually from the zip archive:
 
 If you prefer to install the extension manually from the `.xpi` package:
 
-1. Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://codeberg.org/nichu42/haiilo-enhancer/releases).
+1. Download `haiilo-enhancer-firefox.xpi` from the [Releases page](https://github.com/nichu42/haiilo-enhancer/releases).
 2. Drag the file onto a Firefox window, or open `about:addons` and choose **Install Add-on From File…**.
 3. Open Haiilo and use the toolbar popup or options page to configure the extension.
 

@@ -154,7 +154,7 @@ function formatExpiry(timestamp) {
 async function loadHiddenCount() {
   try {
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    if (tab && (tab.url.includes('haiilo.app') || tab.url.includes('haiilo.com'))) {
+    if (tab && await isHaiiloUrl(tab.url)) {
       const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' });
       if (response && typeof response.count === 'number') {
         document.getElementById('hiddenCount').textContent = response.count;

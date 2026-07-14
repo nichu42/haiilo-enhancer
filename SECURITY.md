@@ -337,4 +337,4 @@ If you discover a security vulnerability in this project, please do not disclose
 
 - **Details**: Include a detailed description of the vulnerability, steps to reproduce, and any proof of concept or screenshots/videos that can help us verify and resolve the issue quickly.
 
-We will acknowledge receipt of your vulnerability report within 48 hours and work with you to patch the issue and publish an updated version.
+We will acknowledge receipt of your vulnerability report within 5 days and work with you to patch the issue and publish an updated version.

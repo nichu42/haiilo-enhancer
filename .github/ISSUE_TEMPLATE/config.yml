@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Question or Discussion
+    url: https://github.com/nichu42/haiilo-enhancer/issues/new?assignees=&labels=question&template=question.md
+    about: If you have a general question about how to use the extension, please use this.

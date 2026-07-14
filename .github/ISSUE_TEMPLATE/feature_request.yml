@@ -1,0 +1,38 @@
+name: ✨ Feature Request
+description: Suggest an idea or enhancement for Haiilo Enhancer
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make Haiilo Enhancer even better? We'd love to hear it!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem/friction is.
+      placeholder: e.g., I find it difficult to ... when using Haiilo.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+      placeholder: e.g., Add a toggle in Options to ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: Any alternative solutions or workarounds you've thought of or tried.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or screenshots about the feature request here.
+    validations:
+      required: false

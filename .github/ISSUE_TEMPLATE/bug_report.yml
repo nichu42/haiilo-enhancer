@@ -1,0 +1,74 @@
+name: 🐛 Bug Report
+description: File a bug report to help us improve Haiilo Enhancer
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please fill out the form below as accurately as possible to help us diagnose and fix the issue.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder: e.g., Muted users are still showing up in the feed.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How do we reproduce this behavior? Please list the exact steps.
+      placeholder: |
+        1. Go to Haiilo feed
+        2. Right-click username 'John Doe'
+        3. Click 'Mute user permanently'
+        4. Refresh the page or scroll down
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: e.g., John Doe's posts should be hidden, and the badge count should increase.
+    validations:
+      required: true
+  - type: checkboxes
+    id: browser
+    attributes:
+      label: Affected Browser(s)
+      description: In which browser(s) does this issue occur?
+      options:
+        - label: Google Chrome / Edge / Chromium-based browsers (Manifest V3)
+        - label: Mozilla Firefox (Manifest V2)
+        - label: Other (please specify in context)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Version Information
+      description: Browser version & Extension version (found in popup/options or extension settings).
+      placeholder: e.g., Chrome 124.0.0, Extension v0.3.5
+    validations:
+      required: true
+  - type: dropdown
+    id: domain-type
+    attributes:
+      label: Haiilo Domain Type
+      description: Are you using a standard Haiilo URL or your company's custom URL?
+      options:
+        - "Standard (*.haiilo.app or *.haiilo.com)"
+        - "Custom Domain (configured in Extension Options)"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context & Console Logs
+      description: |
+        Add any other context, screenshots, or console logs here.
+        To view console logs: Right-click page → Inspect → Console. (Make sure to remove any sensitive personal information before pasting!)
+    validations:
+      required: false

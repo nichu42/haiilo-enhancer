@@ -2561,7 +2561,7 @@
       trigger.setAttribute('aria-expanded', 'false');
     }));
 
-    menu.appendChild(makeMenuAction('Outlook', () => {
+    menu.appendChild(makeMenuAction('Outlook.com', () => {
       const details = getEventDetailsFromDOM();
       const dateRange = buildCalendarDate(details);
       if (!dateRange) return;

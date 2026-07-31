@@ -2439,7 +2439,13 @@
       'text-align:left',
       'box-sizing:border-box',
     ].join(';');
-    trigger.textContent = 'Add to calendar';
+    const calIcon = document.createElement('cat-icon');
+    calIcon.setAttribute('icon', 'calendar-outlined');
+    calIcon.setAttribute('size', 'l');
+    calIcon.style.marginRight = '8px';
+    calIcon.style.flexShrink = '0';
+    trigger.appendChild(calIcon);
+    trigger.appendChild(document.createTextNode('Add to calendar'));
 
     trigger.addEventListener('mouseenter', () => { trigger.style.background = 'rgba(0,0,0,0.04)'; });
     trigger.addEventListener('mouseleave', () => { trigger.style.background = 'transparent'; });

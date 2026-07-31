@@ -7,6 +7,7 @@ The **Haiilo Enhancer** browser extension is designed with a privacy-first appro
 - **No personal data is collected, stored, tracked, or transmitted to external servers.**
 - There are no analytics tools (tracking), no advertising partners, and no connections to third-party servers.
 - All data processing occurs strictly locally in your browser on your device.
+- If you opt in to **browser sync** (disabled by default), your muted users and settings are synced via your browser account's built-in sync infrastructure (Google Account for Chrome, Firefox Account for Firefox). This data is governed by your browser vendor's privacy policy — Haiilo Enhancer itself does not operate any servers.
 
 ## 2. Local Storage of Configuration Data
 To function as intended, certain preferences and configuration data are saved locally using your browser's extension storage (`chrome.storage.local` / `browser.storage.local`). This includes:
@@ -14,7 +15,7 @@ To function as intended, certain preferences and configuration data are saved lo
 - The list of users you have muted (usernames, mute timestamps, and expiration dates).
 - Custom domains you manually added to run the extension on.
 
-This data never leaves your device. You can view, export, or delete this data at any time via the extension's options page.
+This data never leaves your device unless you explicitly enable browser sync (see section 1). You can view, export, or delete this data at any time via the extension's options page.
 
 ## 3. Permissions Explained
 The extension requests only the minimum permissions necessary for its local functionality:

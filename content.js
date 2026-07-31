@@ -2394,6 +2394,26 @@
     window.open(`https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`, '_blank', 'noopener');
   }
 
+  function openYahooCalendar(details, dateRange) {
+    const p = (v) => String(v).padStart(2, '0');
+    const formatYahoo = (date) =>
+      `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}T${p(date.getHours())}${p(date.getMinutes())}00`;
+    const formatYahooAllDay = (date) =>
+      `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}`;
+    const startStr = dateRange.allDay ? formatYahooAllDay(dateRange.start) : formatYahoo(dateRange.start);
+    const endStr   = dateRange.allDay ? formatYahooAllDay(dateRange.end)   : formatYahoo(dateRange.end);
+    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
+    const params = new URLSearchParams({
+      v: '60',
+      title: details.title || 'Event',
+      st: startStr,
+      et: endStr,
+      desc: body,
+      in_loc: details.location || ''
+    });
+    window.open(`https://calendar.yahoo.com/?${params.toString()}`, '_blank', 'noopener');
+  }
+
   function showIcsHint(anchor) {
     const existing = document.getElementById('haiiloEnhancerCalendarHint');
     if (existing) existing.remove();
@@ -2546,6 +2566,15 @@
       const dateRange = buildCalendarDate(details);
       if (!dateRange) return;
       openOutlookCalendar(details, dateRange);
+      menu.style.display = 'none';
+      trigger.setAttribute('aria-expanded', 'false');
+    }));
+
+    menu.appendChild(makeMenuAction('Yahoo Calendar', () => {
+      const details = getEventDetailsFromDOM();
+      const dateRange = buildCalendarDate(details);
+      if (!dateRange) return;
+      openYahooCalendar(details, dateRange);
       menu.style.display = 'none';
       trigger.setAttribute('aria-expanded', 'false');
     }));

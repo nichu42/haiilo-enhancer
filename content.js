@@ -2305,14 +2305,40 @@
     if (!d) return null;
 
     const times = parseTimeRangeFromDateText(details.dateText);
-    if (!times.start) return null;
+
+    // All-day event: no time found in the date text.
+    if (!times.start) {
+      // Check for an end date (multi-day all-day event) by looking for a second date in the text.
+      const numeric = (details.dateText || '').match(/\d{1,4}/g) || [];
+      const pattern = getDateFormatPattern();
+      let endDate = null;
+      // A multi-day range has at least 6 numeric tokens (day/month/year twice).
+      if (numeric.length >= 6) {
+        let ey, em, ed;
+        if (/^Y/.test(pattern)) {
+          ey = parseInt(numeric[3], 10); em = parseInt(numeric[4], 10); ed = parseInt(numeric[5], 10);
+        } else if (/^D/.test(pattern)) {
+          ed = parseInt(numeric[3], 10); em = parseInt(numeric[4], 10); ey = parseInt(numeric[5], 10);
+        } else {
+          em = parseInt(numeric[3], 10); ed = parseInt(numeric[4], 10); ey = parseInt(numeric[5], 10);
+        }
+        if (ey && em && ed) {
+          if (ey < 100) ey += 2000;
+          // Google Calendar all-day end date is exclusive (day after last day).
+          endDate = new Date(ey, em - 1, ed + 1);
+        }
+      }
+      const start = new Date(d.year, d.month - 1, d.day);
+      const end = endDate || new Date(d.year, d.month - 1, d.day + 1);
+      return { start, end, allDay: true };
+    }
 
     const start = new Date(d.year, d.month - 1, d.day, times.start.hours, times.start.minutes, 0);
     const end = times.end
       ? new Date(d.year, d.month - 1, d.day, times.end.hours, times.end.minutes, 0)
       : new Date(start.getTime() + (60 * 60 * 1000));
 
-    return { start, end };
+    return { start, end, allDay: false };
   }
 
   function formatGoogleDate(date) {
@@ -2320,11 +2346,18 @@
     return `${date.getUTCFullYear()}${p(date.getUTCMonth() + 1)}${p(date.getUTCDate())}T${p(date.getUTCHours())}${p(date.getUTCMinutes())}${p(date.getUTCSeconds())}Z`;
   }
 
+  function formatGoogleAllDay(date) {
+    const p = (v) => String(v).padStart(2, '0');
+    return `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}`;
+  }
+
   function openGoogleCalendar(details, dateRange) {
+    const startStr = dateRange.allDay ? formatGoogleAllDay(dateRange.start) : formatGoogleDate(dateRange.start);
+    const endStr   = dateRange.allDay ? formatGoogleAllDay(dateRange.end)   : formatGoogleDate(dateRange.end);
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: details.title || 'Event',
-      dates: `${formatGoogleDate(dateRange.start)}/${formatGoogleDate(dateRange.end)}`,
+      dates: `${startStr}/${endStr}`,
       details: details.description || '',
       location: details.location || '',
       sprop: window.location.href
@@ -2337,12 +2370,19 @@
     return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}:00`;
   }
 
+  function formatOutlookAllDay(date) {
+    const p = (v) => String(v).padStart(2, '0');
+    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
+  }
+
   function openOutlookCalendar(details, dateRange) {
+    const startStr = dateRange.allDay ? formatOutlookAllDay(dateRange.start) : formatOutlookDateLocal(dateRange.start);
+    const endStr   = dateRange.allDay ? formatOutlookAllDay(dateRange.end)   : formatOutlookDateLocal(dateRange.end);
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
-      startdt: formatOutlookDateLocal(dateRange.start),
-      enddt: formatOutlookDateLocal(dateRange.end),
+      startdt: startStr,
+      enddt: endStr,
       subject: details.title || 'Event',
       body: details.description || '',
       location: details.location || ''

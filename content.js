@@ -101,6 +101,7 @@
   let autoExpandDelayMs = 300;
   let autoExpandScope = 'both';
   let autoExpandMountObserver = null;
+  let calendarActionObserver = null;
 
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
   const MESSENGER_PANEL_WIDTH_MAX_PERCENT = 125;
@@ -2220,4 +2221,329 @@
     nodesToProcess.forEach(processDateTimeInText);
     debugLog('Date/time processing complete');
   }
+
+  function isEventInformationPage() {
+    return /\/events\/[^/]+\/information(?:$|[?#])/.test(window.location.pathname + window.location.search);
+  }
+
+  function findEventCardBody() {
+    const dateNode = document.querySelector('coyo-event-date');
+    if (dateNode) {
+      const cardBody = dateNode.closest('cui-card-body');
+      if (cardBody) return cardBody;
+    }
+    return null;
+  }
+
+  function getEventDetailsFromDOM() {
+    const title = normalizeWhitespace(document.querySelector('main h1')?.textContent || '');
+    const description = normalizeWhitespace(
+      document.querySelector('h3 + div p')?.textContent ||
+      document.querySelector('h3 + div')?.textContent ||
+      ''
+    );
+    const location = normalizeWhitespace(
+      document.querySelector('coyo-event-location .event-place')?.textContent ||
+      document.querySelector('coyo-event-location')?.textContent ||
+      ''
+    );
+    const dateText = normalizeWhitespace(document.querySelector('coyo-event-date')?.textContent || '');
+    return { title, description, location, dateText };
+  }
+
+  function parseDateFromDateText(dateText) {
+    const numeric = (dateText || '').match(/\d{1,4}/g);
+    if (!numeric || numeric.length < 3) return null;
+
+    let year = null;
+    let month = null;
+    let day = null;
+    const pattern = getDateFormatPattern();
+
+    if (/^Y/.test(pattern)) {
+      year = parseInt(numeric[0], 10);
+      month = parseInt(numeric[1], 10);
+      day = parseInt(numeric[2], 10);
+    } else if (/^D/.test(pattern)) {
+      day = parseInt(numeric[0], 10);
+      month = parseInt(numeric[1], 10);
+      year = parseInt(numeric[2], 10);
+    } else {
+      month = parseInt(numeric[0], 10);
+      day = parseInt(numeric[1], 10);
+      year = parseInt(numeric[2], 10);
+    }
+
+    if (!year || !month || !day) return null;
+    if (year < 100) year += 2000;
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    return { year, month, day };
+  }
+
+  function parseTimeRangeFromDateText(dateText) {
+    const matches = [...(dateText || '').matchAll(/(\d{1,2}):(\d{2})(?:\s*(AM|PM|am|pm))?/g)];
+    if (matches.length === 0) return { start: null, end: null };
+
+    const to24 = (h, m, p) => {
+      let hours = parseInt(h, 10);
+      const minutes = parseInt(m, 10);
+      if (p) {
+        const period = p.toUpperCase();
+        if (period === 'AM' && hours === 12) hours = 0;
+        if (period === 'PM' && hours !== 12) hours += 12;
+      }
+      return { hours, minutes };
+    };
+
+    const start = to24(matches[0][1], matches[0][2], matches[0][3]);
+    const end = matches[1] ? to24(matches[1][1], matches[1][2], matches[1][3]) : null;
+    return { start, end };
+  }
+
+  function buildCalendarDate(details) {
+    const d = parseDateFromDateText(details.dateText);
+    if (!d) return null;
+
+    const times = parseTimeRangeFromDateText(details.dateText);
+    if (!times.start) return null;
+
+    const start = new Date(d.year, d.month - 1, d.day, times.start.hours, times.start.minutes, 0);
+    const end = times.end
+      ? new Date(d.year, d.month - 1, d.day, times.end.hours, times.end.minutes, 0)
+      : new Date(start.getTime() + (60 * 60 * 1000));
+
+    return { start, end };
+  }
+
+  function formatGoogleDate(date) {
+    const p = (v) => String(v).padStart(2, '0');
+    return `${date.getUTCFullYear()}${p(date.getUTCMonth() + 1)}${p(date.getUTCDate())}T${p(date.getUTCHours())}${p(date.getUTCMinutes())}${p(date.getUTCSeconds())}Z`;
+  }
+
+  function openGoogleCalendar(details, dateRange) {
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: details.title || 'Event',
+      dates: `${formatGoogleDate(dateRange.start)}/${formatGoogleDate(dateRange.end)}`,
+      details: details.description || '',
+      location: details.location || '',
+      sprop: window.location.href
+    });
+    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank', 'noopener');
+  }
+
+  function formatOutlookDateLocal(date) {
+    const p = (v) => String(v).padStart(2, '0');
+    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}:00`;
+  }
+
+  function openOutlookCalendar(details, dateRange) {
+    const params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      startdt: formatOutlookDateLocal(dateRange.start),
+      enddt: formatOutlookDateLocal(dateRange.end),
+      subject: details.title || 'Event',
+      body: details.description || '',
+      location: details.location || ''
+    });
+    window.open(`https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`, '_blank', 'noopener');
+  }
+
+  function showIcsHint(anchor) {
+    const existing = document.getElementById('haiiloEnhancerCalendarHint');
+    if (existing) existing.remove();
+
+    const hint = document.createElement('div');
+    hint.id = 'haiiloEnhancerCalendarHint';
+    hint.textContent = 'ICS file downloaded. Open it from your browser downloads to import it.';
+    hint.style.marginTop = '8px';
+    hint.style.fontSize = '12px';
+    hint.style.color = '#555';
+    anchor.appendChild(hint);
+
+    window.setTimeout(() => {
+      if (hint.parentElement) hint.remove();
+    }, 5000);
+  }
+
+  function triggerHaiiloDownloadAndHint(anchor) {
+    const buttons = [...document.querySelectorAll('button')];
+    const downloadButton = buttons.find(btn => /download event/i.test(normalizeWhitespace(btn.textContent || '')));
+    if (downloadButton) {
+      downloadButton.click();
+      showIcsHint(anchor);
+    }
+  }
+
+  function toggleCalendarMenu(trigger, menu) {
+    const nextDisplay = menu.style.display === 'none' ? 'block' : 'none';
+    menu.style.display = nextDisplay;
+    trigger.setAttribute('aria-expanded', String(nextDisplay === 'block'));
+  }
+
+  function findOptionsCardBody() {
+    // Find the cui-card-body that contains the "Share event" and "Download event" action buttons.
+    const allCardBodies = document.querySelectorAll('cui-card-body');
+    for (const cb of allCardBodies) {
+      const buttons = cb.querySelectorAll('button');
+      let hasShare = false;
+      let hasDownload = false;
+      for (const btn of buttons) {
+        const text = normalizeWhitespace(btn.textContent || '');
+        if (/share event/i.test(text)) hasShare = true;
+        if (/download event/i.test(text)) hasDownload = true;
+      }
+      if (hasShare && hasDownload) return cb;
+    }
+    return null;
+  }
+
+  function injectAddToCalendarAction() {
+    if (!extensionEnabled) return;
+    if (!isEventInformationPage()) return;
+
+    const optionsCard = findOptionsCardBody();
+    if (!optionsCard) return;
+    if (optionsCard.querySelector('[data-haiilo-enhancer-calendar="true"]')) return;
+
+    // Find the Download event button to insert our entry before it.
+    const allButtons = [...optionsCard.querySelectorAll('button')];
+    const downloadButton = allButtons.find(btn => /download event/i.test(normalizeWhitespace(btn.textContent || '')));
+
+    // Clone the visual style of an existing option button (Share event or Download event).
+    // We look for the closest ancestor list item / wrapper to understand the structure.
+    const referenceButton = allButtons.find(btn => /share event/i.test(normalizeWhitespace(btn.textContent || ''))) || downloadButton;
+    const referenceItem = referenceButton ? (referenceButton.closest('li') || referenceButton.closest('a') || referenceButton.parentElement) : null;
+
+    // Build the "Add to calendar" entry styled to match the existing option items.
+    const wrapper = document.createElement(referenceItem ? referenceItem.tagName : 'div');
+    wrapper.setAttribute('data-haiilo-enhancer-calendar', 'true');
+    if (referenceItem) {
+      // Copy class names so it blends in visually.
+      wrapper.className = referenceItem.className;
+    }
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    if (referenceButton) {
+      trigger.className = referenceButton.className;
+    }
+    trigger.setAttribute('aria-expanded', 'false');
+
+    // Icon + label span — mirrors the structure of the native buttons.
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = 'Add to calendar';
+    trigger.appendChild(labelSpan);
+
+    // Dropdown menu — same container style as the card itself.
+    const menu = document.createElement('div');
+    menu.setAttribute('data-haiilo-enhancer-calendar-menu', 'true');
+    menu.style.display = 'none';
+    menu.style.position = 'absolute';
+    menu.style.zIndex = '9999';
+    menu.style.minWidth = '180px';
+    menu.style.padding = '4px 0';
+    menu.style.background = '#fff';
+    menu.style.border = '1px solid #e5e5e5';
+    menu.style.borderRadius = '6px';
+    menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+
+    const makeMenuAction = (label, onClick) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      btn.style.display = 'block';
+      btn.style.width = '100%';
+      btn.style.textAlign = 'left';
+      btn.style.padding = '8px 16px';
+      btn.style.border = 'none';
+      btn.style.background = 'transparent';
+      btn.style.cursor = 'pointer';
+      btn.style.fontSize = 'inherit';
+      btn.addEventListener('mouseenter', () => { btn.style.background = '#f5f5f5'; });
+      btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; });
+      btn.addEventListener('click', onClick);
+      return btn;
+    };
+
+    menu.appendChild(makeMenuAction('Google Calendar', () => {
+      const details = getEventDetailsFromDOM();
+      const dateRange = buildCalendarDate(details);
+      if (!dateRange) return;
+      openGoogleCalendar(details, dateRange);
+      menu.style.display = 'none';
+      trigger.setAttribute('aria-expanded', 'false');
+    }));
+
+    menu.appendChild(makeMenuAction('Outlook', () => {
+      const details = getEventDetailsFromDOM();
+      const dateRange = buildCalendarDate(details);
+      if (!dateRange) return;
+      openOutlookCalendar(details, dateRange);
+      menu.style.display = 'none';
+      trigger.setAttribute('aria-expanded', 'false');
+    }));
+
+    menu.appendChild(makeMenuAction('Download ICS file', () => {
+      // Click Haiilo's own Download event button directly (it is in the same card).
+      const dlBtn = [...optionsCard.querySelectorAll('button')].find(
+        btn => !btn.hasAttribute('data-haiilo-enhancer-calendar') &&
+               /download event/i.test(normalizeWhitespace(btn.textContent || ''))
+      );
+      if (dlBtn) {
+        dlBtn.click();
+      }
+      menu.style.display = 'none';
+      trigger.setAttribute('aria-expanded', 'false');
+    }));
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCalendarMenu(trigger, menu);
+    });
+
+    // Close menu when clicking outside.
+    document.addEventListener('click', function onDocClick(e) {
+      if (!wrapper.contains(e.target)) {
+        menu.style.display = 'none';
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    }, true);
+
+    wrapper.style.position = 'relative';
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+
+    // Insert before the Download event item (or its parent li/wrapper).
+    if (downloadButton) {
+      const downloadItem = downloadButton.closest('li') || downloadButton.closest('a') || downloadButton.parentElement;
+      if (downloadItem && downloadItem !== optionsCard) {
+        downloadItem.parentElement.insertBefore(wrapper, downloadItem);
+      } else {
+        // Fallback: insert before the download button itself.
+        downloadButton.parentElement.insertBefore(wrapper, downloadButton);
+      }
+    } else {
+      optionsCard.appendChild(wrapper);
+    }
+  }
+
+  function setupCalendarActionObserver() {
+    if (calendarActionObserver) {
+      calendarActionObserver.disconnect();
+    }
+
+    calendarActionObserver = new MutationObserver(() => {
+      injectAddToCalendarAction();
+    });
+
+    calendarActionObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  injectAddToCalendarAction();
+  setupCalendarActionObserver();
 })();

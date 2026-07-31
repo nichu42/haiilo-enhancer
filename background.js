@@ -660,8 +660,12 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'saveSettings') {
-    const settings = normalizeSettings(message.settings);
-    browserAPI.storage.local.set({ settings }).then(async () => {
+    // Merge with existing stored settings so keys not present in the incoming
+    // object (e.g. keepMessengerExpanded, managed by the popup) are preserved.
+    browserAPI.storage.local.get('settings').then(async (data) => {
+      const merged = { ...(data.settings || {}), ...message.settings };
+      const settings = normalizeSettings(merged);
+      await browserAPI.storage.local.set({ settings });
       // If cloudSync was just turned off, clear data from storage.sync
       if (!settings.cloudSync) {
         browserAPI.storage.sync.remove(['settings', 'mutedUsers']).catch(e => {
@@ -674,6 +678,9 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await updateAllBadges();
       await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
       sendResponse({ success: true });
+    }).catch(e => {
+      console.error('Failed to save settings:', e);
+      sendResponse({ success: false, error: e.message });
     });
     return true;
   }

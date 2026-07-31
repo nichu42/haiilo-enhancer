@@ -107,6 +107,7 @@
   let sortReactionsByCount = true;
   let showReactionCountTooltip = false;
   let reactionTypesCache = null; // { TYPE: { color, unicode } }
+  let reactionSenderIdCache = null; // current user ID needed by the summary API
   let reactionEnhancerObserver = null;
 
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
@@ -324,50 +325,22 @@
       // aside on each fire. This is much cheaper than observing the
       // entire document for class changes.
       if (!messengerReopenObserver) {
-        let currentAside = null;
-        const reattach = (sidebar) => {
-          const aside = sidebar.querySelector('aside.sidebar-container');
-          if (aside === currentAside) return;
-          // The observer can only observe one target; re-create it.
-          messengerReopenObserver.disconnect();
-          currentAside = aside;
-          if (!aside) return;
-          messengerReopenObserver.observe(aside, {
-            attributes: true,
-            attributeFilter: ['class']
-          });
-          debugLog('[Content] Messenger re-open observer attached to aside');
-        };
-
         messengerReopenObserver = new MutationObserver(() => {
           if (!keepMessengerExpandedActive) return;
-          const sidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-          if (!sidebar) return;
-          reattach(sidebar);
           reopenMessengerIfClosed();
         });
 
-        // Initial attach: observe the sidebar host for childList changes.
-        const initialSidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-        if (initialSidebar) {
-          messengerReopenObserver.observe(initialSidebar, {
-            childList: true,
-            subtree: false
-          });
-          reattach(initialSidebar);
-        } else {
-          // Sidebar not in DOM yet; wait for it via a tiny temp observer.
-          const tempObs = new MutationObserver(() => {
-            const sidebar = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-            if (sidebar) {
-              tempObs.disconnect();
-              messengerReopenObserver.observe(sidebar, { childList: true, subtree: false });
-              reattach(sidebar);
-              debugLog('[Content] Messenger re-open observer attached (delayed)');
-            }
-          });
-          tempObs.observe(document.body, { childList: true, subtree: true });
-        }
+        // Observe broad enough to catch sidebar class flips and re-renders.
+        // Using document.body avoids the single-target observer bug where
+        // observe() was re-called on a different node and silently stopped
+        // watching the sidebar host.
+        messengerReopenObserver.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class']
+        });
+        debugLog('[Content] Messenger re-open observer attached to document body');
       }
 
       // Set up MutationObserver to watch for body style changes
@@ -1223,7 +1196,33 @@
 
   // ── Reaction enhancements ──────────────────────────────────────────────────
 
-  // Fetch and cache the reaction type metadata (color fingerprint + unicode emoji).
+  // Fetch and cache the current user's sender ID (required by the summary API).
+  async function getSenderId() {
+    if (reactionSenderIdCache) return reactionSenderIdCache;
+    // 1. Try performance entries — already loaded on the page
+    try {
+      const entries = performance.getEntriesByType('resource');
+      for (const e of entries) {
+        if (e.name.includes('senderId=')) {
+          const id = new URL(e.name).searchParams.get('senderId');
+          if (id) { reactionSenderIdCache = id; return id; }
+        }
+      }
+    } catch (e) { /* ignore */ }
+    // 2. Fetch from /web/users/me
+    try {
+      const res = await fetch('/web/users/me');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.id) { reactionSenderIdCache = data.id; return data.id; }
+      }
+    } catch (e) {
+      debugLog('[Reactions] Failed to fetch senderId:', e);
+    }
+    return null;
+  }
+
+  // Fetch and cache the reaction type metadata (unicode emoji per type).
   async function getReactionTypes() {
     if (reactionTypesCache) return reactionTypesCache;
     try {
@@ -1232,10 +1231,7 @@
       const types = await res.json();
       reactionTypesCache = {};
       for (const t of types) {
-        reactionTypesCache[t.reactionType] = {
-          color: t.color,
-          unicode: t.fallbackUnicode
-        };
+        reactionTypesCache[t.reactionType] = { unicode: t.fallbackUnicode };
       }
       return reactionTypesCache;
     } catch (e) {
@@ -1244,50 +1240,35 @@
     }
   }
 
-  // Identify a cat-icon element's reaction type by matching the unique fill
-  // color from the types API against the SVG rendered in its shadow DOM.
-  function identifyReactionIcon(icon, fingerprintMap) {
-    try {
-      const shadow = icon.shadowRoot;
-      if (!shadow) return null;
-      const html = shadow.innerHTML;
-      for (const [type, info] of Object.entries(fingerprintMap)) {
-        if (html.includes(info.color)) return type;
-      }
-    } catch (e) { /* shadow DOM read error */ }
-    return null;
-  }
-
-  // Reorder the cat-icon reaction summary icons to match sortedTypes order.
-  function reorderReactionIcons(icons, sortedTypes, fingerprintMap) {
+  // Reorder cat-icon elements to match sortedTypes order.
+  // Icons are positionally mapped to allReactionsByCount (same order as the API response).
+  function reorderReactionIcons(icons, currentApiOrder, sortedTypes) {
     if (icons.length < 2) return;
-    const identified = icons.map(icon => ({
-      icon,
-      type: identifyReactionIcon(icon, fingerprintMap)
-    }));
-    // Build target order: known types first (by sortedTypes), unknowns appended
-    const targetOrder = [];
-    for (const type of sortedTypes) {
-      const match = identified.find(i => i.type === type);
-      if (match) targetOrder.push(match);
+    // Map each icon to its type by position (API order == DOM order)
+    const iconsByType = {};
+    currentApiOrder.forEach((type, i) => {
+      if (icons[i]) iconsByType[type] = icons[i];
+    });
+    // Build target order following sortedTypes
+    const targetIcons = sortedTypes.map(t => iconsByType[t]).filter(Boolean);
+    // Append any icons not in sortedTypes (shouldn't happen but be safe)
+    for (const icon of icons) {
+      if (!targetIcons.includes(icon)) targetIcons.push(icon);
     }
-    for (const item of identified) {
-      if (!targetOrder.includes(item)) targetOrder.push(item);
-    }
-    // Check if already in correct order
-    const alreadyCorrect = targetOrder.every((item, idx) => item.icon === icons[idx]);
+    // Check if already correct
+    const alreadyCorrect = targetIcons.every((icon, i) => icon === icons[i]);
     if (alreadyCorrect) return;
-    // Re-insert in sorted order before the first icon's current position
+    // Re-insert before the first icon's position
     const parent = icons[0].parentNode;
-    const insertBefore = icons[0];
-    for (const item of targetOrder) {
-      parent.insertBefore(item.icon, insertBefore);
+    const anchor = icons[0];
+    for (const icon of targetIcons) {
+      parent.insertBefore(icon, anchor);
     }
-    debugLog('[Reactions] Reordered icons:', targetOrder.map(i => i.type).join(', '));
+    debugLog('[Reactions] Reordered icons to:', sortedTypes.join(', '));
   }
 
   // Inject (or update) a count tooltip into the cat-tooltip of a coyo-reactions-info.
-  function injectReactionTooltip(reactionsInfo, sortedData, fingerprintMap) {
+  function injectReactionTooltip(reactionsInfo, sortedData, typeMap) {
     const tooltip = reactionsInfo.querySelector('cat-tooltip');
     if (!tooltip) return;
     // Remove any previously injected tooltip content
@@ -1295,7 +1276,7 @@
     if (existing) existing.remove();
     const text = sortedData
       .map(({ reactionType, count }) => {
-        const unicode = fingerprintMap[reactionType]?.unicode || reactionType;
+        const unicode = typeMap?.[reactionType]?.unicode || reactionType;
         return `${unicode}${count}`;
       })
       .join(' ');
@@ -1317,19 +1298,25 @@
     const count = parseInt(dataEl.dataset.reactionCount, 10);
     if (!targetId || !targetType || count < 2) return;
 
-    const fingerprintMap = await getReactionTypes();
-    if (!fingerprintMap) return;
+    const typeMap = await getReactionTypes();
+
+    const senderId = await getSenderId();
 
     // Fetch the summary for this target
-    let sortedData;
+    let apiData, sortedData;
     try {
-      const res = await fetch(`/web/reaction-targets/${targetType}?ids=${targetId}`);
+      const url = senderId
+        ? `/web/reaction-targets/${targetType}?senderId=${senderId}&ids=${targetId}`
+        : `/web/reaction-targets/${targetType}?ids=${targetId}`;
+      const res = await fetch(url);
       if (!res.ok) return;
       const json = await res.json();
       const entry = json[targetId];
       if (!entry || !Array.isArray(entry.allReactionsByCount)) return;
-      // Sort descending by count
-      sortedData = [...entry.allReactionsByCount].sort((a, b) => b.count - a.count);
+      // apiData preserves the API's original order (matches DOM icon order)
+      apiData = entry.allReactionsByCount;
+      // sortedData is sorted descending by count
+      sortedData = [...apiData].sort((a, b) => b.count - a.count);
     } catch (e) {
       debugLog('[Reactions] Failed to fetch summary for', targetId, e);
       return;
@@ -1348,14 +1335,16 @@
       icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
     }
 
+    // currentApiOrder: the types in DOM order (API order == icon DOM order)
+    const currentApiOrder = apiData.map(d => d.reactionType);
     const sortedTypes = sortedData.map(d => d.reactionType);
 
     if (sortReactionsByCount && icons.length >= 2) {
-      reorderReactionIcons(icons, sortedTypes, fingerprintMap);
+      reorderReactionIcons(icons, currentApiOrder, sortedTypes);
     }
 
     if (showReactionCountTooltip) {
-      injectReactionTooltip(reactionsInfo, sortedData, fingerprintMap);
+      injectReactionTooltip(reactionsInfo, sortedData, typeMap);
     }
   }
 

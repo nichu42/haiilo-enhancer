@@ -2248,7 +2248,9 @@
       ''
     );
     const dateText = normalizeWhitespace(document.querySelector('coyo-event-date')?.textContent || '');
-    return { title, description, location, dateText };
+    const hostH3 = [...document.querySelectorAll('h3')].find(h => /^host$/i.test(normalizeWhitespace(h.textContent)));
+    const host = normalizeWhitespace(hostH3?.nextElementSibling?.textContent || '');
+    return { title, description, location, dateText, host };
   }
 
   function parseDateFromDateText(dateText) {
@@ -2354,11 +2356,12 @@
   function openGoogleCalendar(details, dateRange) {
     const startStr = dateRange.allDay ? formatGoogleAllDay(dateRange.start) : formatGoogleDate(dateRange.start);
     const endStr   = dateRange.allDay ? formatGoogleAllDay(dateRange.end)   : formatGoogleDate(dateRange.end);
+    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: details.title || 'Event',
       dates: `${startStr}/${endStr}`,
-      details: details.description || '',
+      details: body,
       location: details.location || '',
       sprop: window.location.href
     });
@@ -2378,13 +2381,14 @@
   function openOutlookCalendar(details, dateRange) {
     const startStr = dateRange.allDay ? formatOutlookAllDay(dateRange.start) : formatOutlookDateLocal(dateRange.start);
     const endStr   = dateRange.allDay ? formatOutlookAllDay(dateRange.end)   : formatOutlookDateLocal(dateRange.end);
+    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
       startdt: startStr,
       enddt: endStr,
       subject: details.title || 'Event',
-      body: details.description || '',
+      body,
       location: details.location || ''
     });
     window.open(`https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`, '_blank', 'noopener');

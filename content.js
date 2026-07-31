@@ -103,6 +103,12 @@
   let autoExpandMountObserver = null;
   let calendarActionObserver = null;
 
+  // Reaction enhancements
+  let sortReactionsByCount = true;
+  let showReactionCountTooltip = false;
+  let reactionTypesCache = null; // { TYPE: { color, unicode } }
+  let reactionEnhancerObserver = null;
+
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
   const MESSENGER_PANEL_WIDTH_MAX_PERCENT = 125;
   const MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT = 100;
@@ -1215,6 +1221,193 @@
     debugLog('[AutoExpand] Mount observer installed (debounced 200ms)');
   }
 
+  // ── Reaction enhancements ──────────────────────────────────────────────────
+
+  // Fetch and cache the reaction type metadata (color fingerprint + unicode emoji).
+  async function getReactionTypes() {
+    if (reactionTypesCache) return reactionTypesCache;
+    try {
+      const res = await fetch('/web/reaction-targets/types');
+      if (!res.ok) return null;
+      const types = await res.json();
+      reactionTypesCache = {};
+      for (const t of types) {
+        reactionTypesCache[t.reactionType] = {
+          color: t.color,
+          unicode: t.fallbackUnicode
+        };
+      }
+      return reactionTypesCache;
+    } catch (e) {
+      debugLog('[Reactions] Failed to fetch reaction types:', e);
+      return null;
+    }
+  }
+
+  // Identify a cat-icon element's reaction type by matching the unique fill
+  // color from the types API against the SVG rendered in its shadow DOM.
+  function identifyReactionIcon(icon, fingerprintMap) {
+    try {
+      const shadow = icon.shadowRoot;
+      if (!shadow) return null;
+      const html = shadow.innerHTML;
+      for (const [type, info] of Object.entries(fingerprintMap)) {
+        if (html.includes(info.color)) return type;
+      }
+    } catch (e) { /* shadow DOM read error */ }
+    return null;
+  }
+
+  // Reorder the cat-icon reaction summary icons to match sortedTypes order.
+  function reorderReactionIcons(icons, sortedTypes, fingerprintMap) {
+    if (icons.length < 2) return;
+    const identified = icons.map(icon => ({
+      icon,
+      type: identifyReactionIcon(icon, fingerprintMap)
+    }));
+    // Build target order: known types first (by sortedTypes), unknowns appended
+    const targetOrder = [];
+    for (const type of sortedTypes) {
+      const match = identified.find(i => i.type === type);
+      if (match) targetOrder.push(match);
+    }
+    for (const item of identified) {
+      if (!targetOrder.includes(item)) targetOrder.push(item);
+    }
+    // Check if already in correct order
+    const alreadyCorrect = targetOrder.every((item, idx) => item.icon === icons[idx]);
+    if (alreadyCorrect) return;
+    // Re-insert in sorted order before the first icon's current position
+    const parent = icons[0].parentNode;
+    const insertBefore = icons[0];
+    for (const item of targetOrder) {
+      parent.insertBefore(item.icon, insertBefore);
+    }
+    debugLog('[Reactions] Reordered icons:', targetOrder.map(i => i.type).join(', '));
+  }
+
+  // Inject (or update) a count tooltip into the cat-tooltip of a coyo-reactions-info.
+  function injectReactionTooltip(reactionsInfo, sortedData, fingerprintMap) {
+    const tooltip = reactionsInfo.querySelector('cat-tooltip');
+    if (!tooltip) return;
+    // Remove any previously injected tooltip content
+    const existing = tooltip.querySelector('.haiilo-enhancer-reaction-tooltip');
+    if (existing) existing.remove();
+    const text = sortedData
+      .map(({ reactionType, count }) => {
+        const unicode = fingerprintMap[reactionType]?.unicode || reactionType;
+        return `${unicode}${count}`;
+      })
+      .join(' ');
+    const p = document.createElement('p');
+    p.slot = 'content';
+    p.className = 'haiilo-enhancer-reaction-tooltip';
+    p.textContent = text;
+    tooltip.appendChild(p);
+    debugLog('[Reactions] Injected tooltip:', text);
+  }
+
+  // Process a single [data-reaction-target-id] anchor element.
+  async function processReactionTarget(dataEl) {
+    if (dataEl.dataset.haiiloEnhancerReactionsDone) return;
+    dataEl.dataset.haiiloEnhancerReactionsDone = '1';
+
+    const targetId = dataEl.dataset.reactionTargetId;
+    const targetType = dataEl.dataset.reactionTargetType;
+    const count = parseInt(dataEl.dataset.reactionCount, 10);
+    if (!targetId || !targetType || count < 2) return;
+
+    const fingerprintMap = await getReactionTypes();
+    if (!fingerprintMap) return;
+
+    // Fetch the summary for this target
+    let sortedData;
+    try {
+      const res = await fetch(`/web/reaction-targets/${targetType}?ids=${targetId}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      const entry = json[targetId];
+      if (!entry || !Array.isArray(entry.allReactionsByCount)) return;
+      // Sort descending by count
+      sortedData = [...entry.allReactionsByCount].sort((a, b) => b.count - a.count);
+    } catch (e) {
+      debugLog('[Reactions] Failed to fetch summary for', targetId, e);
+      return;
+    }
+
+    // Find the enclosing coyo-reactions-info
+    const reactionsInfo = dataEl.closest('coyo-reactions-info') ||
+      dataEl.parentElement?.querySelector('coyo-reactions-info') ||
+      dataEl.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
+    if (!reactionsInfo) return;
+
+    // Wait briefly for icons to render if they haven't yet
+    let icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
+    if (icons.length === 0) {
+      await new Promise(r => setTimeout(r, 150));
+      icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
+    }
+
+    const sortedTypes = sortedData.map(d => d.reactionType);
+
+    if (sortReactionsByCount && icons.length >= 2) {
+      reorderReactionIcons(icons, sortedTypes, fingerprintMap);
+    }
+
+    if (showReactionCountTooltip) {
+      injectReactionTooltip(reactionsInfo, sortedData, fingerprintMap);
+    }
+  }
+
+  function setupReactionEnhancerObserver() {
+    if (reactionEnhancerObserver) reactionEnhancerObserver.disconnect();
+
+    // Process any already-present targets on the page
+    document.querySelectorAll('[data-reaction-target-id]').forEach(el => {
+      processReactionTarget(el).catch(() => {});
+    });
+
+    reactionEnhancerObserver = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          // Direct match
+          if (node.hasAttribute && node.hasAttribute('data-reaction-target-id')) {
+            processReactionTarget(node).catch(() => {});
+          }
+          // Descendants
+          if (node.querySelectorAll) {
+            node.querySelectorAll('[data-reaction-target-id]').forEach(el => {
+              processReactionTarget(el).catch(() => {});
+            });
+          }
+        }
+      }
+    });
+
+    reactionEnhancerObserver.observe(document.body, { childList: true, subtree: true });
+    debugLog('[Reactions] Observer installed');
+  }
+
+  // Re-run reaction enhancements after settings change (clear processed flags first).
+  function reapplyReactionEnhancements() {
+    if (!sortReactionsByCount && !showReactionCountTooltip) return;
+    // Clear done flags so existing elements are reprocessed
+    document.querySelectorAll('[data-reaction-target-id][data-haiilo-enhancer-reactions-done]')
+      .forEach(el => {
+        delete el.dataset.haiiloEnhancerReactionsDone;
+        // Also clear injected tooltips if feature disabled
+        if (!showReactionCountTooltip) {
+          const ri = el.closest('coyo-reactions-info') ||
+            el.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
+          if (ri) ri.querySelector('.haiilo-enhancer-reaction-tooltip')?.remove();
+        }
+      });
+    setupReactionEnhancerObserver();
+  }
+
+  // ── End Reaction enhancements ──────────────────────────────────────────────
+
   // Initialize
   init();
 
@@ -1325,6 +1518,7 @@
                 if (!autoExpandMountObserver) {
                   setupAutoExpandMountObserver();
                 }
+                reapplyReactionEnhancements();
                 sendResponse({ success: true });
               });
               return true;
@@ -1361,6 +1555,11 @@
                'delayMs=', autoExpandDelayMs);
       autoExpandShowMoreLists();
       setupAutoExpandMountObserver();
+
+      // Reaction enhancements (sort by count, hover tooltip)
+      if (sortReactionsByCount || showReactionCountTooltip) {
+        setupReactionEnhancerObserver();
+      }
 
       // Replace generic channel avatars and process date/times
       setTimeout(() => {
@@ -1402,6 +1601,8 @@
           const rawDelay = parseInt(settings.autoExpandDelayMs, 10);
           autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
+          sortReactionsByCount = settings.sortReactionsByCount !== false;
+          showReactionCountTooltip = settings.showReactionCountTooltip === true;
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
@@ -1433,6 +1634,8 @@
           autoExpandClicksPerList = 3;
           autoExpandDelayMs = 300;
           autoExpandScope = 'both';
+          sortReactionsByCount = true;
+          showReactionCountTooltip = false;
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
@@ -1452,6 +1655,8 @@
         autoExpandClicksPerList = 3;
         autoExpandDelayMs = 300;
         autoExpandScope = 'both';
+        sortReactionsByCount = true;
+        showReactionCountTooltip = false;
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -1470,6 +1675,8 @@
       autoExpandClicksPerList = 3;
       autoExpandDelayMs = 300;
       autoExpandScope = 'both';
+      sortReactionsByCount = true;
+      showReactionCountTooltip = false;
     }
   }
 

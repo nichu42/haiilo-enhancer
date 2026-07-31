@@ -142,6 +142,8 @@ async function loadSettings() {
 
   // Auto-expand sidebar lists
   document.getElementById('autoExpandEnabled').checked = settings.autoExpandEnabled === true;
+  document.getElementById('sortReactionsByCount').checked = settings.sortReactionsByCount !== false;
+  document.getElementById('showReactionCountTooltip').checked = settings.showReactionCountTooltip === true;
   document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;
@@ -367,6 +369,8 @@ function setupEventListeners() {
   // Auto-expand settings
   document.getElementById('autoExpandEnabled').addEventListener('change', saveSettings);
   document.getElementById('autoExpandScope').addEventListener('change', saveSettings);
+  document.getElementById('sortReactionsByCount').addEventListener('change', saveSettings);
+  document.getElementById('showReactionCountTooltip').addEventListener('change', saveSettings);
 
   // Cloud sync toggle
   const cloudSyncCheckbox = document.getElementById('cloudSync');
@@ -599,6 +603,8 @@ async function saveSettings() {
     autoExpandClicksPerList: parseInt(document.getElementById('autoExpandClicksPerList').value, 10) || 3,
     autoExpandDelayMs: parseInt(document.getElementById('autoExpandDelayMs').value, 10) || 300,
     autoExpandScope: document.getElementById('autoExpandScope').value,
+    sortReactionsByCount: document.getElementById('sortReactionsByCount').checked,
+    showReactionCountTooltip: document.getElementById('showReactionCountTooltip').checked,
     cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false
   };
 

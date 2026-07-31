@@ -183,7 +183,9 @@ const DEFAULT_SETTINGS = {
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
   autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
-  cloudSync: false // Sync settings and muted users via browser account (opt-in)
+  cloudSync: false, // Sync settings and muted users via browser account (opt-in)
+  sortReactionsByCount: true, // Sort reaction emojis by count (most used first)
+  showReactionCountTooltip: false // Show reaction count breakdown on hover
 };
 
 function clampMessengerPanelWidthPercent(value) {

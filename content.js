@@ -2512,6 +2512,7 @@
       if (dlBtn) dlBtn.click();
       menu.style.display = 'none';
       trigger.setAttribute('aria-expanded', 'false');
+      showIcsHint(newLi);
     }));
 
     trigger.addEventListener('click', (e) => {

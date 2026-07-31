@@ -2382,74 +2382,87 @@
     trigger.setAttribute('aria-expanded', String(nextDisplay === 'block'));
   }
 
-  function findOptionsCardBody() {
-    // Find the cui-card-body that contains the "Share event" and "Download event" action buttons.
-    const allCardBodies = document.querySelectorAll('cui-card-body');
-    for (const cb of allCardBodies) {
-      const buttons = cb.querySelectorAll('button');
-      let hasShare = false;
-      let hasDownload = false;
-      for (const btn of buttons) {
-        const text = normalizeWhitespace(btn.textContent || '');
-        if (/share event/i.test(text)) hasShare = true;
-        if (/download event/i.test(text)) hasDownload = true;
-      }
-      if (hasShare && hasDownload) return cb;
-    }
-    return null;
+  function findDownloadEventCatButton() {
+    // Haiilo renders option buttons as CAT-BUTTON web components.
+    return [...document.querySelectorAll('cat-button')].find(
+      btn => /download event/i.test(normalizeWhitespace(btn.textContent || ''))
+    ) || null;
   }
 
   function injectAddToCalendarAction() {
     if (!extensionEnabled) return;
     if (!isEventInformationPage()) return;
 
-    const optionsCard = findOptionsCardBody();
-    if (!optionsCard) return;
-    if (optionsCard.querySelector('[data-haiilo-enhancer-calendar="true"]')) return;
+    // Bail out early if already injected.
+    if (document.querySelector('[data-haiilo-enhancer-calendar="true"]')) return;
 
-    // Find the Download event button to insert our entry before it.
-    const allButtons = [...optionsCard.querySelectorAll('button')];
-    const downloadButton = allButtons.find(btn => /download event/i.test(normalizeWhitespace(btn.textContent || '')));
+    const downloadCatBtn = findDownloadEventCatButton();
+    if (!downloadCatBtn) return;
 
-    // Clone the visual style of an existing option button (Share event or Download event).
-    // We look for the closest ancestor list item / wrapper to understand the structure.
-    const referenceButton = allButtons.find(btn => /share event/i.test(normalizeWhitespace(btn.textContent || ''))) || downloadButton;
-    const referenceItem = referenceButton ? (referenceButton.closest('li') || referenceButton.closest('a') || referenceButton.parentElement) : null;
+    // The CAT-BUTTON sits directly in a <li class="ng-star-inserted"> inside the Options <ul>.
+    const downloadItem = downloadCatBtn.closest('li') || downloadCatBtn.parentElement;
+    const optionsList = downloadItem.parentElement;
 
-    // Build the "Add to calendar" entry styled to match the existing option items.
-    const wrapper = document.createElement(referenceItem ? referenceItem.tagName : 'div');
-    wrapper.setAttribute('data-haiilo-enhancer-calendar', 'true');
-    if (referenceItem) {
-      // Copy class names so it blends in visually.
-      wrapper.className = referenceItem.className;
-    }
+    // Find the Share event CAT-BUTTON for style reference.
+    const shareCatBtn = [...document.querySelectorAll('cat-button')].find(
+      btn => /share event/i.test(normalizeWhitespace(btn.textContent || ''))
+    );
+    const shareItem = shareCatBtn ? (shareCatBtn.closest('li') || shareCatBtn.parentElement) : downloadItem;
+
+    // ------------------------------------------------------------------
+    // Build a new <li> that mirrors the structure: <li> <button> ... </button> <dropdown> </li>
+    // The CAT-BUTTON inner button uses: display:flex, width:100%, padding:10px 12px,
+    // font: 15px Lato, cursor:pointer, border:none, background:transparent.
+    // We replicate those styles on a plain <button> so it looks identical.
+    // ------------------------------------------------------------------
+    const newLi = document.createElement('li');
+    newLi.className = shareItem.className;
+    newLi.setAttribute('data-haiilo-enhancer-calendar', 'true');
+    newLi.style.position = 'relative';
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    if (referenceButton) {
-      trigger.className = referenceButton.className;
-    }
     trigger.setAttribute('aria-expanded', 'false');
+    // Match the inner CAT-BUTTON shadow button styles exactly.
+    trigger.style.cssText = [
+      'display:flex',
+      'align-items:center',
+      'width:100%',
+      'padding:10px 12px',
+      'margin:0',
+      'border:none',
+      'background:transparent',
+      'cursor:pointer',
+      'font-size:15px',
+      'font-family:Lato, system-ui, -apple-system, "Segoe UI", sans-serif',
+      'color:inherit',
+      'text-align:left',
+      'box-sizing:border-box',
+    ].join(';');
+    trigger.textContent = 'Add to calendar';
 
-    // Icon + label span — mirrors the structure of the native buttons.
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = 'Add to calendar';
-    trigger.appendChild(labelSpan);
+    trigger.addEventListener('mouseenter', () => { trigger.style.background = 'rgba(0,0,0,0.04)'; });
+    trigger.addEventListener('mouseleave', () => { trigger.style.background = 'transparent'; });
 
-    // Dropdown menu — same container style as the card itself.
-    const menu = document.createElement('div');
+    // Dropdown menu.
+    const menu = document.createElement('ul');
     menu.setAttribute('data-haiilo-enhancer-calendar-menu', 'true');
     menu.style.display = 'none';
     menu.style.position = 'absolute';
+    menu.style.left = '0';
+    menu.style.top = '100%';
     menu.style.zIndex = '9999';
-    menu.style.minWidth = '180px';
+    menu.style.listStyle = 'none';
+    menu.style.margin = '0';
     menu.style.padding = '4px 0';
     menu.style.background = '#fff';
     menu.style.border = '1px solid #e5e5e5';
     menu.style.borderRadius = '6px';
     menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+    menu.style.minWidth = '180px';
 
     const makeMenuAction = (label, onClick) => {
+      const li = document.createElement('li');
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = label;
@@ -2460,11 +2473,13 @@
       btn.style.border = 'none';
       btn.style.background = 'transparent';
       btn.style.cursor = 'pointer';
-      btn.style.fontSize = 'inherit';
+      btn.style.fontSize = '14px';
+      btn.style.fontFamily = 'inherit';
       btn.addEventListener('mouseenter', () => { btn.style.background = '#f5f5f5'; });
       btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; });
       btn.addEventListener('click', onClick);
-      return btn;
+      li.appendChild(btn);
+      return li;
     };
 
     menu.appendChild(makeMenuAction('Google Calendar', () => {
@@ -2486,14 +2501,9 @@
     }));
 
     menu.appendChild(makeMenuAction('Download ICS file', () => {
-      // Click Haiilo's own Download event button directly (it is in the same card).
-      const dlBtn = [...optionsCard.querySelectorAll('button')].find(
-        btn => !btn.hasAttribute('data-haiilo-enhancer-calendar') &&
-               /download event/i.test(normalizeWhitespace(btn.textContent || ''))
-      );
-      if (dlBtn) {
-        dlBtn.click();
-      }
+      // Click Haiilo's native CAT-BUTTON for Download event.
+      const dlBtn = findDownloadEventCatButton();
+      if (dlBtn) dlBtn.click();
       menu.style.display = 'none';
       trigger.setAttribute('aria-expanded', 'false');
     }));
@@ -2504,29 +2514,18 @@
     });
 
     // Close menu when clicking outside.
-    document.addEventListener('click', function onDocClick(e) {
-      if (!wrapper.contains(e.target)) {
+    document.addEventListener('click', (e) => {
+      if (!newLi.contains(e.target)) {
         menu.style.display = 'none';
         trigger.setAttribute('aria-expanded', 'false');
       }
     }, true);
 
-    wrapper.style.position = 'relative';
-    wrapper.appendChild(trigger);
-    wrapper.appendChild(menu);
+    newLi.appendChild(trigger);
+    newLi.appendChild(menu);
 
-    // Insert before the Download event item (or its parent li/wrapper).
-    if (downloadButton) {
-      const downloadItem = downloadButton.closest('li') || downloadButton.closest('a') || downloadButton.parentElement;
-      if (downloadItem && downloadItem !== optionsCard) {
-        downloadItem.parentElement.insertBefore(wrapper, downloadItem);
-      } else {
-        // Fallback: insert before the download button itself.
-        downloadButton.parentElement.insertBefore(wrapper, downloadButton);
-      }
-    } else {
-      optionsCard.appendChild(wrapper);
-    }
+    // Insert before the Download event list item.
+    optionsList.insertBefore(newLi, downloadItem);
   }
 
   function setupCalendarActionObserver() {

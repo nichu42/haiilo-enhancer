@@ -182,7 +182,8 @@ const DEFAULT_SETTINGS = {
   autoExpandEnabled: false, // Auto-click "Show more" buttons in sidebar lists
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
-  autoExpandScope: 'both' // Which lists to expand: 'both', 'workspaces', or 'pages'
+  autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
+  cloudSync: false // Sync settings and muted users via browser account (opt-in)
 };
 
 function clampMessengerPanelWidthPercent(value) {
@@ -218,11 +219,93 @@ function buildLocaleAwareSettings() {
 // Default domains
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 
+const CLOUD_SYNC_USER_LIMIT = 50;
+
+// Write settings + mutedUsers to storage.sync if cloudSync is enabled.
+// If mutedUsers exceeds the limit, disable cloudSync and broadcast a warning.
+async function syncToCloud() {
+  try {
+    const data = await browserAPI.storage.local.get(['settings', 'mutedUsers']);
+    const settings = data.settings || DEFAULT_SETTINGS;
+    if (!settings.cloudSync) return;
+
+    const mutedUsers = data.mutedUsers || [];
+
+    if (mutedUsers.length > CLOUD_SYNC_USER_LIMIT) {
+      // Disable cloud sync and persist the change
+      settings.cloudSync = false;
+      await browserAPI.storage.local.set({ settings });
+      await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
+      await broadcastMessageToAllHaiiloTabs({
+        action: 'cloudSyncDisabled',
+        reason: `Cloud sync disabled: muted user list exceeds the ${CLOUD_SYNC_USER_LIMIT}-user limit.`
+      });
+      debugLog('[CloudSync] Disabled — user limit exceeded');
+      return;
+    }
+
+    await browserAPI.storage.sync.set({ settings, mutedUsers });
+    debugLog('[CloudSync] Synced to cloud:', mutedUsers.length, 'users');
+  } catch (e) {
+    console.error('[CloudSync] Failed to sync to cloud:', e);
+  }
+}
+
+// Pull settings + mutedUsers from storage.sync and merge into local storage.
+// Only runs if cloudSync is enabled in either local or sync settings.
+async function pullFromCloud() {
+  try {
+    const syncData = await browserAPI.storage.sync.get(['settings', 'mutedUsers']);
+    if (!syncData.settings || !syncData.settings.cloudSync) return;
+
+    const localData = await browserAPI.storage.local.get(['settings', 'mutedUsers']);
+    const localSettings = localData.settings || DEFAULT_SETTINGS;
+
+    // Merge: prefer sync data (it's the "canonical" cloud copy)
+    const mergedSettings = normalizeSettings({ ...localSettings, ...syncData.settings });
+    const mergedUsers = syncData.mutedUsers || localData.mutedUsers || [];
+
+    await browserAPI.storage.local.set({ settings: mergedSettings, mutedUsers: mergedUsers });
+    debugLog('[CloudSync] Pulled from cloud:', mergedUsers.length, 'users');
+  } catch (e) {
+    console.error('[CloudSync] Failed to pull from cloud:', e);
+  }
+}
+
 // Initialize extension on install
 browserAPI.runtime.onInstalled.addListener(async () => {
   try {
     // Initialize storage with defaults if not set
-    const data = await browserAPI.storage.local.get(['mutedUsers', 'settings', 'customDomains', 'customHomepages']);
+    const data = await browserAPI.storage.local.get([
+      'mutedUsers',
+      'settings',
+      'customDomains',
+      'customHomepages',
+      'extensionEnabled',
+      'defaultMuteDays',
+      'showMutedIndicator',
+      'debugMode',
+      'enhanceChannelAvatars',
+      'channelAvatarStyle',
+      'channelAvatarRingColor',
+      'channelAvatarRingWidth',
+      'channelAvatarSquareColor',
+      'channelAvatarSquareWidth',
+      'channelAvatarBadgeSize',
+      'channelAvatarBadgePosition',
+      'channelAvatarColorMode',
+      'channelAvatarFixedColor',
+      'hiddenCount',
+      'dateFormat',
+      'timeFormat',
+      'keepMessengerExpanded',
+      'messengerPanelWidthPercent',
+      'autoExpandEnabled',
+      'autoExpandClicksPerList',
+      'autoExpandDelayMs',
+      'autoExpandScope',
+      'cloudSync'
+    ]);
 
     if (!data.mutedUsers) {
       await browserAPI.storage.local.set({ mutedUsers: [] });
@@ -269,6 +352,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
 
 // Create context menu on startup and re-register content scripts
 browserAPI.runtime.onStartup.addListener(async () => {
+  await pullFromCloud();
   createContextMenu();
 
   // Re-register dynamic content scripts (they don't persist across browser restarts)
@@ -537,6 +621,7 @@ async function muteUser(userName, days) {
   }
 
   await browserAPI.storage.local.set({ mutedUsers });
+  await syncToCloud();
   debugLog(`Muted user: ${userName}`, days ? `for ${days} days` : 'permanently');
   debugLog('Updated muted users list:', mutedUsers);
 }
@@ -575,6 +660,14 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'saveSettings') {
     const settings = normalizeSettings(message.settings);
     browserAPI.storage.local.set({ settings }).then(async () => {
+      // If cloudSync was just turned off, clear data from storage.sync
+      if (!settings.cloudSync) {
+        browserAPI.storage.sync.remove(['settings', 'mutedUsers']).catch(e => {
+          console.error('[CloudSync] Failed to clear sync storage:', e);
+        });
+      } else {
+        await syncToCloud();
+      }
       await createContextMenu();
       await updateAllBadges();
       await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
@@ -729,7 +822,7 @@ async function unmuteUser(userName) {
 
   const filtered = mutedUsers.filter(u => u.name.toLowerCase() !== userName.toLowerCase());
   await browserAPI.storage.local.set({ mutedUsers: filtered });
-
+  await syncToCloud();
   debugLog(`Unmuted user: ${userName}`);
 }
 

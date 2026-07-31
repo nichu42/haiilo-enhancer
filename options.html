@@ -252,6 +252,17 @@
 
     <section>
       <h2>Data Management</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="cloudSync">
+          <span>Sync settings and muted users via browser account</span>
+        </label>
+        <small class="help-text">When enabled, your settings and up to 50 muted users are stored in your browser's built-in sync storage (Google account for Chrome, Firefox account for Firefox) and roam across devices. Custom domains are excluded — re-add them manually on each device. Cloud sync is disabled automatically if your muted list exceeds 50 users.</small>
+        <div id="cloudSyncWarning" class="reauth-warning" style="display: none;">
+          <strong>⚠️ Cloud sync was automatically disabled</strong>
+          <p>Your muted users list exceeded the 50-user limit for cloud sync. Your data is still stored locally and nothing was lost. To re-enable cloud sync, reduce your muted users list to 50 or fewer.</p>
+        </div>
+      </div>
       <p class="description">Export your settings and muted users to a JSON file as a backup, or import a previous export to restore them. <strong>Reset to Defaults</strong> wipes everything; export first if you might want to undo it.</p>
       <div class="button-group">
         <button id="exportData" class="secondary">Export All Settings</button>
@@ -259,6 +270,12 @@
         <button id="clearAll" class="danger">Reset Everything to Defaults</button>
       </div>
       <input type="file" id="importFile" accept=".json" style="display: none;">
+      <div id="domainReauthWarning" class="reauth-warning" style="display: none;">
+        <strong>⚠️ Custom domains need permission re-grant</strong>
+        <p>The following domains were in your backup but could not be restored automatically — browser security requires you to grant access manually:</p>
+        <ul id="domainReauthList"></ul>
+        <p>To re-add them: scroll down to <strong>Custom Haiilo Domains</strong>, enter each domain, and click <strong>Add Domain</strong> to grant browser access.</p>
+      </div>
     </section>
 
     <div class="save-status" id="saveStatus"></div>

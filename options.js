@@ -59,6 +59,26 @@ function debugLog(...args) {
   });
 }
 
+function updateCloudSyncWarning(settings) {
+  const warning = document.getElementById('cloudSyncWarning');
+  if (!warning) return;
+  // Show the warning if cloudSync was disabled externally (i.e. user limit exceeded)
+  // We detect this by checking if the checkbox is unchecked but the stored value was true
+  // The background sets cloudSync = false when limit exceeded and broadcasts settingsUpdated.
+  // The warning is shown only when explicitly triggered via cloudSyncDisabled message.
+  warning.style.display = 'none';
+}
+
+// Listen for cloudSyncDisabled broadcast from background
+browserAPI.runtime.onMessage.addListener((message) => {
+  if (message.action === 'cloudSyncDisabled') {
+    const warning = document.getElementById('cloudSyncWarning');
+    if (warning) warning.style.display = 'block';
+    const cloudSyncCheckbox = document.getElementById('cloudSync');
+    if (cloudSyncCheckbox) cloudSyncCheckbox.checked = false;
+  }
+});
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initOptions);
 } else {
@@ -126,6 +146,19 @@ async function loadSettings() {
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;
   document.getElementById('autoExpandScope').value = (scope === 'workspaces' || scope === 'pages') ? scope : 'both';
+
+  // Cloud sync
+  const cloudSyncCheckbox = document.getElementById('cloudSync');
+  if (cloudSyncCheckbox) {
+    cloudSyncCheckbox.checked = settings.cloudSync === true;
+    // Show warning if sync was previously enabled but muted list now exceeds limit
+    const mutedUsers = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
+    const warning = document.getElementById('cloudSyncWarning');
+    if (warning && !settings.cloudSync && Array.isArray(mutedUsers) && mutedUsers.length > 50) {
+      warning.style.display = 'block';
+    }
+    updateCloudSyncWarning(settings);
+  }
 
   // Show/hide channel avatar settings based on checkbox
   toggleChannelAvatarSettings();
@@ -334,6 +367,26 @@ function setupEventListeners() {
   // Auto-expand settings
   document.getElementById('autoExpandEnabled').addEventListener('change', saveSettings);
   document.getElementById('autoExpandScope').addEventListener('change', saveSettings);
+
+  // Cloud sync toggle
+  const cloudSyncCheckbox = document.getElementById('cloudSync');
+  if (cloudSyncCheckbox) {
+    cloudSyncCheckbox.addEventListener('change', async (e) => {
+      if (e.target.checked) {
+        // Test whether storage.sync is actually available before enabling
+        try {
+          await browserAPI.storage.sync.set({ __haiiloSyncTest: true });
+          await browserAPI.storage.sync.remove('__haiiloSyncTest');
+        } catch (err) {
+          // Sync not available — revert the checkbox and warn the user
+          e.target.checked = false;
+          showStatus('Cloud sync is not available. Make sure you are signed into your browser account.', 'error');
+          return;
+        }
+      }
+      saveSettings();
+    });
+  }
   document.getElementById('autoExpandClicksPerList').addEventListener('change', () => {
     // Clamp the value client-side as a safety net.
     const input = document.getElementById('autoExpandClicksPerList');
@@ -545,7 +598,8 @@ async function saveSettings() {
     autoExpandEnabled: document.getElementById('autoExpandEnabled').checked,
     autoExpandClicksPerList: parseInt(document.getElementById('autoExpandClicksPerList').value, 10) || 3,
     autoExpandDelayMs: parseInt(document.getElementById('autoExpandDelayMs').value, 10) || 300,
-    autoExpandScope: document.getElementById('autoExpandScope').value
+    autoExpandScope: document.getElementById('autoExpandScope').value,
+    cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false
   };
 
   await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
@@ -585,12 +639,16 @@ async function applyLocaleDefaults() {
 async function exportData() {
   const mutedUsers = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
   const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+  const customDomains = await browserAPI.runtime.sendMessage({ action: 'getCustomDomains' });
+  const customHomepages = await browserAPI.runtime.sendMessage({ action: 'getCustomHomepages' });
 
   const exportObj = {
     version: '1.0',
     exportedAt: new Date().toISOString(),
     mutedUsers,
-    settings
+    settings,
+    customDomains: customDomains || [],
+    customHomepages: customHomepages || {}
   };
 
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
@@ -637,9 +695,36 @@ async function importData(e) {
       await loadSettings();
     }
 
+    // Custom domains are intentionally NOT restored — browser host permissions
+    // require a user gesture (click) and cannot be granted silently during import.
+    // Show a warning banner listing the domains the user must re-add manually.
+    const domainReauthWarning = document.getElementById('domainReauthWarning');
+    const domainReauthList = document.getElementById('domainReauthList');
+    if (data.customDomains && Array.isArray(data.customDomains) && data.customDomains.length > 0 && domainReauthWarning && domainReauthList) {
+      domainReauthList.textContent = '';
+      data.customDomains.forEach(domain => {
+        const li = document.createElement('li');
+        li.textContent = domain;
+        domainReauthList.appendChild(li);
+      });
+      domainReauthWarning.style.display = 'block';
+    } else if (domainReauthWarning) {
+      domainReauthWarning.style.display = 'none';
+    }
+
+    // Import custom homepages if present
+    if (data.customHomepages && typeof data.customHomepages === 'object') {
+      for (const [baseUrl, homepageUrl] of Object.entries(data.customHomepages)) {
+        await browserAPI.runtime.sendMessage({ action: 'setCustomHomepage', baseUrl, homepageUrl });
+      }
+      await loadCustomHomepages();
+    }
+
     const messages = [];
     if (userCount > 0) messages.push(`${userCount} muted users`);
     if (data.settings) messages.push('all settings');
+    if (data.customDomains && data.customDomains.length > 0) messages.push(`${data.customDomains.length} custom domain(s) need manual re-authorization (see warning above)`);
+    if (data.customHomepages && Object.keys(data.customHomepages).length > 0) messages.push(`${Object.keys(data.customHomepages).length} custom homepage(s)`);
 
     showStatus(`Imported ${messages.join(' and ')}`, 'success');
   } catch (err) {

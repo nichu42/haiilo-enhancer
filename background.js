@@ -11,6 +11,143 @@ const badgeAPI = (typeof browser !== 'undefined' && browser.browserAction)
   ? browser.browserAction
   : (browserAPI.action || chrome.action);
 
+const DATE_TIME_PRESETS = {
+  northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h', label: 'MM/DD/YYYY (North American)' },
+  westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Western European)' },
+  westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Western European)' },
+  centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h', label: 'DD.MM.YYYY (Central European)' },
+  dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h', label: 'DD-MM-YYYY (Dutch)' },
+  iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h', label: 'YYYY-MM-DD (ISO 8601)' },
+  eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h', label: 'YYYY/MM/DD (East Asian)' },
+  eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h', label: 'YYYY/MM/DD (East Asian)' },
+  hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h', label: 'YYYY. MM. DD. (Hungarian)' },
+  finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h', label: 'D.M.YYYY (Finnish)' },
+  spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h', label: 'D. M. YYYY (Central European)' },
+  dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h', label: 'D.M.YYYY. (Central European)' },
+  spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h', label: 'D. M. YYYY. (Central European)' },
+  korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h', label: 'YYYY. M. D. (Korean)' },
+  southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (South Asian)' },
+  southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (South Asian)' },
+  latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Latin American)' },
+  latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Latin American)' },
+  middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Middle Eastern)' },
+  southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Southeast Asian)' },
+  southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Southeast Asian)' }
+};
+
+function normalizeLocale(locale) {
+  return String(locale || '').replace('_', '-').trim().toLowerCase();
+}
+
+function getLocaleDateTimePresetId(locale) {
+  const normalized = normalizeLocale(locale);
+  const base = normalized.split('-')[0];
+
+  const languageFallbacks = {
+    de: 'centralEuropean24h',
+    fr: 'westernEuropean24h',
+    nl: 'dutch24h',
+    it: 'westernEuropean24h',
+    es: 'westernEuropean24h',
+    pt: 'westernEuropean24h',
+    pl: 'centralEuropean24h',
+    ru: 'centralEuropean24h',
+    sv: 'iso860124h',
+    da: 'centralEuropean24h',
+    nb: 'centralEuropean24h',
+    nn: 'centralEuropean24h',
+    fi: 'finnish24h',
+    tr: 'centralEuropean24h',
+    cs: 'spacedCentral24h',
+    sk: 'spacedCentral24h',
+    hu: 'hungarian24h',
+    ro: 'centralEuropean24h',
+    uk: 'centralEuropean24h',
+    el: 'westernEuropean24h',
+    he: 'middleEastern24h',
+    ar: 'middleEastern24h',
+    hi: 'southAsian12h',
+    ja: 'eastAsian24h',
+    ko: 'korean24h',
+    zh: 'eastAsian24h',
+    th: 'southeastAsian24h',
+    vi: 'southeastAsian24h',
+    id: 'southeastAsian24h',
+    ms: 'southeastAsian24h',
+    fa: 'iso860124h',
+    ca: 'westernEuropean24h',
+    eu: 'iso860124h',
+    gl: 'westernEuropean24h',
+    af: 'iso860124h'
+  };
+
+  if (['en-ca', 'en-au', 'en-nz', 'en-ie', 'en-mt', 'en-cy'].includes(normalized)) return 'westernEuropean12h';
+  if (['en-gb', 'en-sg', 'en-hk', 'en-my'].includes(normalized)) return 'westernEuropean24h';
+  if (normalized === 'en-in' || normalized === 'hi-in' || normalized === 'bn-bd' || normalized === 'bn-in' || normalized === 'ur-pk' || normalized === 'pa-in' || normalized === 'ta-in') return 'southAsian12h';
+  if (normalized === 'en-za') return 'iso860124h';
+  if (normalized === 'en-us' || normalized === 'en-ph' || normalized === 'tl-ph' || normalized === 'en') return 'northAmerican12h';
+
+  if (normalized === 'nl-nl' || normalized === 'nl') return 'dutch24h';
+  if (normalized === 'nl-be') return 'westernEuropean24h';
+
+  if (normalized === 'fr-ca' || normalized === 'sv-se' || normalized === 'lt-lt' || normalized === 'af-za' || normalized === 'en-za' || normalized === 'eu-es') {
+    return 'iso860124h';
+  }
+  if (['de-de', 'de-at', 'de-ch', 'de-li', 'de-lu', 'fr-ch', 'it-ch', 'pl-pl', 'ro-ro', 'bg-bg', 'tr-tr', 'tr-cy', 'ka-ge', 'hy-am', 'az-az', 'uk-ua', 'be-by', 'ru-ru', 'ru-by', 'ru-kz', 'lb-lu', 'mk-mk', 'da-dk', 'nb-no', 'nn-no', 'et-ee', 'lv-lv', 'sv-fi', 'is-is'].includes(normalized)) {
+    return 'centralEuropean24h';
+  }
+  if (['fr-fr', 'fr-be', 'fr-lu', 'fr-mc', 'fr-ma', 'fr-tn', 'fr-sn', 'fr-ci', 'fr-cm', 'fr-mg', 'it-it', 'es-es', 'pt-pt', 'ca-es', 'gl-es', 'el-gr', 'el-cy', 'mt-mt', 'fo-fo'].includes(normalized)) {
+    return 'westernEuropean24h';
+  }
+  if (normalized === 'fi-fi') return 'finnish24h';
+  if (['cs-cz', 'sk-sk', 'sl-si'].includes(normalized)) return 'spacedCentral24h';
+  if (['hr-hr', 'bs-ba', 'sr-rs', 'sr-ba'].includes(normalized)) return 'dottedSlavic24h';
+  if (normalized === 'hu-hu') return 'hungarian24h';
+  if (normalized === 'ko-kr') return 'korean24h';
+  if (['ja-jp', 'zh-cn'].includes(normalized)) return 'eastAsian24h';
+  if (normalized === 'zh-tw') return 'eastAsian12h';
+  if (normalized === 'zh-hk' || normalized === 'zh-mo') return 'westernEuropean12h';
+  if (normalized === 'fa-ir' || normalized.startsWith('ar-') || normalized === 'he-il') return 'middleEastern24h';
+  if (['hi-in', 'bn-bd', 'bn-in', 'ur-pk', 'pa-in', 'ta-in'].includes(normalized)) return 'southAsian12h';
+  if (['ms-my', 'ms-bn', 'th-th', 'vi-vn', 'id-id', 'km-kh', 'lo-la', 'my-mm'].includes(normalized)) return 'southeastAsian24h';
+  if (['sw-ke', 'am-et'].includes(normalized)) return 'southeastAsian12h';
+  if (['es-mx', 'es-co', 'es-cr', 'es-gt', 'es-sv', 'es-hn', 'es-ni', 'es-pa', 'es-do'].includes(normalized)) return 'latinAmerican12h';
+  if (['es-ar', 'es-cl', 'es-pe', 'es-ve', 'es-ec', 'es-bo', 'es-py', 'es-uy', 'es-cu'].includes(normalized)) return 'latinAmerican24h';
+  if (normalized === 'en-sg' || normalized === 'en-hk' || normalized === 'en-my') return 'southeastAsian24h';
+  if (languageFallbacks[base]) return languageFallbacks[base];
+  if (base === 'en') return 'northAmerican12h';
+
+  return 'northAmerican12h';
+}
+
+function getLocaleDateTimeDefaults(locale) {
+  return DATE_TIME_PRESETS[getLocaleDateTimePresetId(locale)] || DATE_TIME_PRESETS.northAmerican12h;
+}
+
+function normalizeDateFormatValue(value) {
+  const aliasMap = {
+    MMDD: 'northAmerican12h',
+    DDMM: 'westernEuropean24h',
+    'DD.MM': 'centralEuropean24h',
+    'DD-MM': 'dutch24h',
+    westernEuropean12h: 'westernEuropean24h',
+    eastAsian12h: 'eastAsian24h',
+    southAsian24h: 'southAsian12h',
+    latinAmerican12h: 'latinAmerican24h',
+    southeastAsian12h: 'southeastAsian24h'
+  };
+  if (DATE_TIME_PRESETS[value]) return value;
+  return aliasMap[value] || 'northAmerican12h';
+}
+
+function getDateTimePresetOptions() {
+  return Object.entries(DATE_TIME_PRESETS).map(([value, preset]) => ({ value, ...preset }));
+}
+
+function getRequestedLocale(preferredLocale) {
+  return normalizeLocale(preferredLocale || (browserAPI.i18n && typeof browserAPI.i18n.getUILanguage === 'function' ? browserAPI.i18n.getUILanguage() : '') || (typeof navigator !== 'undefined' ? navigator.language : '') || 'en-US');
+}
+
 // Debug logging helper
 function debugLog(...args) {
   browserAPI.storage.local.get('settings').then(data => {
@@ -38,7 +175,7 @@ const DEFAULT_SETTINGS = {
   channelAvatarColorMode: 'random', // 'random' or 'fixed'
   channelAvatarFixedColor: '#0f939d', // Haiilo teal color when colorMode is 'fixed'
   hiddenCount: 0,
-  dateFormat: 'MMDD', // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
+  dateFormat: 'northAmerican12h', // locale-aware preset id
   timeFormat: '12h', // '12h' or '24h'
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
   messengerPanelWidthPercent: 100, // Messenger width scale (50-125, 100 = Haiilo default)
@@ -62,7 +199,20 @@ function normalizeSettings(settings = {}) {
     }
   });
   normalized.messengerPanelWidthPercent = clampMessengerPanelWidthPercent(normalized.messengerPanelWidthPercent);
+  normalized.dateFormat = normalizeDateFormatValue(normalized.dateFormat);
+  const preset = DATE_TIME_PRESETS[normalized.dateFormat] || DATE_TIME_PRESETS.northAmerican12h;
+  normalized.timeFormat = normalized.timeFormat === '24h' ? '24h' : preset.timeFormat;
   return normalized;
+}
+
+function buildLocaleAwareSettings() {
+  const locale = getRequestedLocale();
+  const localeDefaults = getLocaleDateTimeDefaults(locale);
+  return normalizeSettings({
+    ...DEFAULT_SETTINGS,
+    dateFormat: localeDefaults ? getLocaleDateTimePresetId(locale) : DEFAULT_SETTINGS.dateFormat,
+    timeFormat: localeDefaults ? localeDefaults.timeFormat : DEFAULT_SETTINGS.timeFormat
+  });
 }
 
 // Default domains
@@ -79,7 +229,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
     }
 
     if (!data.settings) {
-      await browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS });
+      await browserAPI.storage.local.set({ settings: buildLocaleAwareSettings() });
     } else {
       await browserAPI.storage.local.set({ settings: normalizeSettings(data.settings) });
     }
@@ -434,11 +584,29 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'resetSettings') {
-    browserAPI.storage.local.set({ settings: DEFAULT_SETTINGS }).then(async () => {
+    browserAPI.storage.local.set({ settings: buildLocaleAwareSettings() }).then(async () => {
       await createContextMenu();
       await updateAllBadges();
       await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
       sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (message.action === 'applyLocaleDefaults') {
+    browserAPI.storage.local.get('settings').then(async data => {
+      const settings = normalizeSettings(data.settings || DEFAULT_SETTINGS);
+      const locale = getRequestedLocale(message.locale);
+      const localeDefaults = getLocaleDateTimeDefaults(locale);
+      settings.dateFormat = getLocaleDateTimePresetId(locale);
+      settings.timeFormat = localeDefaults.timeFormat;
+      await browserAPI.storage.local.set({ settings });
+      await createContextMenu();
+      await updateAllBadges();
+      await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
+      sendResponse({ success: true, settings });
+    }).catch(error => {
+      sendResponse({ success: false, error: error.message });
     });
     return true;
   }

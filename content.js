@@ -69,6 +69,7 @@
 
   let mutedUsers = [];
   let hiddenCount = 0;
+  let hiddenItems = [];
   let lastRightClickedUser = null;
   let lastRightClickedElement = null;
   let observer = null;
@@ -86,7 +87,7 @@
   let colorMode = 'random'; // 'random' or 'fixed'
   let fixedColor = '#0f939d';
   let customHomepageUrl = null;
-  let dateFormat = 'MMDD'; // 'MMDD', 'DDMM', 'DD.MM', 'DD-MM'
+  let dateFormat = 'northAmerican12h'; // locale-aware preset id
   let timeFormat = '12h'; // '12h' or '24h'
   let dateTimeProcessed = false;
   let isTyping = false;
@@ -1257,6 +1258,10 @@
               sendResponse({ count: hiddenCount });
             }
 
+                    if (message.action === 'getHiddenDetails') {
+                      sendResponse({ count: hiddenCount, items: hiddenItems });
+                    }
+
             if (message.action === 'getLastRightClickedUser') {
               sendResponse({ userName: lastRightClickedUser });
             }
@@ -1388,7 +1393,7 @@
           badgePosition = settings.channelAvatarBadgePosition || 'bottom-left';
           colorMode = settings.channelAvatarColorMode || 'random';
           fixedColor = settings.channelAvatarFixedColor || '#0f939d';
-          dateFormat = settings.dateFormat || 'MMDD';
+          dateFormat = normalizeDateFormatValue(settings.dateFormat || 'northAmerican12h');
           timeFormat = settings.timeFormat || '12h';
           autoExpandEnabled = settings.autoExpandEnabled === true;
           const rawClicks = parseInt(settings.autoExpandClicksPerList, 10);
@@ -1661,6 +1666,77 @@
     return mutedUsers.some(user => user.name.trim() === normalizedName);
   }
 
+  function normalizeWhitespace(value) {
+    return (value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function collectMatchedTexts(root, selectors) {
+    if (!root || !selectors || selectors.length === 0) return [];
+
+    const out = [];
+    const seen = new Set();
+
+    const searchRoot = (currentRoot) => {
+      for (const selector of selectors) {
+        let matches = [];
+        try {
+          matches = currentRoot.querySelectorAll(selector);
+        } catch (e) {
+          continue;
+        }
+
+        for (const match of matches) {
+          const text = normalizeWhitespace(match && match.textContent);
+          if (text && !seen.has(text)) {
+            seen.add(text);
+            out.push(text);
+          }
+        }
+      }
+
+      const descendants = currentRoot.querySelectorAll ? currentRoot.querySelectorAll('*') : [];
+      for (const descendant of descendants) {
+        if (descendant.shadowRoot && searchRoot(descendant.shadowRoot)) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    searchRoot(root);
+    return out;
+  }
+
+  function itemHasMutedAuthor(item, userName, selectors) {
+    if (!item || !userName || !selectors || selectors.length === 0) return false;
+
+    const normalizedName = userName.trim();
+    return collectMatchedTexts(item, selectors).some(text => text === normalizedName);
+  }
+
+  function buildHiddenItemDetails(item, userName, kind, selectors, matchedSelector) {
+    const matchedAuthors = collectMatchedTexts(item, selectors);
+    const text = normalizeWhitespace(item && item.innerText ? item.innerText : item && item.textContent);
+    const excerpt = text.length > 220 ? `${text.slice(0, 217)}...` : text;
+
+    return {
+      kind,
+      mutedUser: userName,
+      matchedAuthors,
+      matchedSelector,
+      excerpt
+    };
+  }
+
+  function hideMatchedElement(element, details) {
+    if (!element) return false;
+    element.style.display = 'none';
+    hiddenCount++;
+    if (details) hiddenItems.push(details);
+    return true;
+  }
+
   function showAllContent() {
     // Reset only previously hidden content to visible
     // Only reset the specific selectors we actually hide
@@ -1670,6 +1746,7 @@
       }
     });
     hiddenCount = 0;
+    hiddenItems = [];
   }
 
   function hideContent() {
@@ -1686,28 +1763,40 @@
     }
 
     hiddenCount = 0;
+    hiddenItems = [];
     debugLog('Starting content filtering...');
+    const hiddenElements = new WeakSet();
 
     // Simple approach like the original working script
     mutedUsers.forEach(user => {
       const userName = user.name.trim();
+      const timelineAuthorSelectors = [
+        'cat-sender-link',
+        '[data-test="comment-author"]',
+        'sectionheader cat-sender-link',
+        'sectionheader [data-test="comment-author"]',
+        'sectionheader button',
+        'sectionheader a',
+        '[role="sectionheader"] cat-sender-link',
+        '[role="sectionheader"] [data-test="comment-author"]',
+        '[role="sectionheader"] button',
+        '[role="sectionheader"] a'
+      ];
 
       // Hide posts by the user (simple selector like original)
       document.querySelectorAll('coyo-timeline-item').forEach(item => {
-        const authorLink = item.querySelector('cat-sender-link');
-        if (authorLink && authorLink.textContent.trim() === userName) {
-          item.style.display = 'none';
-          hiddenCount++;
+        if (!hiddenElements.has(item) && itemHasMutedAuthor(item, userName, timelineAuthorSelectors)) {
+          hiddenElements.add(item);
+          hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'timeline item', timelineAuthorSelectors, 'timeline-header'));
           debugLog('Hidden timeline post by:', userName);
         }
       });
 
       // Hide comments by the user (simple selector like original)
       document.querySelectorAll('coyo-comment').forEach(comment => {
-        const authorLink = comment.querySelector('[data-test="comment-author"]');
-        if (authorLink && authorLink.textContent.trim() === userName) {
-          comment.style.display = 'none';
-          hiddenCount++;
+        if (!hiddenElements.has(comment) && itemHasMutedAuthor(comment, userName, ['[data-test="comment-author"]'])) {
+          hiddenElements.add(comment);
+          hideMatchedElement(comment, buildHiddenItemDetails(comment, userName, 'comment', ['[data-test="comment-author"]'], 'comment-author'));
           debugLog('Hidden comment by:', userName);
         }
       });
@@ -1724,10 +1813,19 @@
 
       additionalSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(item => {
+          if (hiddenElements.has(item)) return;
           // Try multiple author selectors
           const authorSelectors = [
             'cat-sender-link',
             '[data-test="comment-author"]',
+            'sectionheader cat-sender-link',
+            'sectionheader [data-test="comment-author"]',
+            'sectionheader button',
+            'sectionheader a',
+            '[role="sectionheader"] cat-sender-link',
+            '[role="sectionheader"] [data-test="comment-author"]',
+            '[role="sectionheader"] button',
+            '[role="sectionheader"] a',
             '[class*="author"]',
             '[class*="user-name"]',
             'a[href*="/user/"]',
@@ -1737,8 +1835,8 @@
           for (const authorSelector of authorSelectors) {
             const authorElement = item.querySelector(authorSelector);
             if (authorElement && authorElement.textContent.trim() === userName) {
-              item.style.display = 'none';
-              hiddenCount++;
+              hiddenElements.add(item);
+              hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'content item', authorSelectors, authorSelector));
               debugLog('Hidden item (selector:', selector, ') by:', userName);
               break;
             }
@@ -1912,72 +2010,104 @@
     return `${hours.toString().padStart(2, '0')}:${minutes}`;
   }
 
+  const DATE_TIME_PRESETS = {
+    northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h' },
+    westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
+    westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
+    centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h' },
+    dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h' },
+    iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h' },
+    eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h' },
+    eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h' },
+    hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h' },
+    finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h' },
+    spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h' },
+    dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h' },
+    spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h' },
+    korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h' },
+    southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
+    southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
+    latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
+    latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
+    middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
+    southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
+    southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' }
+  };
+
+  function normalizeDateFormatValue(value) {
+    const aliasMap = {
+      MMDD: 'northAmerican12h',
+      DDMM: 'westernEuropean24h',
+      'DD.MM': 'centralEuropean24h',
+      'DD-MM': 'dutch24h',
+      westernEuropean12h: 'westernEuropean24h',
+      eastAsian12h: 'eastAsian24h',
+      southAsian24h: 'southAsian12h',
+      latinAmerican12h: 'latinAmerican24h',
+      southeastAsian12h: 'southeastAsian24h'
+    };
+    if (DATE_TIME_PRESETS[value]) return value;
+    return aliasMap[value] || 'northAmerican12h';
+  }
+
+  function getDateFormatPattern() {
+    const preset = DATE_TIME_PRESETS[normalizeDateFormatValue(dateFormat)] || DATE_TIME_PRESETS.northAmerican12h;
+    return preset.dateFormat;
+  }
+
+  function formatDateParts(day, month, year, pattern) {
+    const replacements = {
+      YYYY: year,
+      YY: year ? year.slice(-2) : '',
+      MM: String(month).padStart(2, '0'),
+      M: String(parseInt(month, 10)),
+      DD: String(day).padStart(2, '0'),
+      D: String(parseInt(day, 10))
+    };
+
+    return pattern.replace(/YYYY|YY|MM|M|DD|D/g, token => replacements[token] || token);
+  }
+
+  function getShortDatePattern(pattern) {
+    const stripped = pattern
+      .replace(/[\s./-]*YYYY\.?/g, '')
+      .replace(/[\s./-]*YY\.?/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    return stripped || pattern;
+  }
+
   // Convert date format
   function convertDateFormat(dateStr, hasYear = false) {
-    // If dateStr contains a year, handle full date
-    if (hasYear) {
-      const fullDateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (fullDateMatch) {
-        const month = fullDateMatch[1].padStart(2, '0');
-        const day = fullDateMatch[2].padStart(2, '0');
-        const year = fullDateMatch[3];
+    const pattern = getDateFormatPattern();
 
-        switch (dateFormat) {
-          case 'DDMM':
-            return `${day}/${month}/${year}`;
-          case 'DD.MM':
-            return `${day}.${month}.${year}`;
-          case 'DD-MM':
-            return `${day}-${month}-${year}`;
-          default: // MMDD
-            return `${month}/${day}/${year}`;
-        }
-      }
+    const fullDateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (fullDateMatch) {
+      return formatDateParts(fullDateMatch[2], fullDateMatch[1], fullDateMatch[3], pattern);
+    }
 
-      const shortYearMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2})/);
-      if (shortYearMatch) {
-        const month = shortYearMatch[1].padStart(2, '0');
-        const day = shortYearMatch[2].padStart(2, '0');
-        const year = shortYearMatch[3];
+    const shortYearMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2})/);
+    if (shortYearMatch) {
+      return formatDateParts(shortYearMatch[2], shortYearMatch[1], shortYearMatch[3], pattern);
+    }
 
-        switch (dateFormat) {
-          case 'DDMM':
-            return `${day}/${month}/${year}`;
-          case 'DD.MM':
-            return `${day}.${month}.${year}`;
-          case 'DD-MM':
-            return `${day}-${month}-${year}`;
-          default: // MMDD
-            return `${month}/${day}/${year}`;
-        }
-      }
-    } else {
-      // Handle short date (MM/DD)
+    if (!hasYear) {
       const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})/);
       if (slashMatch) {
-        const month = slashMatch[1].padStart(2, '0');
-        const day = slashMatch[2].padStart(2, '0');
-
-        switch (dateFormat) {
-          case 'DDMM':
-            return `${day}/${month}`;
-          case 'DD.MM':
-            return `${day}.${month}`;
-          case 'DD-MM':
-            return `${day}-${month}`;
-          default: // MMDD
-            return `${month}/${day}`;
-        }
+        return formatDateParts(slashMatch[2], slashMatch[1], '', getShortDatePattern(pattern));
       }
     }
 
-    // Match "Month DD, YYYY" format (e.g., "January 17, 2026")
     const monthNameMatch = dateStr.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})/i);
-    if (monthNameMatch && (dateFormat === 'DDMM' || dateFormat === 'DD.MM' || dateFormat === 'DD-MM')) {
-      const month = monthNameMatch[1];
+    if (monthNameMatch) {
+      const monthNames = {
+        january: '01', february: '02', march: '03', april: '04', may: '05', june: '06',
+        july: '07', august: '08', september: '09', october: '10', november: '11', december: '12'
+      };
+      const month = monthNames[monthNameMatch[1].toLowerCase()];
       const day = monthNameMatch[2];
       const year = monthNameMatch[3];
-      return `${day} ${month} ${year}`;
+      return formatDateParts(day, month, year, pattern);
     }
 
     return dateStr;
@@ -2014,7 +2144,7 @@
     }
 
     // Convert dates
-    if (dateFormat !== 'MMDD') {
+    if (normalizeDateFormatValue(dateFormat) !== 'northAmerican12h') {
       // IMPORTANT: Process full dates FIRST (before short dates) to avoid partial matches
 
       // Match and convert full dates with year (MM/DD/YYYY)
@@ -2057,7 +2187,7 @@
 
   // Walk through all text nodes and process dates/times
   function processAllDateTimes() {
-    if (dateFormat === 'MMDD' && timeFormat === '12h') {
+    if (normalizeDateFormatValue(dateFormat) === 'northAmerican12h' && timeFormat === '12h') {
       debugLog('Date/time format matches default, skipping processing');
       return;
     }

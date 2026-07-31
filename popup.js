@@ -73,6 +73,7 @@ async function initPopup() {
 
   await loadMutedUsers();
   await loadHiddenCount();
+  setupHiddenDetailsToggle();
   await loadSettings();
   setupEventListeners();
 }
@@ -158,12 +159,112 @@ async function loadHiddenCount() {
       const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' });
       if (response && typeof response.count === 'number') {
         document.getElementById('hiddenCount').textContent = response.count;
+        updateHiddenDetailsVisibility(response.count);
       }
     }
   } catch (e) {
     // Tab might not have content script loaded
     debugLog('Could not get hidden count:', e);
   }
+}
+
+function updateHiddenDetailsVisibility(count) {
+  const details = document.getElementById('hiddenDetails');
+
+  if (details) {
+    details.hidden = !count;
+    if (!count) {
+      details.open = false;
+    }
+  }
+}
+
+function setupHiddenDetailsToggle() {
+  const details = document.getElementById('hiddenDetails');
+  if (!details) return;
+
+  details.addEventListener('toggle', async () => {
+    if (!details.open) return;
+    await loadHiddenDetails();
+  });
+
+  if (details.open) {
+    loadHiddenDetails();
+  }
+}
+
+async function loadHiddenDetails() {
+  const contentEl = document.getElementById('hiddenDetailsContent');
+  if (!contentEl) return;
+
+  contentEl.textContent = 'Loading hidden content details...';
+
+  try {
+    const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !await isHaiiloUrl(tab.url)) {
+      contentEl.innerHTML = '<p class="empty-state">Open a Haiilo page to view hidden content details.</p>';
+      return;
+    }
+
+    const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenDetails' });
+    const items = response && Array.isArray(response.items) ? response.items : [];
+
+    if (items.length === 0) {
+      contentEl.innerHTML = '<p class="empty-state">Nothing is hidden on this page right now.</p>';
+      return;
+    }
+
+    contentEl.textContent = '';
+    items.slice(0, 20).forEach((item, index) => {
+      contentEl.appendChild(createHiddenDetailElement(item, index + 1));
+    });
+
+    if (items.length > 20) {
+      const more = document.createElement('p');
+      more.className = 'hidden-details-more';
+      more.textContent = `Showing 20 of ${items.length} hidden items.`;
+      contentEl.appendChild(more);
+    }
+  } catch (e) {
+    debugLog('Could not load hidden details:', e);
+    contentEl.innerHTML = '<p class="empty-state">Could not load hidden content details.</p>';
+  }
+}
+
+function createHiddenDetailElement(item, index) {
+  const card = document.createElement('article');
+  card.className = 'hidden-detail-item';
+
+  const title = document.createElement('div');
+  title.className = 'hidden-detail-title';
+
+  const indexEl = document.createElement('span');
+  indexEl.className = 'hidden-detail-index';
+  indexEl.textContent = String(index);
+
+  const kindEl = document.createElement('span');
+  kindEl.className = 'hidden-detail-kind';
+  kindEl.textContent = item.kind || 'hidden item';
+
+  title.appendChild(indexEl);
+  title.appendChild(kindEl);
+
+  const authors = document.createElement('div');
+  authors.className = 'hidden-detail-authors';
+  const authorList = Array.isArray(item.matchedAuthors) ? item.matchedAuthors.filter(Boolean) : [];
+  authors.textContent = authorList.length > 0
+    ? `Matched: ${authorList.join(' · ')}`
+    : `Muted user: ${item.mutedUser || 'unknown'}`;
+
+  const excerpt = document.createElement('div');
+  excerpt.className = 'hidden-detail-excerpt';
+  excerpt.textContent = item.excerpt || 'No preview available.';
+
+  card.appendChild(title);
+  card.appendChild(authors);
+  card.appendChild(excerpt);
+
+  return card;
 }
 
 async function loadSettings() {

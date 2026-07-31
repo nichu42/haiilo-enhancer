@@ -63,17 +63,32 @@
 
     <section>
       <h2>Date & Time Format</h2>
-      <p class="description">Override Haiilo's default date and time display. Useful if your account language is set to English but you'd prefer European or 24-hour formatting. Affects only this browser.</p>
+      <p class="description">Override Haiilo's default date and time display. New installs can match the browser locale automatically; existing installs can re-apply the locale preset with the button below.</p>
+      <div class="button-group" style="margin-bottom: 20px;">
+        <button type="button" class="secondary" id="applyLocaleDefaults">Apply browser locale defaults</button>
+      </div>
 
       <div class="form-group">
-        <label for="dateFormat">Date format:</label>
+        <label for="dateFormat">Date format (date standard):</label>
         <select id="dateFormat">
-          <option value="MMDD">MM/DD/YYYY (Default, US format)</option>
-          <option value="DDMM">DD/MM/YYYY (European format)</option>
-          <option value="DD.MM">DD.MM.YYYY (German format)</option>
-          <option value="DD-MM">DD-MM-YYYY (ISO-like format)</option>
+          <option value="northAmerican12h">MM/DD/YYYY (North American)</option>
+          <option value="westernEuropean24h">DD/MM/YYYY (Western European)</option>
+          <option value="centralEuropean24h">DD.MM.YYYY (Central European)</option>
+          <option value="dutch24h">DD-MM-YYYY (Dutch)</option>
+          <option value="iso860124h">YYYY-MM-DD (ISO 8601)</option>
+          <option value="eastAsian24h">YYYY/MM/DD (East Asian)</option>
+          <option value="hungarian24h">YYYY. MM. DD. (Hungarian)</option>
+          <option value="finnish24h">D.M.YYYY (Finnish)</option>
+          <option value="spacedCentral24h">D. M. YYYY (Central European)</option>
+          <option value="dottedSlavic24h">D.M.YYYY. (Central European)</option>
+          <option value="spacedSlavic24h">D. M. YYYY. (Central European)</option>
+          <option value="korean24h">YYYY. M. D. (Korean)</option>
+          <option value="latinAmerican24h">DD/MM/YYYY (Latin American)</option>
+          <option value="middleEastern24h">DD/MM/YYYY (Middle Eastern)</option>
+          <option value="southeastAsian24h">DD/MM/YYYY (Southeast Asian)</option>
+          <option value="southAsian12h">DD/MM/YYYY (South Asian)</option>
         </select>
-        <small class="help-text">Choose how dates are displayed (e.g., 01/15/2026 vs 15/01/2026)</small>
+        <small class="help-text">Choose a locale-based preset. Changing this will also reset time format to that preset's default.</small>
       </div>
 
       <div class="form-group">

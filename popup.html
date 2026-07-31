@@ -31,9 +31,14 @@
       </a>
     </header>
 
-    <div class="stats">
-      <span id="hiddenCount">0</span> items hidden on this page
-    </div>
+    <details class="stats hidden-details" id="hiddenDetails">
+      <summary class="hidden-details-summary">
+        <span><span id="hiddenCount">0</span> items hidden on this page</span>
+      </summary>
+      <div class="hidden-details-content" id="hiddenDetailsContent">
+        <p class="empty-state">Open this section to view what was hidden.</p>
+      </div>
+    </details>
 
     <section class="muted-list-section">
       <h2>Muted Users</h2>

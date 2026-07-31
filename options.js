@@ -4,6 +4,50 @@
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
+const DATE_TIME_PRESETS = {
+  northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h', label: 'MM/DD/YYYY (North American)' },
+  westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Western European)' },
+  westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Western European)' },
+  centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h', label: 'DD.MM.YYYY (Central European)' },
+  dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h', label: 'DD-MM-YYYY (Dutch)' },
+  iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h', label: 'YYYY-MM-DD (ISO 8601)' },
+  eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h', label: 'YYYY/MM/DD (East Asian)' },
+  eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h', label: 'YYYY/MM/DD (East Asian)' },
+  hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h', label: 'YYYY. MM. DD. (Hungarian)' },
+  finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h', label: 'D.M.YYYY (Finnish)' },
+  spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h', label: 'D. M. YYYY (Central European)' },
+  dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h', label: 'D.M.YYYY. (Central European)' },
+  spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h', label: 'D. M. YYYY. (Central European)' },
+  korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h', label: 'YYYY. M. D. (Korean)' },
+  southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (South Asian)' },
+  southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (South Asian)' },
+  latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Latin American)' },
+  latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Latin American)' },
+  middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Middle Eastern)' },
+  southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Southeast Asian)' },
+  southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Southeast Asian)' }
+};
+
+function normalizeDateFormatValue(value) {
+  const aliasMap = {
+    MMDD: 'northAmerican12h',
+    DDMM: 'westernEuropean24h',
+    'DD.MM': 'centralEuropean24h',
+    'DD-MM': 'dutch24h',
+    westernEuropean12h: 'westernEuropean24h',
+    eastAsian12h: 'eastAsian24h',
+    southAsian24h: 'southAsian12h',
+    latinAmerican12h: 'latinAmerican24h',
+    southeastAsian12h: 'southeastAsian24h'
+  };
+  if (DATE_TIME_PRESETS[value]) return value;
+  return aliasMap[value] || 'northAmerican12h';
+}
+
+function getPresetForDateFormat(value) {
+  return DATE_TIME_PRESETS[normalizeDateFormatValue(value)] || DATE_TIME_PRESETS.northAmerican12h;
+}
+
 // Debug logging helper - reads the debugMode flag from settings on each
 // call so live toggles take effect without reload.
 function debugLog(...args) {
@@ -51,8 +95,9 @@ async function loadSettings() {
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
   document.getElementById('showMutedIndicator').checked = settings.showMutedIndicator !== false;
   document.getElementById('debugMode').checked = settings.debugMode || false;
-  document.getElementById('dateFormat').value = settings.dateFormat || 'MMDD';
-  document.getElementById('timeFormat').value = settings.timeFormat || '12h';
+  const normalizedDateFormat = normalizeDateFormatValue(settings.dateFormat || 'northAmerican12h');
+  document.getElementById('dateFormat').value = normalizedDateFormat;
+  document.getElementById('timeFormat').value = settings.timeFormat || getPresetForDateFormat(normalizedDateFormat).timeFormat;
   document.getElementById('enhanceChannelAvatars').checked = settings.enhanceChannelAvatars !== false;
   document.getElementById('channelAvatarStyle').value = settings.channelAvatarStyle || 'ring';
 
@@ -216,7 +261,15 @@ function setupEventListeners() {
   document.getElementById('defaultMuteDays').addEventListener('change', saveSettings);
   document.getElementById('showMutedIndicator').addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
-  document.getElementById('dateFormat').addEventListener('change', saveSettings);
+  document.getElementById('dateFormat').addEventListener('change', () => {
+    const dateFormatSelect = document.getElementById('dateFormat');
+    const timeFormatSelect = document.getElementById('timeFormat');
+    const preset = getPresetForDateFormat(dateFormatSelect.value);
+    if (timeFormatSelect) {
+      timeFormatSelect.value = preset.timeFormat;
+    }
+    saveSettings();
+  });
   document.getElementById('timeFormat').addEventListener('change', saveSettings);
 
   document.getElementById('enhanceChannelAvatars').addEventListener('change', () => {
@@ -303,6 +356,7 @@ function setupEventListeners() {
   document.getElementById('resetRing').addEventListener('click', resetRingSettings);
   document.getElementById('resetSquare').addEventListener('click', resetSquareSettings);
   document.getElementById('resetBadge').addEventListener('click', resetBadgeSettings);
+  document.getElementById('applyLocaleDefaults').addEventListener('click', applyLocaleDefaults);
 
   // Custom domains
   document.getElementById('addDomain').addEventListener('click', addDomain);
@@ -469,13 +523,14 @@ function toggleStyleSettings() {
 
 async function saveSettings() {
   const colorMode = document.getElementById('colorModeRandom').checked ? 'random' : 'fixed';
+  const normalizedDateFormat = normalizeDateFormatValue(document.getElementById('dateFormat').value);
 
   const settings = {
     extensionEnabled: document.getElementById('extensionEnabled').checked,
     defaultMuteDays: parseInt(document.getElementById('defaultMuteDays').value, 10),
     showMutedIndicator: document.getElementById('showMutedIndicator').checked,
     debugMode: document.getElementById('debugMode').checked,
-    dateFormat: document.getElementById('dateFormat').value,
+    dateFormat: normalizedDateFormat,
     timeFormat: document.getElementById('timeFormat').value,
     enhanceChannelAvatars: document.getElementById('enhanceChannelAvatars').checked,
     channelAvatarStyle: document.getElementById('channelAvatarStyle').value,
@@ -509,6 +564,22 @@ async function saveSettings() {
   }
 
   showStatus('Settings saved', 'success');
+}
+
+async function applyLocaleDefaults() {
+  try {
+    const locale = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    const response = await browserAPI.runtime.sendMessage({ action: 'applyLocaleDefaults', locale });
+    if (response && response.success) {
+      await loadSettings();
+      showStatus('Locale defaults applied', 'success');
+      return;
+    }
+    showStatus('Could not apply locale defaults', 'error');
+  } catch (error) {
+    console.error('Error applying locale defaults:', error);
+    showStatus('Error applying locale defaults: ' + error.message, 'error');
+  }
 }
 
 async function exportData() {

@@ -25,9 +25,18 @@
   border-color: var(--border-primary-hover);
 }
 
+.haiilo-enhancer-reaction-group {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 2px;
+  margin-right: 6px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .haiilo-enhancer-reaction-count {
   display: inline-block;
-  margin: 0 5px 0 2px;
+  margin: 0;
   font-size: 0.85em;
   line-height: 1;
   color: var(--color-text-secondary);

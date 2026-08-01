@@ -1301,17 +1301,28 @@
     debugLog('[Reactions] Injected tooltip:', text);
   }
 
-  function injectInlineReactionCounts(reactionsInfo, displayedData) {
+  function clearInlineReactionCounts(reactionsInfo) {
+    reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-group').forEach(group => {
+      while (group.firstChild) group.before(group.firstChild);
+      group.remove();
+    });
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(el => el.remove());
+  }
+
+  function injectInlineReactionCounts(reactionsInfo, displayedData) {
+    clearInlineReactionCounts(reactionsInfo);
     const icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
     icons.forEach((icon, index) => {
       const reaction = displayedData[index];
       if (!reaction) return;
+      const group = document.createElement('span');
+      group.className = 'haiilo-enhancer-reaction-group';
       const count = document.createElement('span');
       count.className = 'haiilo-enhancer-reaction-count';
       count.textContent = String(reaction.count);
       count.setAttribute('aria-label', `${reaction.count} reactions`);
-      icon.after(count);
+      icon.before(group);
+      group.append(icon, count);
     });
   }
 
@@ -1423,7 +1434,7 @@
         if (!showReactionCountInline) {
           const ri = el.closest('coyo-reactions-info') ||
             el.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
-          if (ri) ri.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(node => node.remove());
+          if (ri) clearInlineReactionCounts(ri);
         }
       });
     if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {

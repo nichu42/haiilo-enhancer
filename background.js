@@ -185,7 +185,7 @@ const DEFAULT_SETTINGS = {
   autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
   cloudSync: false, // Sync settings and muted users via browser account (opt-in)
   sortReactionsByCount: true, // Sort reaction emojis by count (most used first)
-  showReactionCountTooltip: false // Show reaction count breakdown on hover
+  showReactionCountTooltip: true // Show reaction count breakdown on hover
 };
 
 function clampMessengerPanelWidthPercent(value) {

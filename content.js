@@ -105,7 +105,7 @@
 
   // Reaction enhancements
   let sortReactionsByCount = true;
-  let showReactionCountTooltip = false;
+  let showReactionCountTooltip = true;
   let reactionTypesCache = null; // { TYPE: { color, unicode } }
   let reactionSenderIdCache = null; // current user ID needed by the summary API
   let reactionEnhancerObserver = null;
@@ -1636,7 +1636,7 @@
           autoExpandDelayMs = 300;
           autoExpandScope = 'both';
           sortReactionsByCount = true;
-          showReactionCountTooltip = false;
+          showReactionCountTooltip = true;
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
@@ -1657,7 +1657,7 @@
         autoExpandDelayMs = 300;
         autoExpandScope = 'both';
         sortReactionsByCount = true;
-        showReactionCountTooltip = false;
+        showReactionCountTooltip = true;
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -1677,7 +1677,7 @@
       autoExpandDelayMs = 300;
       autoExpandScope = 'both';
       sortReactionsByCount = true;
-      showReactionCountTooltip = false;
+      showReactionCountTooltip = true;
     }
   }
 

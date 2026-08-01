@@ -24,3 +24,11 @@
   background: linear-gradient(135deg, rgba(15, 147, 157, 0.08) 0%, rgba(80, 35, 121, 0.08) 100%);
   border-color: var(--border-primary-hover);
 }
+
+.haiilo-enhancer-reaction-count {
+  margin-left: 2px;
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  vertical-align: middle;
+}

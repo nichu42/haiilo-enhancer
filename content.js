@@ -106,6 +106,7 @@
   // Reaction enhancements
   let sortReactionsByCount = true;
   let showReactionCountTooltip = true;
+  let showReactionCountInline = false;
   let reactionTypesCache = null; // { TYPE: { color, unicode } }
   let reactionSenderIdCache = null; // current user ID needed by the summary API
   let reactionEnhancerObserver = null;
@@ -1300,6 +1301,20 @@
     debugLog('[Reactions] Injected tooltip:', text);
   }
 
+  function injectInlineReactionCounts(reactionsInfo, displayedData) {
+    reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(el => el.remove());
+    const icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
+    icons.forEach((icon, index) => {
+      const reaction = displayedData[index];
+      if (!reaction) return;
+      const count = document.createElement('span');
+      count.className = 'haiilo-enhancer-reaction-count';
+      count.textContent = String(reaction.count);
+      count.setAttribute('aria-label', `${reaction.count} reactions`);
+      icon.after(count);
+    });
+  }
+
   // Process a single [data-reaction-target-id] anchor element.
   async function processReactionTarget(dataEl) {
     if (dataEl.dataset.haiiloEnhancerReactionsDone) return;
@@ -1308,7 +1323,7 @@
     const targetId = dataEl.dataset.reactionTargetId;
     const targetType = dataEl.dataset.reactionTargetType;
     const count = parseInt(dataEl.dataset.reactionCount, 10);
-    if (!targetId || !targetType || count < 2) return;
+    if (!targetId || !targetType || !Number.isFinite(count) || count < 1) return;
 
     const typeMap = await getReactionTypes();
 
@@ -1358,6 +1373,9 @@
     if (showReactionCountTooltip) {
       injectReactionTooltip(reactionsInfo, sortedData, typeMap);
     }
+    if (showReactionCountInline) {
+      injectInlineReactionCounts(reactionsInfo, sortReactionsByCount ? sortedData : apiData);
+    }
   }
 
   function setupReactionEnhancerObserver() {
@@ -1392,7 +1410,6 @@
 
   // Re-run reaction enhancements after settings change (clear processed flags first).
   function reapplyReactionEnhancements() {
-    if (!sortReactionsByCount && !showReactionCountTooltip) return;
     // Clear done flags so existing elements are reprocessed
     document.querySelectorAll('[data-reaction-target-id][data-haiilo-enhancer-reactions-done]')
       .forEach(el => {
@@ -1403,8 +1420,15 @@
             el.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
           if (ri) ri.querySelector('.haiilo-enhancer-reaction-tooltip')?.remove();
         }
+        if (!showReactionCountInline) {
+          const ri = el.closest('coyo-reactions-info') ||
+            el.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
+          if (ri) ri.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(node => node.remove());
+        }
       });
-    setupReactionEnhancerObserver();
+    if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
+      setupReactionEnhancerObserver();
+    }
   }
 
   // ── End Reaction enhancements ──────────────────────────────────────────────
@@ -1558,7 +1582,7 @@
       setupAutoExpandMountObserver();
 
       // Reaction enhancements (sort by count, hover tooltip)
-      if (sortReactionsByCount || showReactionCountTooltip) {
+      if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
         setupReactionEnhancerObserver();
       }
 
@@ -1604,6 +1628,7 @@
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
           sortReactionsByCount = settings.sortReactionsByCount !== false;
           showReactionCountTooltip = settings.showReactionCountTooltip === true;
+          showReactionCountInline = settings.showReactionCountInline === true;
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
@@ -1637,6 +1662,7 @@
           autoExpandScope = 'both';
           sortReactionsByCount = true;
           showReactionCountTooltip = true;
+          showReactionCountInline = false;
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
@@ -1658,6 +1684,7 @@
         autoExpandScope = 'both';
         sortReactionsByCount = true;
         showReactionCountTooltip = true;
+        showReactionCountInline = false;
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -1678,6 +1705,7 @@
       autoExpandScope = 'both';
       sortReactionsByCount = true;
       showReactionCountTooltip = true;
+      showReactionCountInline = false;
     }
   }
 

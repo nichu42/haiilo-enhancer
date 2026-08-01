@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "short_name": "HaiiloEnhc",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "__MSG_extensionDescription__",
   "author": "nichu42",
   "default_locale": "en",

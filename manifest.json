@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Haiilo Enhancer",
+  "name": "__MSG_extensionName__",
   "version": "0.5.0",
-  "description": "Enhance your Haiilo experience - mute users, customize your feed, and more",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "homepage_url": "https://github.com/nichu42/haiilo-enhancer",
   "permissions": [
     "storage",
@@ -18,6 +19,12 @@
     "service_worker": "background.js"
   },
   "content_scripts": [],
+  "web_accessible_resources": [
+    {
+      "resources": ["_locales/*/messages.json"],
+      "matches": ["https://*/*", "http://*/*"]
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -26,7 +33,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Haiilo Enhancer"
+    "default_title": "__MSG_actionTitle__"
   },
   "options_ui": {
     "page": "options.html",

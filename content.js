@@ -10,6 +10,7 @@
 
   // Browser API compatibility: browser.* is promise-based in Firefox; chrome.* in Chrome
   const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+  const t = (key, substitutions) => HaiiloI18n.i18nMessage(key, substitutions);
 
   // Global flag to track if extension context is valid
   let extensionContextValid = true;
@@ -117,19 +118,14 @@
   const reactionDetailsCache = new Map();
   const reactionDetailsPromises = new Map();
   let reactionEnhancerObserver = null;
-  let reactionSettingsInitialized = false;
 
-  const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
-  const MESSENGER_PANEL_WIDTH_MAX_PERCENT = 125;
-  const MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT = 100;
+  // Shared messenger width constants and clamp (single source of truth in shared.js)
+  const MESSENGER_PANEL_WIDTH_MIN_PERCENT = HaiiloShared.MESSENGER_PANEL_WIDTH_MIN_PERCENT;
+  const MESSENGER_PANEL_WIDTH_MAX_PERCENT = HaiiloShared.MESSENGER_PANEL_WIDTH_MAX_PERCENT;
+  const MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT = HaiiloShared.MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT;
+  const clampMessengerPanelWidthPercent = HaiiloShared.clampMessengerPanelWidthPercent;
   const HAIILO_DEFAULT_MESSENGER_WIDTH_PERCENT = 80;
   const HAIILO_DEFAULT_MESSENGER_MAX_WIDTH_PX = 600;
-
-  function clampMessengerPanelWidthPercent(value) {
-    const parsed = parseInt(value, 10);
-    if (isNaN(parsed)) return MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT;
-    return Math.max(MESSENGER_PANEL_WIDTH_MIN_PERCENT, Math.min(MESSENGER_PANEL_WIDTH_MAX_PERCENT, parsed));
-  }
 
   function getMessengerPanelWidthCSS(widthPercent) {
     const clampedPercent = clampMessengerPanelWidthPercent(widthPercent);
@@ -520,6 +516,16 @@
           if (node.matches?.(selectors)) checkAndHideBackdrop(node);
           node.querySelectorAll?.(selectors).forEach(checkAndHideBackdrop);
         });
+
+        const angularBackdrops = document.querySelectorAll(
+          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]'
+        );
+        angularBackdrops.forEach(div => {
+          if (isMessengerBackdrop(div) && div.parentNode) {
+            div.parentNode.removeChild(div);
+            debugLog('[Content] Removed Angular messenger backdrop');
+          }
+        });
       }, 100);
     });
 
@@ -578,30 +584,7 @@
 
         // Add group icon (two overlapping circles representing people)
         {
-          const svgNS = 'http://www.w3.org/2000/svg';
-          const svg = document.createElementNS(svgNS, 'svg');
-          svg.setAttribute('width', svgSize);
-          svg.setAttribute('height', svgSize);
-          svg.setAttribute('viewBox', '0 0 24 24');
-          svg.setAttribute('fill', 'white');
-          svg.style.display = 'block';
-
-          const c1 = document.createElementNS(svgNS, 'circle');
-          c1.setAttribute('cx', '8');
-          c1.setAttribute('cy', '8');
-          c1.setAttribute('r', '4');
-
-          const c2 = document.createElementNS(svgNS, 'circle');
-          c2.setAttribute('cx', '16');
-          c2.setAttribute('cy', '8');
-          c2.setAttribute('r', '4');
-
-          const p = document.createElementNS(svgNS, 'path');
-          p.setAttribute('d', 'M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z');
-
-          svg.appendChild(c1);
-          svg.appendChild(c2);
-          svg.appendChild(p);
+          const svg = HaiiloShared.buildGroupBadgeSVG(svgSize);
           badge.appendChild(svg);
         }
         iconContainer.appendChild(badge);
@@ -1331,24 +1314,17 @@
     // Set a native tooltip as a reliable fallback. Haiilo's custom tooltip
     // component may not refresh its named slot after Angular hydration.
     reactionsInfo.setAttribute('title', text);
-    reactionsInfo.setAttribute('aria-label', `Reactions: ${text}`);
+    reactionsInfo.setAttribute('aria-label', t('reactionsLabel', text));
     const trigger = reactionsInfo.querySelector('cat-tooltip > cat-button');
     if (trigger) {
       trigger.setAttribute('title', text);
-      trigger.setAttribute('aria-label', `Reactions: ${text}`);
+      trigger.setAttribute('aria-label', t('reactionsLabel', text));
     }
 
-    const tooltip = reactionsInfo.querySelector('cat-tooltip');
-    if (tooltip) {
-      // Remove any previously injected tooltip content
-      const existing = tooltip.querySelector('.haiilo-enhancer-reaction-tooltip');
-      if (existing) existing.remove();
-      const p = document.createElement('p');
-      p.slot = 'content';
-      p.className = 'haiilo-enhancer-reaction-tooltip';
-      p.textContent = text;
-      tooltip.appendChild(p);
-    }
+    // Remove content from older enhancer versions, but do not inject another
+    // named slot into Haiilo's hydrated tooltip. Its existing reaction-name
+    // content is rendered on hover, and a second slot makes both appear twice.
+    reactionsInfo.querySelector('.haiilo-enhancer-reaction-tooltip')?.remove();
     debugLog('[Reactions] Injected tooltip:', text);
   }
 
@@ -1438,6 +1414,8 @@
   }
 
   function clearInlineReactionCounts(reactionsInfo) {
+    reactionsInfo.__haiiloEnhancerInlineLabelObserver?.disconnect();
+    delete reactionsInfo.__haiiloEnhancerInlineLabelObserver;
     reactionsInfo.querySelectorAll('.haiilo-enhancer-inline-reaction-summary').forEach(el => el.remove());
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-group').forEach(group => {
       while (group.firstChild) group.before(group.firstChild);
@@ -1447,11 +1425,34 @@
     reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]').forEach(icon => {
       icon.style.removeProperty('display');
     });
+    reactionsInfo.querySelectorAll('.reactions-info-label[data-haiilo-enhancer-original-text]')
+      .forEach(label => {
+        label.textContent = label.dataset.haiiloEnhancerOriginalText;
+        delete label.dataset.haiiloEnhancerOriginalText;
+      });
     reactionsInfo.querySelectorAll('.reactions-info-label[data-haiilo-enhancer-hidden-total]')
       .forEach(label => {
         label.style.removeProperty('display');
         delete label.dataset.haiiloEnhancerHiddenTotal;
       });
+  }
+
+  function stripInlineReactionLabelEmojis(reactionsInfo, reactionEmojis) {
+    const label = reactionsInfo.querySelector('.reactions-info-label');
+    if (!label || label.dataset.haiiloEnhancerHiddenTotal) return;
+
+    const originalText = label.dataset.haiiloEnhancerOriginalText || label.textContent;
+    let visibleText = label.textContent.trimStart();
+    let removedEmoji = false;
+    while (reactionEmojis.some(emoji => visibleText.startsWith(emoji))) {
+      const emoji = reactionEmojis.find(value => visibleText.startsWith(value));
+      visibleText = visibleText.slice(emoji.length).trimStart();
+      removedEmoji = true;
+    }
+    if (removedEmoji) {
+      label.dataset.haiiloEnhancerOriginalText = originalText;
+      label.textContent = visibleText;
+    }
   }
 
   function injectInlineReactionCounts(reactionsInfo, displayedData, typeMap) {
@@ -1462,7 +1463,7 @@
 
     const summary = document.createElement('span');
     summary.className = 'haiilo-enhancer-inline-reaction-summary';
-    summary.setAttribute('aria-label', 'Reaction counts');
+    summary.setAttribute('aria-label', t('reactionCounts'));
 
     displayedData.forEach(reaction => {
       const group = document.createElement('span');
@@ -1473,7 +1474,7 @@
       const count = document.createElement('span');
       count.className = 'haiilo-enhancer-reaction-count';
       count.textContent = String(reaction.count);
-      count.setAttribute('aria-label', `${reaction.count} reactions`);
+      count.setAttribute('aria-label', t('reactionCount', reaction.count));
       group.append(emoji, count);
       summary.appendChild(group);
     });
@@ -1485,6 +1486,20 @@
     if (label && /^\d+$/.test(label.textContent.trim())) {
       label.style.display = 'none';
       label.dataset.haiiloEnhancerHiddenTotal = '1';
+    } else if (label) {
+      const reactionEmojis = displayedData
+        .map(reaction => typeMap?.[reaction.reactionType]?.unicode || reaction.reactionType)
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length);
+      stripInlineReactionLabelEmojis(reactionsInfo, reactionEmojis);
+      reactionsInfo.__haiiloEnhancerInlineLabelObserver = new MutationObserver(() => {
+        stripInlineReactionLabelEmojis(reactionsInfo, reactionEmojis);
+      });
+      reactionsInfo.__haiiloEnhancerInlineLabelObserver.observe(reactionsInfo, {
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
     }
     flex.insertBefore(summary, label || null);
   }
@@ -1605,8 +1620,11 @@
 
   // ── End Reaction enhancements ──────────────────────────────────────────────
 
-  // Initialize
-  init();
+  // Initialize after loading the user-selected catalog.
+  HaiiloI18n.initializeI18n().then(() => init()).catch(error => {
+    console.error('Failed to initialize localization:', error);
+    init();
+  });
 
   let messageListenerRegistered = false;
 
@@ -1697,7 +1715,7 @@
 
             if (message.action === 'settingsUpdated') {
               const wasEnabled = extensionEnabled;
-              loadSettings().then(reactionSettingsChanged => {
+              loadSettings().then(() => {
                 if (wasEnabled !== extensionEnabled) {
                   debugLog('Extension enabled state changed from', wasEnabled, 'to', extensionEnabled, '- reloading page');
                   window.location.reload();
@@ -1715,11 +1733,17 @@
                 if (!autoExpandMountObserver) {
                   setupAutoExpandMountObserver();
                 }
-                if (reactionSettingsChanged) {
-                  reapplyReactionEnhancements();
-                }
+                reapplyReactionEnhancements();
                 sendResponse({ success: true });
               });
+              return true;
+            }
+
+            if (message.action === 'languageChanged') {
+              if (isExtensionContextValid()) {
+                window.location.reload();
+              }
+              sendResponse({ success: true });
               return true;
             }
           } catch (e) {
@@ -1776,9 +1800,6 @@
   }
 
   async function loadSettings() {
-    const previousReactionSettings = reactionSettingsInitialized
-      ? [sortReactionsByCount, showReactionCountTooltip, showReactionCountInline]
-      : null;
     try {
       if (isExtensionContextValid()) {
         try {
@@ -1884,11 +1905,6 @@
       showReactionCountTooltip = true;
       showReactionCountInline = false;
     }
-    const currentReactionSettings = [sortReactionsByCount, showReactionCountTooltip, showReactionCountInline];
-    const reactionSettingsChanged = !previousReactionSettings ||
-      previousReactionSettings.some((value, index) => value !== currentReactionSettings[index]);
-    reactionSettingsInitialized = true;
-    return reactionSettingsChanged;
   }
 
   async function loadMutedUsers() {
@@ -1921,6 +1937,9 @@
     }
 
     let filterPending = false;
+    let filterBurstStartedAt = 0;
+    const filterDelayMs = 50;
+    const filterMaxDelayMs = 500;
     observer = new MutationObserver((mutations) => {
       if (isTyping) return;
 
@@ -1934,11 +1953,16 @@
       }
 
       if (shouldFilter) {
-        // Reduce debounce delay for faster response
-        if (filterPending) return;
-        filterPending = true;
+        const now = Date.now();
+        if (!filterPending) {
+          filterPending = true;
+          filterBurstStartedAt = now;
+        }
+        const remainingMaxDelay = Math.max(0, filterMaxDelayMs - (now - filterBurstStartedAt));
+        clearTimeout(window.hushFilterTimeout);
         window.hushFilterTimeout = setTimeout(() => {
           filterPending = false;
+          filterBurstStartedAt = 0;
           // Wrap in context check to prevent errors when extension context is invalid
           if (isExtensionContextValid()) {
             debugLog('Mutation detected, re-filtering content');
@@ -1949,7 +1973,7 @@
           } else {
             debugLog('Extension context invalidated, skipping mutation handling');
           }
-        }, 50); // Reduced from 100ms to 50ms
+        }, Math.min(filterDelayMs, remainingMaxDelay));
       }
     });
 
@@ -2432,45 +2456,9 @@
     return `${hours.toString().padStart(2, '0')}:${minutes}`;
   }
 
-  const DATE_TIME_PRESETS = {
-    northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h' },
-    westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
-    westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
-    centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h' },
-    dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h' },
-    iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h' },
-    eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h' },
-    eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h' },
-    hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h' },
-    finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h' },
-    spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h' },
-    dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h' },
-    spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h' },
-    korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h' },
-    southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
-    southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
-    latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
-    latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
-    middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' },
-    southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h' },
-    southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' }
-  };
-
-  function normalizeDateFormatValue(value) {
-    const aliasMap = {
-      MMDD: 'northAmerican12h',
-      DDMM: 'westernEuropean24h',
-      'DD.MM': 'centralEuropean24h',
-      'DD-MM': 'dutch24h',
-      westernEuropean12h: 'westernEuropean24h',
-      eastAsian12h: 'eastAsian24h',
-      southAsian24h: 'southAsian12h',
-      latinAmerican12h: 'latinAmerican24h',
-      southeastAsian12h: 'southeastAsian24h'
-    };
-    if (DATE_TIME_PRESETS[value]) return value;
-    return aliasMap[value] || 'northAmerican12h';
-  }
+  // Shared date/time presets and normalization (single source of truth in shared.js)
+  const DATE_TIME_PRESETS = HaiiloShared.DATE_TIME_PRESETS;
+  const normalizeDateFormatValue = HaiiloShared.normalizeDateFormatValue;
 
   function getDateFormatPattern() {
     const preset = DATE_TIME_PRESETS[normalizeDateFormatValue(dateFormat)] || DATE_TIME_PRESETS.northAmerican12h;
@@ -2777,10 +2765,10 @@
   function openGoogleCalendar(details, dateRange) {
     const startStr = dateRange.allDay ? formatGoogleAllDay(dateRange.start) : formatGoogleDate(dateRange.start);
     const endStr   = dateRange.allDay ? formatGoogleAllDay(dateRange.end)   : formatGoogleDate(dateRange.end);
-    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
+    const body = [details.description, details.host ? t('host', details.host) : ''].filter(Boolean).join('\n\n');
     const params = new URLSearchParams({
       action: 'TEMPLATE',
-      text: details.title || 'Event',
+      text: details.title || t('event'),
       dates: `${startStr}/${endStr}`,
       details: body,
       location: details.location || '',
@@ -2802,13 +2790,13 @@
   function openOutlookCalendar(details, dateRange) {
     const startStr = dateRange.allDay ? formatOutlookAllDay(dateRange.start) : formatOutlookDateLocal(dateRange.start);
     const endStr   = dateRange.allDay ? formatOutlookAllDay(dateRange.end)   : formatOutlookDateLocal(dateRange.end);
-    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
+    const body = [details.description, details.host ? t('host', details.host) : ''].filter(Boolean).join('\n\n');
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
       startdt: startStr,
       enddt: endStr,
-      subject: details.title || 'Event',
+      subject: details.title || t('event'),
       body,
       location: details.location || ''
     });
@@ -2823,10 +2811,10 @@
       `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}`;
     const startStr = dateRange.allDay ? formatYahooAllDay(dateRange.start) : formatYahoo(dateRange.start);
     const endStr   = dateRange.allDay ? formatYahooAllDay(dateRange.end)   : formatYahoo(dateRange.end);
-    const body = [details.description, details.host ? `Host: ${details.host}` : ''].filter(Boolean).join('\n\n');
+    const body = [details.description, details.host ? t('host', details.host) : ''].filter(Boolean).join('\n\n');
     const params = new URLSearchParams({
       v: '60',
-      title: details.title || 'Event',
+      title: details.title || t('event'),
       st: startStr,
       et: endStr,
       desc: body,
@@ -2841,7 +2829,7 @@
 
     const hint = document.createElement('div');
     hint.id = 'haiiloEnhancerCalendarHint';
-    hint.textContent = 'ICS file downloaded. Open it from your browser downloads to import it.';
+    hint.textContent = t('icsDownloaded');
     hint.style.marginTop = '8px';
     hint.style.fontSize = '12px';
     hint.style.color = '#555';
@@ -2930,7 +2918,7 @@
     calIcon.style.marginRight = '8px';
     calIcon.style.flexShrink = '0';
     trigger.appendChild(calIcon);
-    trigger.appendChild(document.createTextNode('Add to calendar'));
+    trigger.appendChild(document.createTextNode(t('addToCalendar')));
 
     trigger.addEventListener('mouseenter', () => { trigger.style.background = 'rgba(0,0,0,0.04)'; });
     trigger.addEventListener('mouseleave', () => { trigger.style.background = 'transparent'; });
@@ -2973,7 +2961,7 @@
       return li;
     };
 
-    menu.appendChild(makeMenuAction('Google Calendar', () => {
+    menu.appendChild(makeMenuAction(t('googleCalendar'), () => {
       const details = getEventDetailsFromDOM();
       const dateRange = buildCalendarDate(details);
       if (!dateRange) return;
@@ -2982,7 +2970,7 @@
       trigger.setAttribute('aria-expanded', 'false');
     }));
 
-    menu.appendChild(makeMenuAction('Outlook.com', () => {
+    menu.appendChild(makeMenuAction(t('outlookCalendar'), () => {
       const details = getEventDetailsFromDOM();
       const dateRange = buildCalendarDate(details);
       if (!dateRange) return;
@@ -2991,7 +2979,7 @@
       trigger.setAttribute('aria-expanded', 'false');
     }));
 
-    menu.appendChild(makeMenuAction('Yahoo Calendar', () => {
+    menu.appendChild(makeMenuAction(t('yahooCalendar'), () => {
       const details = getEventDetailsFromDOM();
       const dateRange = buildCalendarDate(details);
       if (!dateRange) return;
@@ -3000,7 +2988,7 @@
       trigger.setAttribute('aria-expanded', 'false');
     }));
 
-    menu.appendChild(makeMenuAction('Download ICS file', () => {
+    menu.appendChild(makeMenuAction(t('downloadIcs'), () => {
       // Click Haiilo's native CAT-BUTTON for Download event.
       const dlBtn = findDownloadEventCatButton();
       if (dlBtn) dlBtn.click();
@@ -3035,21 +3023,14 @@
       calendarActionObserver.disconnect();
     }
 
-    let pending = false;
     calendarActionObserver = new MutationObserver(() => {
-      if (pending) return;
-      pending = true;
-      setTimeout(() => {
-        pending = false;
-        injectAddToCalendarAction();
-      }, 100);
+      injectAddToCalendarAction();
     });
 
     calendarActionObserver.observe(document.body, {
       childList: true,
       subtree: true
     });
-    debugLog('[Calendar] Observer installed');
   }
 
   injectAddToCalendarAction();

@@ -15,7 +15,9 @@ const JS_FILES = [
   'background.js',
   'content.js',
   'popup.js',
-  'options.js'
+  'options.js',
+  'i18n.js',
+  'shared.js'
 ];
 
 const FORBIDDEN = ['log', 'warn', 'info', 'debug'];

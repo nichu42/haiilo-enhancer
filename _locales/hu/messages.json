@@ -1,0 +1,695 @@
+{
+  "extensionName": {
+    "message": "Haiilo Enhancer"
+  },
+  "extensionDescription": {
+    "message": "Tedd jobbá a Haiilo használatát – némíts el felhasználókat, szabj személyre a hírfolyamot és még sok mást"
+  },
+  "actionTitle": {
+    "message": "Haiilo Enhancer"
+  },
+  "optionsTitle": {
+    "message": "Haiilo Enhancer – Beállítások"
+  },
+  "northAmericanDate": {
+    "message": "MM/DD/YYYY (észak-amerikai)"
+  },
+  "westernEuropeanDate": {
+    "message": "DD/MM/YYYY (nyugat-európai)"
+  },
+  "centralEuropeanDate": {
+    "message": "DD.MM.YYYY (közép-európai)"
+  },
+  "dutchDate": {
+    "message": "DD-MM-YYYY (holland)"
+  },
+  "isoDate": {
+    "message": "YYYY-MM-DD (ISO 8601)"
+  },
+  "eastAsianDate": {
+    "message": "YYYY/MM/DD (kelet-ázsiai)"
+  },
+  "hungarianDate": {
+    "message": "YYYY. MM. DD. (magyar)"
+  },
+  "finnishDate": {
+    "message": "D.M.YYYY (finn)"
+  },
+  "spacedCentralDate": {
+    "message": "D. M. YYYY (közép-európai)"
+  },
+  "dottedSlavicDate": {
+    "message": "D.M.YYYY. (közép-európai)"
+  },
+  "spacedSlavicDate": {
+    "message": "D. M. YYYY. (közép-európai)"
+  },
+  "koreanDate": {
+    "message": "YYYY. M. D. (koreai)"
+  },
+  "latinAmericanDate": {
+    "message": "DD/MM/YYYY (latin-amerikai)"
+  },
+  "middleEasternDate": {
+    "message": "DD/MM/YYYY (közel-keleti)"
+  },
+  "southeastAsianDate": {
+    "message": "DD/MM/YYYY (délkelet-ázsiai)"
+  },
+  "southAsianDate": {
+    "message": "DD/MM/YYYY (dél-ázsiai)"
+  },
+  "muteUserPermanently": {
+    "message": "A felhasználó végleges némítása"
+  },
+  "muteDefaultPeriod": {
+    "message": "Némítás az alapértelmezett időtartamra"
+  },
+  "muteForDays": {
+    "message": "Némítás $COUNT$ napra",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "setDefaultHomepage": {
+    "message": "Beállítás alapértelmezett kezdőlapként"
+  },
+  "settings": {
+    "message": "Beállítások"
+  },
+  "toggleExtension": {
+    "message": "Kiegészítő be- vagy kikapcsolása"
+  },
+  "openExtensionSettings": {
+    "message": "Kiegészítő beállításainak megnyitása"
+  },
+  "itemsHiddenOnPage": {
+    "message": "Az oldalon elrejtett elemek száma: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "itemsHiddenSummary": {
+    "message": "Az oldalon elrejtett elemek száma: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "openHiddenSection": {
+    "message": "Nyisd meg ezt a részt a rejtett tartalom megtekintéséhez."
+  },
+  "mutedUsers": {
+    "message": "Némított felhasználók"
+  },
+  "noMutedUsers": {
+    "message": "Még nincs némított felhasználó. Némításhoz kattints jobb gombbal egy felhasználónévre."
+  },
+  "addUserManually": {
+    "message": "Felhasználó manuális hozzáadása"
+  },
+  "enterUsername": {
+    "message": "Felhasználónév megadása"
+  },
+  "permanently": {
+    "message": "Véglegesen"
+  },
+  "oneDay": {
+    "message": "1 nap"
+  },
+  "threeDays": {
+    "message": "3 nap"
+  },
+  "sevenDays": {
+    "message": "7 nap"
+  },
+  "fourteenDays": {
+    "message": "14 nap"
+  },
+  "thirtyDays": {
+    "message": "30 nap"
+  },
+  "ninetyDays": {
+    "message": "90 nap"
+  },
+  "mute": {
+    "message": "Némítás"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 nichu42 és közreműködői"
+  },
+  "warranty": {
+    "message": "Ez a program ABSZOLÚT GARANCIA NÉLKÜL kerül kiadásra. Lásd:"
+  },
+  "warrantyFull": {
+    "message": "Ez a program ABSZOLÚT GARANCIA NÉLKÜL kerül kiadásra. További részletekért lásd a GNU Affero General Public License licencet."
+  },
+  "licensePermission": {
+    "message": "Ez a program szabad szoftver: terjesztheted és/vagy módosíthatod a Free Software Foundation által kiadott GNU Affero General Public License feltételei szerint, a licenc 3. verziója vagy bármely későbbi verziója alapján."
+  },
+  "licenseWarrantyFull": {
+    "message": "Ez a program abban a reményben kerül terjesztésre, hogy hasznos lesz, de SEMMILYEN GARANCIA NINCS RÁ; még a FORGALOMKÉPESSÉGRE vagy EGY ADOTT CÉLRA VALÓ ALKALMASSÁGRA vonatkozó vélelmezett garancia sem. További részletekért lásd a GNU Affero General Public License licencet."
+  },
+  "independentDisclaimer": {
+    "message": "Ez egy független, nyílt forráskódú projekt, amely nem áll kapcsolatban a Haiilo GmbH-val, leányvállalataival vagy társvállalataival, nem élvezi azok támogatását, és hivatalosan semmilyen módon nem kötődik hozzájuk. A Haiilo név és a kapcsolódó védjegyek a megfelelő tulajdonosok bejegyzett védjegyei."
+  },
+  "license": {
+    "message": "GNU Affero General Public License"
+  },
+  "forMoreDetails": {
+    "message": "további részletekért."
+  },
+  "reportIssue": {
+    "message": "Hiba jelentése / funkció kérése"
+  },
+  "support": {
+    "message": "Támogatás"
+  },
+  "supportProject": {
+    "message": "Támogasd ezt a projektet:"
+  },
+  "liberapay": {
+    "message": "Liberapay"
+  },
+  "koFi": {
+    "message": "Ko-fi"
+  },
+  "donateLiberapay": {
+    "message": "Adományozás a Liberapaynél"
+  },
+  "donateKofi": {
+    "message": "Adományozás a Ko-fin"
+  },
+  "permanentlyMuted": {
+    "message": "Véglegesen némítva"
+  },
+  "expiresIn": {
+    "message": "Lejár: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "in 7 days"
+      }
+    }
+  },
+  "unmute": {
+    "message": "Némítás feloldása"
+  },
+  "expired": {
+    "message": "lejárt"
+  },
+  "inDays": {
+    "message": "$COUNT$ nap múlva",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "inHours": {
+    "message": "$COUNT$ óra múlva",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "soon": {
+    "message": "hamarosan"
+  },
+  "loadingHiddenDetails": {
+    "message": "Rejtett tartalom részleteinek betöltése…"
+  },
+  "openHaiiloToViewDetails": {
+    "message": "Nyiss meg egy Haiilo-oldalt a rejtett tartalom részleteinek megtekintéséhez."
+  },
+  "nothingHidden": {
+    "message": "Jelenleg semmi sincs elrejtve ezen az oldalon."
+  },
+  "showingHiddenItems": {
+    "message": "20 látható a $COUNT$ rejtett elemből.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "couldNotLoadHiddenDetails": {
+    "message": "A rejtett tartalom részletei nem tölthetők be."
+  },
+  "hiddenItem": {
+    "message": "rejtett elem"
+  },
+  "noPreviewAvailable": {
+    "message": "Nincs elérhető előnézet."
+  },
+  "matchedAuthors": {
+    "message": "Egyező szerzők: $AUTHORS$",
+    "placeholders": {
+      "authors": {
+        "content": "$1",
+        "example": "Alex · Sam"
+      }
+    }
+  },
+  "mutedUser": {
+    "message": "Némított felhasználó: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "general": {
+    "message": "Általános"
+  },
+  "interface": {
+    "message": "Felület"
+  },
+  "behavior": {
+    "message": "Viselkedés"
+  },
+  "domains": {
+    "message": "Tartományok"
+  },
+  "dataPrivacy": {
+    "message": "Adatok és adatvédelem"
+  },
+  "advanced": {
+    "message": "Speciális"
+  },
+  "about": {
+    "message": "Névjegy"
+  },
+  "optionsSections": {
+    "message": "Beállítási szakaszok"
+  },
+  "extensionStatus": {
+    "message": "A kiegészítő állapota"
+  },
+  "extensionStatusDescription": {
+    "message": "Ideiglenesen kikapcsolhatod a kiegészítő összes funkcióját (némítás, avatarstílus, messenger kibontása, dátumfelülírások) a kiegészítő eltávolítása nélkül."
+  },
+  "interfaceOptions": {
+    "message": "Felületi beállítások"
+  },
+  "keepMessengerExpanded": {
+    "message": "Messenger panel kibontva tartása"
+  },
+  "messengerPanelWidth": {
+    "message": "Messenger panel szélessége"
+  },
+  "savedApplied": {
+    "message": "Módosításkor mentve és alkalmazva."
+  },
+  "mutingOptions": {
+    "message": "Némítási beállítások"
+  },
+  "mutingDescription": {
+    "message": "Kattints jobb gombbal bármelyik Haiilo-felhasználónévre, majd válaszd a Haiilo Enhancer → Némítás … lehetőséget. A némított felhasználók bejegyzései és hozzászólásai minden oldalon rejtve maradnak a némítás lejártáig. A némítás feloldható a kiegészítő eszköztár-felugró ablakából, a helyi menüből, vagy a felhasználó újbóli hozzáadásával, amikor a „Véglegesen” ki van kapcsolva, majd a lejárat kivárásával."
+  },
+  "defaultMutePeriod": {
+    "message": "Alapértelmezett némítási időtartam (a „Némítás az alapértelmezett időtartamra” használja):"
+  },
+  "showHiddenCount": {
+    "message": "Rejtett tartalmak számának megjelenítése a kiegészítő ikon jelvényén"
+  },
+  "dateTimeFormat": {
+    "message": "Dátum- és időformátum"
+  },
+  "dateTimeDescription": {
+    "message": "A Haiilo alapértelmezett dátum- és időmegjelenítésének felülírása. Az új telepítések automatikusan igazodhatnak a böngésző nyelvéhez; meglévő telepítéseknél az alábbi gombbal újra alkalmazhatod a nyelvi előbeállítást."
+  },
+  "applyBrowserLocale": {
+    "message": "Böngésző nyelvi alapértelmezéseinek alkalmazása"
+  },
+  "dateFormat": {
+    "message": "Dátumformátum (dátumszabvány):"
+  },
+  "chooseLocalePreset": {
+    "message": "Válassz nyelvalapú előbeállítást. A módosítás az időformátumot is az előbeállítás alapértelmezésére állítja."
+  },
+  "timeFormat": {
+    "message": "Időformátum:"
+  },
+  "twelveHour": {
+    "message": "12 órás (DE/DU)"
+  },
+  "twentyFourHour": {
+    "message": "24 órás"
+  },
+  "chooseTimeFormat": {
+    "message": "Válassz a 12 órás (DE/DU) és a 24 órás időmegjelenítés között."
+  },
+  "channelAvatarCustomization": {
+    "message": "Csatorna-avatarok testreszabása"
+  },
+  "replaceGroupIcons": {
+    "message": "Az általános csoportos csevegésikonok helyett az egyes csatornák kezdőbetűinek használata"
+  },
+  "avatarDescription": {
+    "message": "Szabd testre, hogyan jelenjenek meg a csoportos csevegések avatarjai, hogy elkülönüljenek az egyéni felhasználóktól."
+  },
+  "preview": {
+    "message": "Előnézet"
+  },
+  "backgroundColor": {
+    "message": "Háttérszín"
+  },
+  "randomColorPerGroup": {
+    "message": "Véletlenszerű szín csoportonként"
+  },
+  "fixedColor": {
+    "message": "Rögzített szín:"
+  },
+  "avatarStyle": {
+    "message": "Avatar stílusa:"
+  },
+  "ringBorder": {
+    "message": "Körszegély"
+  },
+  "roundedSquare": {
+    "message": "Lekerekített négyzet"
+  },
+  "iconBadgeOverlay": {
+    "message": "Ikonjelvény-réteg"
+  },
+  "distinguishGroupChats": {
+    "message": "Válaszd ki, hogyan különböztesd meg vizuálisan a csoportos csevegéseket az egyéni felhasználóktól"
+  },
+  "ringCustomization": {
+    "message": "Körszegély testreszabása:"
+  },
+  "squareCustomization": {
+    "message": "Négyzetes szegély testreszabása:"
+  },
+  "widthPx": {
+    "message": "Szélesség (px)"
+  },
+  "reset": {
+    "message": "Visszaállítás"
+  },
+  "customizeRing": {
+    "message": "A körszegély színének és szélességének testreszabása"
+  },
+  "customizeSquare": {
+    "message": "A négyzetes szegély színének és szélességének testreszabása"
+  },
+  "badgeIconSize": {
+    "message": "Jelvényikon mérete:"
+  },
+  "adjustBadgeSize": {
+    "message": "Az ikonjelvény-réteg méretének beállítása (az alapméret százaléka)"
+  },
+  "badgePosition": {
+    "message": "Jelvény pozíciója:"
+  },
+  "lowerLeft": {
+    "message": "Bal alsó sarok"
+  },
+  "upperLeft": {
+    "message": "Bal felső sarok"
+  },
+  "chooseBadgePosition": {
+    "message": "Válaszd ki, hol jelenjen meg a jelvényikon az avataron"
+  },
+  "customHomepageSettings": {
+    "message": "Egyéni kezdőlap beállításai"
+  },
+  "customHomepageDescription": {
+    "message": "Állítsd be, hogy az egyes Haiilo-példányokban melyik kezdőlapra irányítson a logó. Kattints jobb gombbal egy kezdőlapfülre (például „Kezdőlap”, „Kezdőlap (soft)”), majd válaszd a „Beállítás alapértelmezett kezdőlapként” lehetőséget."
+  },
+  "reactions": {
+    "message": "Reakciók"
+  },
+  "reactionsDescription": {
+    "message": "Javítsd az emoji-reakciók megjelenítését a bejegyzéseken és hozzászólásokon."
+  },
+  "sortReactions": {
+    "message": "Reakció-emoji-k rendezése szám szerint (a leggyakoribb elöl)"
+  },
+  "reactionTooltip": {
+    "message": "Reakciók számának bontása rámutatáskor (pl. 👍22 💡2)"
+  },
+  "reactionInline": {
+    "message": "Reakciószámok megjelenítése az emojik mellett"
+  },
+  "autoExpandDescription": {
+    "message": "A Haiilo bal oldalsávja korlátozott számú munkaterületet és oldalt jelenít meg, a többit pedig a „Továbbiak megjelenítése” gomb mögé rejti. Engedélyezd ezt az automatikus kattintást az oldal betöltésekor, így minden bejegyzés azonnal látható lesz."
+  },
+  "autoExpand": {
+    "message": "Oldalsávlisták automatikus kibontása oldalbetöltéskor"
+  },
+  "whichLists": {
+    "message": "Mely listákat bontsa ki:"
+  },
+  "bothLists": {
+    "message": "Munkaterületek és oldalak"
+  },
+  "workspacesOnly": {
+    "message": "Csak a munkaterületek"
+  },
+  "pagesOnly": {
+    "message": "Csak az oldalak"
+  },
+  "chooseLists": {
+    "message": "Válaszd ki, mely oldalsávlistákra hasson az automatikus kibontás."
+  },
+  "showMoreClicks": {
+    "message": "„Továbbiak megjelenítése” kattintások listánként:"
+  },
+  "clicksHelp": {
+    "message": "Hányszor kattintson a „Továbbiak megjelenítése” gombra listánként (a munkaterületek és az oldalak egymástól függetlenül bővülnek). A 0 letiltja a kattintást az adott listánál. Legfeljebb 10."
+  },
+  "delayBetweenClicks": {
+    "message": "Kattintások közötti késleltetés (ms):"
+  },
+  "delayHelp": {
+    "message": "Mennyi ideig várjon a „Továbbiak megjelenítése” egymást követő kattintásai között. Az alacsonyabb értékek gyorsabbnak, a magasabbak kíméletesebbnek érződnek a szerverrel. Tartomány: 100–1000 ms."
+  },
+  "customDomains": {
+    "message": "Egyéni Haiilo-tartományok"
+  },
+  "customDomainsDescription": {
+    "message": "Ha a szervezeted egyéni Haiilo-URL-t használ (nem *.haiilo.app vagy *.haiilo.com), add hozzá itt. A böngésző első alkalommal hozzáférést kér — ez várható, és csak azt jelenti: „igen, ezen a webhelyen is fusson”."
+  },
+  "addCustomDomain": {
+    "message": "Egyéni tartomány hozzáadása:"
+  },
+  "addDomain": {
+    "message": "Tartomány hozzáadása"
+  },
+  "domainPlaceholder": {
+    "message": "example.com"
+  },
+  "domainHelp": {
+    "message": "Csak a tartomány nevét add meg (pl. intranet.company.com)"
+  },
+  "chromePermissionWarning": {
+    "message": "Megjegyzés: A Chrome korlátozása miatt a tartományengedélyek megadás után nem vonhatók vissza. A tartomány eltávolítása itt leállítja a kiegészítő használatát rajta, de az engedély a chrome://extensions oldalon látható marad, amíg újra nem telepíted a kiegészítőt."
+  },
+  "dataManagement": {
+    "message": "Adatkezelés"
+  },
+  "syncSettings": {
+    "message": "Beállítások és némított felhasználók szinkronizálása böngészőfiókon keresztül"
+  },
+  "syncHelp": {
+    "message": "Engedélyezéskor a beállításaid és legfeljebb 50 némított felhasználó a böngésző beépített szinkronizált tárhelyén tárolódik, és minden eszközödön elérhető. Az egyéni tartományok kimaradnak — minden eszközön manuálisan add hozzá őket. A felhőszinkronizálás automatikusan kikapcsol, ha a némított felhasználók száma meghaladja az 50-et."
+  },
+  "cloudSyncDisabled": {
+    "message": "⚠️ A felhőszinkronizálás automatikusan kikapcsolva"
+  },
+  "cloudSyncDisabledDescription": {
+    "message": "A némított felhasználók listája meghaladta a felhőszinkronizálás 50 felhasználós korlátját. Az adataid továbbra is helyben tárolódnak, semmi sem veszett el. A felhőszinkronizálás újbóli engedélyezéséhez csökkentsd a listát legfeljebb 50 felhasználóra."
+  },
+  "backupDescription": {
+    "message": "Exportáld a beállításaidat és a némított felhasználókat JSON-fájlba biztonsági mentésként, vagy importálj egy korábbi exportot a visszaállításhoz. Az alapértelmezések visszaállítása mindent töröl; ha esetleg vissza szeretnéd vonni, előbb exportálj."
+  },
+  "exportSettings": {
+    "message": "Összes beállítás exportálása"
+  },
+  "importSettings": {
+    "message": "Összes beállítás importálása"
+  },
+  "resetEverything": {
+    "message": "Minden visszaállítása az alapértelmezésekre"
+  },
+  "domainsNeedPermission": {
+    "message": "⚠️ Az egyéni tartományokhoz újra engedély kell"
+  },
+  "domainsNeedPermissionDescription": {
+    "message": "A következő tartományok szerepeltek a biztonsági mentésben, de nem sikerült automatikusan visszaállítani őket — a böngésző biztonsága miatt manuálisan kell hozzáférést adnod:"
+  },
+  "domainsNeedPermissionHowTo": {
+    "message": "Újbóli hozzáadásukhoz görgess le az Egyéni Haiilo-tartományokhoz, add meg mindegyik tartományt, majd kattints a Tartomány hozzáadása gombra a böngésző-hozzáférés engedélyezéséhez."
+  },
+  "advancedOptions": {
+    "message": "Speciális beállítások"
+  },
+  "debugLogging": {
+    "message": "Hibakeresési naplózás engedélyezése (hibaelhárításhoz)"
+  },
+  "footerTagline": {
+    "message": "A Haiilo-élmény, neked továbbfejlesztve"
+  },
+  "noCustomDomains": {
+    "message": "Nincs hozzáadott egyéni tartomány. Alapértelmezett: *.haiilo.app és *.haiilo.com"
+  },
+  "noCustomHomepages": {
+    "message": "Nincs beállított egyéni kezdőlap. Állíts be egyet a kezdőlapfül helyi menüjéből."
+  },
+  "remove": {
+    "message": "Eltávolítás"
+  },
+  "settingsSaved": {
+    "message": "Beállítások mentve"
+  },
+  "localeDefaultsApplied": {
+    "message": "A nyelvi alapértelmezések alkalmazva"
+  },
+  "couldNotApplyLocale": {
+    "message": "A nyelvi alapértelmezések nem alkalmazhatók"
+  },
+  "domainAdded": {
+    "message": "A tartomány sikeresen hozzáadva"
+  },
+  "domainRemoved": {
+    "message": "A tartomány sikeresen eltávolítva"
+  },
+  "domainAlreadyExists": {
+    "message": "A tartomány már létezik"
+  },
+  "validDomain": {
+    "message": "Adj meg érvényes tartománynevet"
+  },
+  "permissionDenied": {
+    "message": "Hozzáférés megtagadva. Engedélyezned kell a hozzáférést ehhez a tartományhoz."
+  },
+  "allSettingsExported": {
+    "message": "Minden beállítás sikeresen exportálva"
+  },
+  "invalidImport": {
+    "message": "Érvénytelen fájlformátum – a mutedUsers és/vagy settings mezőt tartalmaznia kell"
+  },
+  "failedImport": {
+    "message": "Az adatok importálása sikertelen: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid file"
+      }
+    }
+  },
+  "cloudSyncUnavailable": {
+    "message": "A felhőszinkronizálás nem érhető el. Győződj meg róla, hogy be vagy jelentkezve a böngészőfiókodba."
+  },
+  "importedData": {
+    "message": "Importálva: $DETAILS$",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "all settings"
+      }
+    }
+  },
+  "resetComplete": {
+    "message": "Minden beállítás visszaállítva az alapértelmezésekre"
+  },
+  "extensionNameVersion": {
+    "message": "Haiilo Enhancer v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.5.0"
+      }
+    }
+  },
+  "reactionsLabel": {
+    "message": "Reakciók: $TEXT$",
+    "placeholders": {
+      "text": {
+        "content": "$1",
+        "example": "👍 3"
+      }
+    }
+  },
+  "reactionCounts": {
+    "message": "Reakciók számai"
+  },
+  "reactionCount": {
+    "message": "$COUNT$ reakció",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "icsDownloaded": {
+    "message": "Az ICS-fájl letöltődött. Importálásához nyisd meg a böngésző letöltései között."
+  },
+  "addToCalendar": {
+    "message": "Hozzáadás a naptárhoz"
+  },
+  "event": {
+    "message": "Esemény"
+  },
+  "host": {
+    "message": "Szervező: $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "googleCalendar": {
+    "message": "Google Calendar"
+  },
+  "outlookCalendar": {
+    "message": "Outlook.com"
+  },
+  "yahooCalendar": {
+    "message": "Yahoo Calendar"
+  },
+  "downloadIcs": {
+    "message": "ICS-fájl letöltése"
+  },
+  "importMutedUsers": {"message":"$COUNT$ némított felhasználó","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importAllSettings": {"message":"minden beállítás"},
+  "importDomainsNeedReauth": {"message":"$COUNT$ egyéni domainhez kézi újbóli engedélyezés szükséges (lásd a fenti figyelmeztetést)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importCustomHomepages": {"message":"$COUNT$ egyéni kezdőlap","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "homepageHome": {"message":"Kezdőlap"},
+  "homepageHomeSoft": {"message":"Kezdőlap (soft)"},
+  "homepageSection": {"message":"Kezdőlap ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
+  "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "confirmReset": {"message":"Biztosan visszaállítasz mindent az alapértelmezett értékekre? Ez nem vonható vissza."},
+  "ringSettingsReset": {"message":"A gyűrű beállításai visszaállítva az alapértelmezettre"},
+  "squareSettingsReset": {"message":"A négyzet beállításai visszaállítva az alapértelmezettre"},
+  "badgeSettingsReset": {"message":"A jelvény beállításai visszaállítva az alapértelmezettre"},
+  "languageSettings": {"message":"Nyelv"},
+  "language": {"message":"A bővítmény nyelve:"},
+  "languageBrowser": {"message":"Böngésző alapértelmezése"},
+  "languageEnglish": {"message":"Angol"},
+  "languageGerman": {"message":"Német"},
+  "languageCzech": {"message":"Cseh"},
+  "languageSpanish": {"message":"Spanyol"},
+  "languageFrench": {"message":"Francia"},
+  "languageHungarian": {"message":"Magyar"},
+  "languageItalian": {"message":"Olasz"},
+  "languageDutch": {"message":"Holland"},
+  "languagePolish": {"message":"Lengyel"}
+}

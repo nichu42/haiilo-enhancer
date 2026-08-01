@@ -1,0 +1,695 @@
+{
+  "extensionName": {
+    "message": "Haiilo Enhancer"
+  },
+  "extensionDescription": {
+    "message": "Verbeter je Haiilo-ervaring: demp gebruikers, pas je feed aan en meer"
+  },
+  "actionTitle": {
+    "message": "Haiilo Enhancer"
+  },
+  "settings": {
+    "message": "Instellingen"
+  },
+  "toggleExtension": {
+    "message": "Extensie in- of uitschakelen"
+  },
+  "openExtensionSettings": {
+    "message": "Extensie-instellingen openen"
+  },
+  "itemsHiddenOnPage": {
+    "message": "$COUNT$ items verborgen op deze pagina",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "openHiddenSection": {
+    "message": "Open dit gedeelte om te zien wat er is verborgen."
+  },
+  "mutedUsers": {
+    "message": "Gedempte gebruikers"
+  },
+  "noMutedUsers": {
+    "message": "Nog geen gedempte gebruikers. Klik met de rechtermuisknop op een gebruikersnaam om deze te dempen."
+  },
+  "addUserManually": {
+    "message": "Gebruiker handmatig toevoegen"
+  },
+  "enterUsername": {
+    "message": "Gebruikersnaam invoeren"
+  },
+  "permanently": {
+    "message": "Permanent"
+  },
+  "oneDay": {
+    "message": "1 dag"
+  },
+  "threeDays": {
+    "message": "3 dagen"
+  },
+  "sevenDays": {
+    "message": "7 dagen"
+  },
+  "fourteenDays": {
+    "message": "14 dagen"
+  },
+  "thirtyDays": {
+    "message": "30 dagen"
+  },
+  "ninetyDays": {
+    "message": "90 dagen"
+  },
+  "mute": {
+    "message": "Dempen"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 nichu42 en bijdragers"
+  },
+  "warranty": {
+    "message": "Dit programma wordt geleverd ZONDER ENIGE GARANTIE. Zie de"
+  },
+  "license": {
+    "message": "GNU Affero General Public License"
+  },
+  "forMoreDetails": {
+    "message": "voor meer informatie."
+  },
+  "reportIssue": {
+    "message": "Een bug melden / een functie aanvragen"
+  },
+  "support": {
+    "message": "Ondersteuning"
+  },
+  "supportProject": {
+    "message": "Steun dit project:"
+  },
+  "liberapay": {
+    "message": "Liberapay"
+  },
+  "koFi": {
+    "message": "Ko-fi"
+  },
+  "permanentlyMuted": {
+    "message": "Permanent gedempt"
+  },
+  "expiresIn": {
+    "message": "Verloopt $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "in 7 days"
+      }
+    }
+  },
+  "unmute": {
+    "message": "Dempen opheffen"
+  },
+  "expired": {
+    "message": "verlopen"
+  },
+  "inDays": {
+    "message": "over $COUNT$ dag(en)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "inHours": {
+    "message": "over $COUNT$ uur",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "soon": {
+    "message": "binnenkort"
+  },
+  "loadingHiddenDetails": {
+    "message": "Details van verborgen inhoud laden..."
+  },
+  "openHaiiloToViewDetails": {
+    "message": "Open een Haiilo-pagina om details van verborgen inhoud te bekijken."
+  },
+  "nothingHidden": {
+    "message": "Er is momenteel niets verborgen op deze pagina."
+  },
+  "showingHiddenItems": {
+    "message": "Er worden 20 van de $COUNT$ verborgen items weergegeven.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "couldNotLoadHiddenDetails": {
+    "message": "Details van verborgen inhoud konden niet worden geladen."
+  },
+  "hiddenItem": {
+    "message": "verborgen item"
+  },
+  "noPreviewAvailable": {
+    "message": "Geen voorbeeld beschikbaar."
+  },
+  "matchedAuthors": {
+    "message": "Overeenkomst: $AUTHORS$",
+    "placeholders": {
+      "authors": {
+        "content": "$1",
+        "example": "Alex · Sam"
+      }
+    }
+  },
+  "mutedUser": {
+    "message": "Gedempte gebruiker: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "general": {
+    "message": "Algemeen"
+  },
+  "interface": {
+    "message": "Interface"
+  },
+  "behavior": {
+    "message": "Gedrag"
+  },
+  "domains": {
+    "message": "Domeinen"
+  },
+  "dataPrivacy": {
+    "message": "Gegevens en privacy"
+  },
+  "advanced": {
+    "message": "Geavanceerd"
+  },
+  "about": {
+    "message": "Over"
+  },
+  "optionsSections": {
+    "message": "Optiesecties"
+  },
+  "extensionStatus": {
+    "message": "Extensiestatus"
+  },
+  "extensionStatusDescription": {
+    "message": "Schakel alle extensiefuncties (dempen, avataropmaak, messengeruitbreiding en datumoverschrijvingen) tijdelijk uit zonder de extensie te verwijderen."
+  },
+  "interfaceOptions": {
+    "message": "Interface-opties"
+  },
+  "keepMessengerExpanded": {
+    "message": "Messengerpaneel open houden"
+  },
+  "messengerPanelWidth": {
+    "message": "Breedte van het messengerpaneel"
+  },
+  "savedApplied": {
+    "message": "Opgeslagen en toegepast bij wijziging."
+  },
+  "mutingOptions": {
+    "message": "Dempopties"
+  },
+  "mutingDescription": {
+    "message": "Klik met de rechtermuisknop op een gebruikersnaam in Haiilo en kies Haiilo Enhancer → Dempen voor …. Berichten en reacties van gedempte gebruikers worden op elke pagina verborgen totdat de demping verloopt. Hef het dempen op via de werkbalkpop-up van deze extensie, het contextmenu of door de gebruiker opnieuw toe te voegen met „Permanent” uitgeschakeld en de periode af te wachten."
+  },
+  "defaultMutePeriod": {
+    "message": "Standaard dempingsperiode (gebruikt door „Dempen voor de standaardperiode“):"
+  },
+  "showHiddenCount": {
+    "message": "Een badge met het aantal verborgen items op het extensiepictogram tonen"
+  },
+  "dateTimeFormat": {
+    "message": "Datum- en tijdnotatie"
+  },
+  "dateTimeDescription": {
+    "message": "Overschrijf de standaardweergave van datum en tijd van Haiilo. Nieuwe installaties kunnen automatisch de browsertaal gebruiken; bestaande installaties kunnen de taalinstelling opnieuw toepassen met de knop hieronder."
+  },
+  "applyBrowserLocale": {
+    "message": "Browsernotatie toepassen"
+  },
+  "dateFormat": {
+    "message": "Datumnotatie (datumstandaard):"
+  },
+  "chooseLocalePreset": {
+    "message": "Kies een taalgebaseerde voorinstelling. Hiermee wordt ook de tijdnotatie teruggezet naar de standaard van die voorinstelling."
+  },
+  "timeFormat": {
+    "message": "Tijdnotatie:"
+  },
+  "twelveHour": {
+    "message": "12 uur (AM/PM)"
+  },
+  "twentyFourHour": {
+    "message": "24 uur"
+  },
+  "chooseTimeFormat": {
+    "message": "Kies tussen een tijdweergave van 12 uur (AM/PM) en 24 uur."
+  },
+  "channelAvatarCustomization": {
+    "message": "Kanaalavatars aanpassen"
+  },
+  "replaceGroupIcons": {
+    "message": "Algemene groepschatpictogrammen vervangen door de initialen van afzonderlijke kanalen"
+  },
+  "avatarDescription": {
+    "message": "Pas aan hoe groepschatavatars worden weergegeven, zodat ze zich onderscheiden van individuele gebruikers."
+  },
+  "preview": {
+    "message": "Voorbeeld"
+  },
+  "backgroundColor": {
+    "message": "Achtergrondkleur"
+  },
+  "randomColorPerGroup": {
+    "message": "Willekeurige kleur per groep"
+  },
+  "fixedColor": {
+    "message": "Vaste kleur:"
+  },
+  "avatarStyle": {
+    "message": "Avatarstijl:"
+  },
+  "ringBorder": {
+    "message": "Ringrand"
+  },
+  "roundedSquare": {
+    "message": "Afgerond vierkant"
+  },
+  "iconBadgeOverlay": {
+    "message": "Pictogrambadge"
+  },
+  "distinguishGroupChats": {
+    "message": "Kies hoe groepschats visueel van individuele gebruikers worden onderscheiden"
+  },
+  "ringCustomization": {
+    "message": "Aanpassing van de ringrand:"
+  },
+  "squareCustomization": {
+    "message": "Aanpassing van de vierkante rand:"
+  },
+  "widthPx": {
+    "message": "Breedte (px)"
+  },
+  "reset": {
+    "message": "Herstellen"
+  },
+  "customizeRing": {
+    "message": "De kleur en breedte van de ringrand aanpassen"
+  },
+  "customizeSquare": {
+    "message": "De kleur en breedte van de vierkante rand aanpassen"
+  },
+  "badgeIconSize": {
+    "message": "Grootte van badgepictogram:"
+  },
+  "adjustBadgeSize": {
+    "message": "Pas de grootte van de badgepictogram-overlay aan (percentage van de basisgrootte)"
+  },
+  "badgePosition": {
+    "message": "Positie van badge:"
+  },
+  "lowerLeft": {
+    "message": "Linkeronderhoek"
+  },
+  "upperLeft": {
+    "message": "Linkerbovenhoek"
+  },
+  "chooseBadgePosition": {
+    "message": "Kies waar het badgepictogram op de avatar verschijnt"
+  },
+  "customHomepageSettings": {
+    "message": "Instellingen voor aangepaste startpagina’s"
+  },
+  "customHomepageDescription": {
+    "message": "Stel in naar welke startpagina het logo voor elke Haiilo-instantie verwijst. Klik met de rechtermuisknop op een startpaginatab (bijv. „Home” of „Home (soft)”) en kies „Instellen als standaardstartpagina” om deze te configureren."
+  },
+  "reactions": {
+    "message": "Reacties"
+  },
+  "reactionsDescription": {
+    "message": "Verbeter hoe emoji-reacties op berichten en reacties worden weergegeven."
+  },
+  "sortReactions": {
+    "message": "Reactie-emoji’s sorteren op aantal (meest gebruikte eerst)"
+  },
+  "reactionTooltip": {
+    "message": "Uitsplitsing van het aantal reacties bij aanwijzen tonen (bijv. 👍22 💡2)"
+  },
+  "reactionInline": {
+    "message": "Reactieaantallen naast de emoji’s tonen"
+  },
+  "autoExpandDescription": {
+    "message": "De linkerzijbalk van Haiilo toont een beperkt aantal werkruimten en pagina’s voordat de rest achter een knop „Meer weergeven” wordt verborgen. Schakel dit in om bij het laden van de pagina automatisch op die knop te klikken, zodat alle items meteen zichtbaar zijn."
+  },
+  "autoExpand": {
+    "message": "Zijlijsten automatisch uitvouwen"
+  },
+  "whichLists": {
+    "message": "Welke lijsten uitbreiden:"
+  },
+  "bothLists": {
+    "message": "Zowel werkruimten als pagina’s"
+  },
+  "workspacesOnly": {
+    "message": "Alleen werkruimten"
+  },
+  "pagesOnly": {
+    "message": "Alleen pagina’s"
+  },
+  "chooseLists": {
+    "message": "Kies op welke zijbalklijsten de automatische uitbreiding van toepassing is."
+  },
+  "showMoreClicks": {
+    "message": "Aantal klikken op „Meer weergeven” per lijst:"
+  },
+  "clicksHelp": {
+    "message": "Hoe vaak per lijst op „Meer weergeven” moet worden geklikt (werkruimten en pagina’s worden afzonderlijk uitgebreid). 0 schakelt klikken voor die lijst uit. Max. 10."
+  },
+  "delayBetweenClicks": {
+    "message": "Vertraging tussen klikken (ms):"
+  },
+  "delayHelp": {
+    "message": "Hoe lang te wachten tussen opeenvolgende klikken op „Meer weergeven”. Lagere waarden voelen sneller aan, hogere waarden zijn vriendelijker voor de server. Bereik: 100-1000 ms."
+  },
+  "customDomains": {
+    "message": "Aangepaste Haiilo-domeinen"
+  },
+  "customDomainsDescription": {
+    "message": "Als je organisatie een aangepaste Haiilo-URL gebruikt (niet *.haiilo.app of *.haiilo.com), voeg je die hier toe. De browser vraagt de eerste keer om toegang; dat is normaal en betekent gewoon „ja, voer dit ook op deze site uit”."
+  },
+  "addCustomDomain": {
+    "message": "Aangepast domein toevoegen:"
+  },
+  "addDomain": {
+    "message": "Domein toevoegen"
+  },
+  "domainPlaceholder": {
+    "message": "example.com"
+  },
+  "domainHelp": {
+    "message": "Voer alleen de domeinnaam in (bijv. intranet.company.com)"
+  },
+  "chromePermissionWarning": {
+    "message": "Let op: door een beperking van Chrome kunnen domeinrechten na toekenning niet worden ingetrokken. Een domein hier verwijderen voorkomt dat de extensie het gebruikt, maar de toestemming blijft zichtbaar in chrome://extensions totdat je de extensie opnieuw installeert."
+  },
+  "dataManagement": {
+    "message": "Gegevensbeheer"
+  },
+  "syncSettings": {
+    "message": "Instellingen en gedempte gebruikers synchroniseren via browseraccount"
+  },
+  "syncHelp": {
+    "message": "Wanneer ingeschakeld worden je instellingen en maximaal 50 gedempte gebruikers opgeslagen in de ingebouwde synchronisatieopslag van de browser en op apparaten gesynchroniseerd. Aangepaste domeinen zijn uitgesloten: voeg die op elk apparaat handmatig opnieuw toe. Cloudsynchronisatie wordt automatisch uitgeschakeld als je lijst meer dan 50 gebruikers bevat."
+  },
+  "cloudSyncDisabled": {
+    "message": "⚠️ Cloudsynchronisatie is automatisch uitgeschakeld"
+  },
+  "cloudSyncDisabledDescription": {
+    "message": "Je lijst met gedempte gebruikers overschrijdt de limiet van 50 gebruikers voor cloudsynchronisatie. Je gegevens worden nog steeds lokaal opgeslagen en er is niets verloren gegaan. Verlaag je lijst naar maximaal 50 gebruikers om cloudsynchronisatie opnieuw in te schakelen."
+  },
+  "backupDescription": {
+    "message": "Exporteer je instellingen en gedempte gebruikers naar een JSON-bestand als back-up, of importeer een eerdere export om ze te herstellen. „Alles terugzetten naar standaardwaarden” wist alles; exporteer eerst als je dit mogelijk ongedaan wilt maken."
+  },
+  "exportSettings": {
+    "message": "Alle instellingen exporteren"
+  },
+  "importSettings": {
+    "message": "Alle instellingen importeren"
+  },
+  "resetEverything": {
+    "message": "Alles terugzetten naar standaard"
+  },
+  "domainsNeedPermission": {
+    "message": "⚠️ Voor aangepaste domeinen moet opnieuw toestemming worden verleend"
+  },
+  "domainsNeedPermissionDescription": {
+    "message": "De volgende domeinen stonden in je back-up, maar konden niet automatisch worden hersteld. Om veiligheidsredenen van de browser moet je handmatig toegang verlenen:"
+  },
+  "domainsNeedPermissionHowTo": {
+    "message": "Opnieuw toevoegen: scrol naar Aangepaste Haiilo-domeinen, voer elk domein in en klik op Domein toevoegen om browsertoegang te verlenen."
+  },
+  "advancedOptions": {
+    "message": "Geavanceerde opties"
+  },
+  "debugLogging": {
+    "message": "Debuglogboek inschakelen"
+  },
+  "footerTagline": {
+    "message": "De Haiilo-ervaring, voor jou verbeterd"
+  },
+  "noCustomDomains": {
+    "message": "Geen aangepaste domeinen toegevoegd. Standaard: *.haiilo.app en *.haiilo.com"
+  },
+  "noCustomHomepages": {
+    "message": "Geen aangepaste startpagina’s ingesteld. Gebruik het contextmenu op een startpaginatab om er een in te stellen."
+  },
+  "remove": {
+    "message": "Verwijderen"
+  },
+  "settingsSaved": {
+    "message": "Instellingen opgeslagen"
+  },
+  "localeDefaultsApplied": {
+    "message": "Lokale standaardwaarden toegepast"
+  },
+  "couldNotApplyLocale": {
+    "message": "Taalinstellingen konden niet worden toegepast"
+  },
+  "domainAdded": {
+    "message": "Domein toegevoegd"
+  },
+  "domainRemoved": {
+    "message": "Domein verwijderd"
+  },
+  "domainAlreadyExists": {
+    "message": "Domein bestaat al"
+  },
+  "validDomain": {
+    "message": "Voer een geldige domeinnaam in"
+  },
+  "permissionDenied": {
+    "message": "Toegang geweigerd. Geef toegang tot dit domein."
+  },
+  "allSettingsExported": {
+    "message": "Alle instellingen zijn succesvol geëxporteerd"
+  },
+  "invalidImport": {
+    "message": "Ongeldige bestandsindeling: moet mutedUsers en/of settings bevatten"
+  },
+  "failedImport": {
+    "message": "Gegevens importeren mislukt: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid file"
+      }
+    }
+  },
+  "extensionNameVersion": {
+    "message": "Haiilo Enhancer v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.5.0"
+      }
+    }
+  },
+  "reactionsLabel": {
+    "message": "Reacties: $TEXT$",
+    "placeholders": {
+      "text": {
+        "content": "$1",
+        "example": "👍 3"
+      }
+    }
+  },
+  "reactionCounts": {
+    "message": "Reactieaantallen"
+  },
+  "reactionCount": {
+    "message": "$COUNT$ reacties",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "icsDownloaded": {
+    "message": "ICS-bestand gedownload. Open het vanuit je browserdownloads om het te importeren."
+  },
+  "addToCalendar": {
+    "message": "Aan agenda toevoegen"
+  },
+  "event": {
+    "message": "Evenement"
+  },
+  "host": {
+    "message": "Organisator: $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "muteUserPermanently": {
+    "message": "Deze gebruiker permanent dempen"
+  },
+  "muteDefaultPeriod": {
+    "message": "Dempen voor de standaardperiode"
+  },
+  "muteForDays": {
+    "message": "Dempen gedurende $COUNT$ dag(en)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "setDefaultHomepage": {
+    "message": "Instellen als standaardstartpagina"
+  },
+  "googleCalendar": {
+    "message": "Google Calendar"
+  },
+  "outlookCalendar": {
+    "message": "Outlook.com"
+  },
+  "yahooCalendar": {
+    "message": "Yahoo Calendar"
+  },
+  "downloadIcs": {
+    "message": "ICS-bestand downloaden"
+  },
+  "optionsTitle": {
+    "message": "Haiilo Enhancer - Opties"
+  },
+  "itemsHiddenSummary": {
+    "message": "$COUNT$ items verborgen op deze pagina",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "warrantyFull": {
+    "message": "Dit programma wordt geleverd ZONDER ENIGE GARANTIE. Zie de GNU Affero General Public License voor meer informatie."
+  },
+  "northAmericanDate": {
+    "message": "MM/DD/YYYY (Noord-Amerikaans)"
+  },
+  "westernEuropeanDate": {
+    "message": "DD/MM/YYYY (West-Europees)"
+  },
+  "centralEuropeanDate": {
+    "message": "DD.MM.YYYY (Centraal-Europees)"
+  },
+  "dutchDate": {
+    "message": "DD-MM-YYYY (Nederlands)"
+  },
+  "isoDate": {
+    "message": "YYYY-MM-DD (ISO 8601)"
+  },
+  "eastAsianDate": {
+    "message": "YYYY/MM/DD (Oost-Aziatisch)"
+  },
+  "hungarianDate": {
+    "message": "YYYY. MM. DD. (Hongaars)"
+  },
+  "finnishDate": {
+    "message": "D.M.YYYY (Fins)"
+  },
+  "spacedCentralDate": {
+    "message": "D. M. YYYY (Centraal-Europees)"
+  },
+  "dottedSlavicDate": {
+    "message": "D.M.YYYY. (Centraal-Europees)"
+  },
+  "spacedSlavicDate": {
+    "message": "D. M. YYYY. (Centraal-Europees)"
+  },
+  "koreanDate": {
+    "message": "YYYY. M. D. (Koreaans)"
+  },
+  "latinAmericanDate": {
+    "message": "DD/MM/YYYY (Latijns-Amerikaans)"
+  },
+  "middleEasternDate": {
+    "message": "DD/MM/YYYY (Midden-Oosters)"
+  },
+  "southeastAsianDate": {
+    "message": "DD/MM/YYYY (Zuidoost-Aziatisch)"
+  },
+  "southAsianDate": {
+    "message": "DD/MM/YYYY (Zuid-Aziatisch)"
+  },
+  "licensePermission": {
+    "message": "Dit programma is vrije software: je mag het verspreiden en/of wijzigen onder de voorwaarden van de GNU Affero General Public License, zoals gepubliceerd door de Free Software Foundation, versie 3 van de licentie of (naar keuze) een latere versie."
+  },
+  "licenseWarrantyFull": {
+    "message": "Dit programma wordt verspreid in de hoop dat het nuttig is, maar ZONDER ENIGE GARANTIE; ook zonder de impliciete garantie van VERKOOPBAARHEID of GESCHIKTHEID VOOR EEN BEPAALD DOEL. Zie de GNU Affero General Public License voor meer informatie."
+  },
+  "independentDisclaimer": {
+    "message": "Dit is een onafhankelijk open-sourceproject dat niet is gelieerd aan, goedgekeurd door of op enige wijze officieel verbonden is met Haiilo GmbH of een van haar dochterondernemingen of gelieerde bedrijven. De naam Haiilo en verwante aanduidingen zijn geregistreerde handelsmerken van hun respectieve eigenaars."
+  },
+  "cloudSyncUnavailable": {
+    "message": "Cloudsynchronisatie is niet beschikbaar. Zorg dat je bent ingelogd bij je browseraccount."
+  },
+  "importedData": {
+    "message": "Geïmporteerd: $DETAILS$",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "all settings"
+      }
+    }
+  },
+  "resetComplete": {
+    "message": "Alle instellingen zijn teruggezet naar de standaardwaarden"
+  },
+  "donateLiberapay": {
+    "message": "Doneren via Liberapay"
+  },
+  "donateKofi": {
+    "message": "Doneren via Ko-fi"
+  },
+  "importMutedUsers": {"message":"$COUNT$ gedempte gebruikers","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importAllSettings": {"message":"alle instellingen"},
+  "importDomainsNeedReauth": {"message":"$COUNT$ aangepaste domein(en) moeten handmatig opnieuw worden geautoriseerd (zie waarschuwing hierboven)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importCustomHomepages": {"message":"$COUNT$ aangepaste startpagina(’s)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "homepageHome": {"message":"Startpagina"},
+  "homepageHomeSoft": {"message":"Startpagina (soft)"},
+  "homepageSection": {"message":"Startpagina ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
+  "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "confirmReset": {"message":"Weet je zeker dat je alles wilt terugzetten naar de standaardwaarden? Dit kan niet ongedaan worden gemaakt."},
+  "ringSettingsReset": {"message":"Ringinstellingen teruggezet naar de standaardwaarden"},
+  "squareSettingsReset": {"message":"Instellingen van de vierkante rand teruggezet naar de standaardwaarden"},
+  "badgeSettingsReset": {"message":"Badge-instellingen teruggezet naar de standaardwaarden"},
+  "languageSettings": {"message":"Taal"},
+  "language": {"message":"Taal van de extensie:"},
+  "languageBrowser": {"message":"Standaardtaal van browser"},
+  "languageEnglish": {"message":"Engels"},
+  "languageGerman": {"message":"Duits"},
+  "languageCzech": {"message":"Tsjechisch"},
+  "languageSpanish": {"message":"Spaans"},
+  "languageFrench": {"message":"Frans"},
+  "languageHungarian": {"message":"Hongaars"},
+  "languageItalian": {"message":"Italiaans"},
+  "languageDutch": {"message":"Nederlands"},
+  "languagePolish": {"message":"Pools"}
+}

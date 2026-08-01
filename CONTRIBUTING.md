@@ -20,13 +20,16 @@ By participating in this project, you agree to maintain a respectful, welcoming,
 
 ### Local Setup
 1. Clone this repository.
-2. Install the Git pre-commit hooks to automatically check your code style and logs before committing:
+2. Install the Git pre-commit hooks to automatically check code style, localization, and unit tests before committing:
    ```bash
    sh scripts/install-hooks.sh
    ```
 
 ### Running the Build
 The build scripts compile browser packages and write them to the `dist/` directory.
+
+Cross-platform shortcut: `npm run build` delegates to the correct script for your OS
+(`npm run build:chrome` / `npm run build:firefox` for single targets).
 
 - **On Windows (PowerShell):**
   ```powershell
@@ -112,9 +115,26 @@ When targeting Angular backdrops or overlay dialogs:
 
 ---
 
+## 🌐 Localization & Translations
+
+Translations are welcome and managed through the public **POEditor** project, then shipped
+as native WebExtension catalogs in `_locales/<locale>/messages.json`.
+
+- **Translators**: follow [LOCALIZATION.md](LOCALIZATION.md) for the full POEditor workflow.
+  Keep message IDs and `$PLACEHOLDER$` names unchanged when translating.
+- **Developers**: never remove or rename message IDs — every catalog must contain every
+  English key so missing translations fall back safely. Validate catalogs deterministically
+  before committing:
+  ```bash
+  node scripts/check-locales.mjs
+  ```
+  The pre-commit hook runs this automatically whenever a `_locales/` catalog is staged.
+
+---
+
 ## 🚀 How to Submit a Pull Request
 
-1. **Format & Quality Check**: Ensure there are no console log violations or syntax errors. Make sure your pre-commit hooks have run successfully.
+1. **Format & Quality Check**: Ensure there are no console log violations or syntax errors. If you changed any translation catalog, run `node scripts/check-locales.mjs`. Make sure your pre-commit hooks have run successfully.
 2. **Cross-Browser Verification**: Manually test your changes in both Chrome (or a Chromium-based browser) and Firefox.
 3. **Commit Messages**: Write clear, descriptive commit messages.
 4. **Push & PR**: Open a Pull Request on GitHub. Detail the changes you've made, why you made them, and how you tested them. Reference any related issues.

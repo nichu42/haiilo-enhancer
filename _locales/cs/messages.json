@@ -1,0 +1,695 @@
+{
+  "extensionName": {
+    "message": "Haiilo Enhancer"
+  },
+  "extensionDescription": {
+    "message": "Vylepšete své prostředí Haiilo – ztište uživatele, přizpůsobte si kanál a další"
+  },
+  "actionTitle": {
+    "message": "Haiilo Enhancer"
+  },
+  "optionsTitle": {
+    "message": "Haiilo Enhancer – Nastavení"
+  },
+  "northAmericanDate": {
+    "message": "MM/DD/YYYY (Severoamerický)"
+  },
+  "westernEuropeanDate": {
+    "message": "DD/MM/YYYY (Západoevropský)"
+  },
+  "centralEuropeanDate": {
+    "message": "DD.MM.YYYY (Středoevropský)"
+  },
+  "dutchDate": {
+    "message": "DD-MM-YYYY (Nizozemský)"
+  },
+  "isoDate": {
+    "message": "YYYY-MM-DD (ISO 8601)"
+  },
+  "eastAsianDate": {
+    "message": "YYYY/MM/DD (Východoasijský)"
+  },
+  "hungarianDate": {
+    "message": "YYYY. MM. DD. (Maďarský)"
+  },
+  "finnishDate": {
+    "message": "D.M.YYYY (Finský)"
+  },
+  "spacedCentralDate": {
+    "message": "D. M. YYYY (Středoevropský)"
+  },
+  "dottedSlavicDate": {
+    "message": "D.M.YYYY. (Středoevropský)"
+  },
+  "spacedSlavicDate": {
+    "message": "D. M. YYYY. (Středoevropský)"
+  },
+  "koreanDate": {
+    "message": "YYYY. M. D. (Korejský)"
+  },
+  "latinAmericanDate": {
+    "message": "DD/MM/YYYY (Latinskoamerický)"
+  },
+  "middleEasternDate": {
+    "message": "DD/MM/YYYY (Blízkovýchodní)"
+  },
+  "southeastAsianDate": {
+    "message": "DD/MM/YYYY (Jihovýchodoasijský)"
+  },
+  "southAsianDate": {
+    "message": "DD/MM/YYYY (Jihoasijský)"
+  },
+  "muteUserPermanently": {
+    "message": "Natrvalo ztlumit tohoto uživatele"
+  },
+  "muteDefaultPeriod": {
+    "message": "Ztlumit na výchozí dobu"
+  },
+  "muteForDays": {
+    "message": "Ztlumit na $COUNT$ den/dny",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "setDefaultHomepage": {
+    "message": "Nastavit jako výchozí domovskou stránku"
+  },
+  "settings": {
+    "message": "Nastavení"
+  },
+  "toggleExtension": {
+    "message": "Přepnout rozšíření"
+  },
+  "openExtensionSettings": {
+    "message": "Otevřít nastavení rozšíření"
+  },
+  "itemsHiddenOnPage": {
+    "message": "Na této stránce skryto položek: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "itemsHiddenSummary": {
+    "message": "Na této stránce skryto položek: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "openHiddenSection": {
+    "message": "Otevřete tuto sekci a zobrazte skrytý obsah."
+  },
+  "mutedUsers": {
+    "message": "Ztlumení uživatelé"
+  },
+  "noMutedUsers": {
+    "message": "Zatím nejsou ztlumení žádní uživatelé. Kliknutím pravým tlačítkem na uživatelské jméno ho ztlumíte."
+  },
+  "addUserManually": {
+    "message": "Přidat uživatele ručně"
+  },
+  "enterUsername": {
+    "message": "Zadejte uživatelské jméno"
+  },
+  "permanently": {
+    "message": "Natrvalo"
+  },
+  "oneDay": {
+    "message": "1 den"
+  },
+  "threeDays": {
+    "message": "3 dny"
+  },
+  "sevenDays": {
+    "message": "7 dní"
+  },
+  "fourteenDays": {
+    "message": "14 dní"
+  },
+  "thirtyDays": {
+    "message": "30 dní"
+  },
+  "ninetyDays": {
+    "message": "90 dní"
+  },
+  "mute": {
+    "message": "Ztlumit"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 nichu42 a přispěvatelé"
+  },
+  "warranty": {
+    "message": "Tento program je poskytován ABSOLUTNĚ BEZ JAKÉKOLI ZÁRUKY. Viz"
+  },
+  "warrantyFull": {
+    "message": "Tento program je poskytován ABSOLUTNĚ BEZ JAKÉKOLI ZÁRUKY. Další informace naleznete v licenci GNU Affero General Public License."
+  },
+  "licensePermission": {
+    "message": "Tento program je svobodný software: můžete jej šířit a/nebo upravovat podle podmínek licence GNU Affero General Public License vydané nadací Free Software Foundation, buď ve verzi 3 této licence, nebo (podle vašeho uvážení) v libovolné pozdější verzi."
+  },
+  "licenseWarrantyFull": {
+    "message": "Tento program je šířen v naději, že bude užitečný, avšak BEZ JAKÉKOLI ZÁRUKY; neposkytuje se ani předpokládaná záruka PRODEJNOSTI nebo VHODNOSTI PRO URČITÝ ÚČEL. Další informace naleznete v licenci GNU Affero General Public License."
+  },
+  "independentDisclaimer": {
+    "message": "Jedná se o nezávislý open-source projekt, který není přidružen k Haiilo GmbH ani k jejím dceřiným či přidruženým společnostem, není jimi podporován a není s nimi nijak oficiálně spojen. Název Haiilo a související označení jsou registrované ochranné známky příslušných vlastníků."
+  },
+  "license": {
+    "message": "GNU Affero General Public License"
+  },
+  "forMoreDetails": {
+    "message": "pro více informací."
+  },
+  "reportIssue": {
+    "message": "Nahlásit chybu / požádat o funkci"
+  },
+  "support": {
+    "message": "Podpora"
+  },
+  "supportProject": {
+    "message": "Podpořte tento projekt:"
+  },
+  "liberapay": {
+    "message": "Liberapay"
+  },
+  "koFi": {
+    "message": "Ko-fi"
+  },
+  "donateLiberapay": {
+    "message": "Přispět přes Liberapay"
+  },
+  "donateKofi": {
+    "message": "Přispět přes Ko-fi"
+  },
+  "permanentlyMuted": {
+    "message": "Natrvalo ztlumen"
+  },
+  "expiresIn": {
+    "message": "Vyprší $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "in 7 days"
+      }
+    }
+  },
+  "unmute": {
+    "message": "Zrušit ztlumení"
+  },
+  "expired": {
+    "message": "vypršelo"
+  },
+  "inDays": {
+    "message": "za $COUNT$ den/dny",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "inHours": {
+    "message": "za $COUNT$ hodinu/hodiny",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "soon": {
+    "message": "brzy"
+  },
+  "loadingHiddenDetails": {
+    "message": "Načítání podrobností skrytého obsahu…"
+  },
+  "openHaiiloToViewDetails": {
+    "message": "Otevřete stránku Haiilo a zobrazte podrobnosti skrytého obsahu."
+  },
+  "nothingHidden": {
+    "message": "Na této stránce momentálně nic není skryto."
+  },
+  "showingHiddenItems": {
+    "message": "Zobrazuje se 20 z $COUNT$ skrytých položek.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "couldNotLoadHiddenDetails": {
+    "message": "Podrobnosti skrytého obsahu se nepodařilo načíst."
+  },
+  "hiddenItem": {
+    "message": "skrytá položka"
+  },
+  "noPreviewAvailable": {
+    "message": "Náhled není k dispozici."
+  },
+  "matchedAuthors": {
+    "message": "Shoda: $AUTHORS$",
+    "placeholders": {
+      "authors": {
+        "content": "$1",
+        "example": "Alex · Sam"
+      }
+    }
+  },
+  "mutedUser": {
+    "message": "Ztlumený uživatel: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "general": {
+    "message": "Obecné"
+  },
+  "interface": {
+    "message": "Rozhraní"
+  },
+  "behavior": {
+    "message": "Chování"
+  },
+  "domains": {
+    "message": "Domény"
+  },
+  "dataPrivacy": {
+    "message": "Data a soukromí"
+  },
+  "advanced": {
+    "message": "Pokročilé"
+  },
+  "about": {
+    "message": "O aplikaci"
+  },
+  "optionsSections": {
+    "message": "Sekce nastavení"
+  },
+  "extensionStatus": {
+    "message": "Stav rozšíření"
+  },
+  "extensionStatusDescription": {
+    "message": "Dočasně vypnout všechny funkce rozšíření (ztlumení, vzhled avatarů, rozbalení messengeru a úpravy datumu) bez odinstalace rozšíření."
+  },
+  "interfaceOptions": {
+    "message": "Možnosti rozhraní"
+  },
+  "keepMessengerExpanded": {
+    "message": "Ponechat panel messengeru rozbalený"
+  },
+  "messengerPanelWidth": {
+    "message": "Šířka panelu messengeru"
+  },
+  "savedApplied": {
+    "message": "Uloženo a použito po změně."
+  },
+  "mutingOptions": {
+    "message": "Možnosti ztlumení"
+  },
+  "mutingDescription": {
+    "message": "Klikněte pravým tlačítkem na libovolné uživatelské jméno v Haiilo a zvolte Haiilo Enhancer → Ztlumit na …. Příspěvky a komentáře ztlumených uživatelů jsou skryty na všech stránkách až do vypršení ztlumení. Ztlumení zrušíte v rozbalovacím okně rozšíření, kontextové nabídce nebo opětovným přidáním uživatele s vypnutou volbou „Natrvalo“ a vyčkáním na vypršení."
+  },
+  "defaultMutePeriod": {
+    "message": "Výchozí doba ztlumení (použije se pro „Ztlumit na výchozí dobu“):"
+  },
+  "showHiddenCount": {
+    "message": "Zobrazit na ikoně rozšíření odznak s počtem skrytého obsahu"
+  },
+  "dateTimeFormat": {
+    "message": "Formát data a času"
+  },
+  "dateTimeDescription": {
+    "message": "Přepsat výchozí zobrazení data a času v Haiilo. Nové instalace mohou automaticky použít jazyk prohlížeče; u stávajících instalací lze předvolbu jazyka znovu použít tlačítkem níže."
+  },
+  "applyBrowserLocale": {
+    "message": "Použít výchozí nastavení jazyka prohlížeče"
+  },
+  "dateFormat": {
+    "message": "Formát data (datový standard):"
+  },
+  "chooseLocalePreset": {
+    "message": "Vyberte předvolbu podle jazyka. Změna také obnoví formát času na výchozí hodnotu této předvolby."
+  },
+  "timeFormat": {
+    "message": "Formát času:"
+  },
+  "twelveHour": {
+    "message": "12hodinový (dop./odp.)"
+  },
+  "twentyFourHour": {
+    "message": "24hodinový"
+  },
+  "chooseTimeFormat": {
+    "message": "Zvolte mezi 12hodinovým (dop./odp.) a 24hodinovým zobrazením času."
+  },
+  "channelAvatarCustomization": {
+    "message": "Přizpůsobení avatarů kanálů"
+  },
+  "replaceGroupIcons": {
+    "message": "Nahradit obecné ikony skupinových chatů iniciálami jednotlivých kanálů"
+  },
+  "avatarDescription": {
+    "message": "Přizpůsobte vzhled avatarů skupinových chatů, aby se odlišily od jednotlivých uživatelů."
+  },
+  "preview": {
+    "message": "Náhled"
+  },
+  "backgroundColor": {
+    "message": "Barva pozadí"
+  },
+  "randomColorPerGroup": {
+    "message": "Náhodná barva pro každou skupinu"
+  },
+  "fixedColor": {
+    "message": "Pevná barva:"
+  },
+  "avatarStyle": {
+    "message": "Styl avataru:"
+  },
+  "ringBorder": {
+    "message": "Kruhový rámeček"
+  },
+  "roundedSquare": {
+    "message": "Zaoblený čtverec"
+  },
+  "iconBadgeOverlay": {
+    "message": "Překryvný odznak ikony"
+  },
+  "distinguishGroupChats": {
+    "message": "Zvolte, jak vizuálně odlišit skupinové chaty od jednotlivých uživatelů"
+  },
+  "ringCustomization": {
+    "message": "Přizpůsobení kruhového rámečku:"
+  },
+  "squareCustomization": {
+    "message": "Přizpůsobení čtvercového rámečku:"
+  },
+  "widthPx": {
+    "message": "Šířka (px)"
+  },
+  "reset": {
+    "message": "Obnovit"
+  },
+  "customizeRing": {
+    "message": "Přizpůsobte barvu a šířku kruhového rámečku"
+  },
+  "customizeSquare": {
+    "message": "Přizpůsobte barvu a šířku čtvercového rámečku"
+  },
+  "badgeIconSize": {
+    "message": "Velikost odznaku ikony:"
+  },
+  "adjustBadgeSize": {
+    "message": "Upravte velikost překryvného odznaku ikony (procento základní velikosti)"
+  },
+  "badgePosition": {
+    "message": "Pozice odznaku:"
+  },
+  "lowerLeft": {
+    "message": "Levý dolní roh"
+  },
+  "upperLeft": {
+    "message": "Levý horní roh"
+  },
+  "chooseBadgePosition": {
+    "message": "Zvolte, kde se má odznak ikony na avataru zobrazit"
+  },
+  "customHomepageSettings": {
+    "message": "Nastavení vlastní domovské stránky"
+  },
+  "customHomepageDescription": {
+    "message": "Nastavte, na kterou domovskou stránku logo přesměruje pro každou instanci Haiilo. Klikněte pravým tlačítkem na kartu domovské stránky (např. „Domů“, „Domů (soft)“) a výběrem „Nastavit jako výchozí domovskou stránku“ ji nakonfigurujte."
+  },
+  "reactions": {
+    "message": "Reakce"
+  },
+  "reactionsDescription": {
+    "message": "Vylepšete způsob zobrazování emoji reakcí u příspěvků a komentářů."
+  },
+  "sortReactions": {
+    "message": "Seřadit emoji reakcí podle počtu (nejpoužívanější první)"
+  },
+  "reactionTooltip": {
+    "message": "Po najetí zobrazit rozpis počtu reakcí (např. 👍22 💡2)"
+  },
+  "reactionInline": {
+    "message": "Zobrazit počty reakcí vedle emoji"
+  },
+  "autoExpandDescription": {
+    "message": "Levý postranní panel Haiilo zobrazuje omezený počet pracovních prostorů a stránek a zbytek skrývá za tlačítkem „Zobrazit více“. Povolte tuto funkci a tlačítko se po načtení stránky automaticky klikne, aby byly všechny položky ihned viditelné."
+  },
+  "autoExpand": {
+    "message": "Automaticky rozbalit seznamy postranního panelu při načtení stránky"
+  },
+  "whichLists": {
+    "message": "Které seznamy rozbalit:"
+  },
+  "bothLists": {
+    "message": "Pracovní prostory i stránky"
+  },
+  "workspacesOnly": {
+    "message": "Pouze pracovní prostory"
+  },
+  "pagesOnly": {
+    "message": "Pouze stránky"
+  },
+  "chooseLists": {
+    "message": "Zvolte, na které seznamy postranního panelu se má automatické rozbalení vztahovat."
+  },
+  "showMoreClicks": {
+    "message": "Kliknutí na „Zobrazit více“ pro každý seznam:"
+  },
+  "clicksHelp": {
+    "message": "Kolikrát kliknout na „Zobrazit více“ pro každý seznam (pracovní prostory a stránky se rozbalují nezávisle). Hodnota 0 klikání vypne. Maximum je 10."
+  },
+  "delayBetweenClicks": {
+    "message": "Prodleva mezi kliknutími (ms):"
+  },
+  "delayHelp": {
+    "message": "Jak dlouho čekat mezi po sobě jdoucími kliknutími na „Zobrazit více“. Nižší hodnoty působí svižněji, vyšší jsou šetrnější k serveru. Rozsah: 100–1000 ms."
+  },
+  "customDomains": {
+    "message": "Vlastní domény Haiilo"
+  },
+  "customDomainsDescription": {
+    "message": "Pokud vaše organizace používá vlastní adresu Haiilo (nikoli *.haiilo.app nebo *.haiilo.com), přidejte ji zde. Prohlížeč vás při prvním použití požádá o povolení přístupu — je to očekávané, znamená to jen „ano, spouštěj to i na tomto webu“."
+  },
+  "addCustomDomain": {
+    "message": "Přidat vlastní doménu:"
+  },
+  "addDomain": {
+    "message": "Přidat doménu"
+  },
+  "domainPlaceholder": {
+    "message": "example.com"
+  },
+  "domainHelp": {
+    "message": "Zadejte pouze název domény (např. intranet.company.com)"
+  },
+  "chromePermissionWarning": {
+    "message": "Poznámka: Kvůli omezení Chromu nelze oprávnění domény po udělení odvolat. Odebráním domény zde rozšíření přestane doménu používat, ale oprávnění zůstane viditelné na chrome://extensions, dokud rozšíření znovu nenainstalujete."
+  },
+  "dataManagement": {
+    "message": "Správa dat"
+  },
+  "syncSettings": {
+    "message": "Synchronizovat nastavení a ztlumené uživatele prostřednictvím účtu prohlížeče"
+  },
+  "syncHelp": {
+    "message": "Po zapnutí se nastavení a až 50 ztlumených uživatelů uloží do vestavěného synchronizovaného úložiště prohlížeče a budou dostupné na všech zařízeních. Vlastní domény se nesynchronizují — na každém zařízení je přidejte znovu. Pokud seznam ztlumených uživatelů překročí 50, synchronizace cloudu se automaticky vypne."
+  },
+  "cloudSyncDisabled": {
+    "message": "⚠️ Synchronizace cloudu byla automaticky vypnuta"
+  },
+  "cloudSyncDisabledDescription": {
+    "message": "Seznam ztlumených uživatelů překročil limit 50 uživatelů pro synchronizaci cloudu. Vaše data jsou stále uložena místně a nic se neztratilo. Chcete-li synchronizaci cloudu znovu zapnout, snižte počet ztlumených uživatelů na 50 nebo méně."
+  },
+  "backupDescription": {
+    "message": "Exportujte nastavení a ztlumené uživatele do souboru JSON jako zálohu nebo importujte předchozí export a obnovte je. Obnovení výchozího nastavení vše vymaže; pokud byste chtěli změny vrátit, nejprve exportujte data."
+  },
+  "exportSettings": {
+    "message": "Exportovat všechna nastavení"
+  },
+  "importSettings": {
+    "message": "Importovat všechna nastavení"
+  },
+  "resetEverything": {
+    "message": "Obnovit všechna výchozí nastavení"
+  },
+  "domainsNeedPermission": {
+    "message": "⚠️ Vlastní domény vyžadují nové udělení oprávnění"
+  },
+  "domainsNeedPermissionDescription": {
+    "message": "Následující domény byly v záloze, ale nepodařilo se je automaticky obnovit — zabezpečení prohlížeče vyžaduje, abyste přístup udělili ručně:"
+  },
+  "domainsNeedPermissionHowTo": {
+    "message": "Chcete-li je znovu přidat: přejděte dolů k Vlastním doménám Haiilo, zadejte každou doménu a kliknutím na Přidat doménu udělte prohlížeči přístup."
+  },
+  "advancedOptions": {
+    "message": "Pokročilé možnosti"
+  },
+  "debugLogging": {
+    "message": "Povolit protokolování ladicích informací (pro řešení problémů)"
+  },
+  "footerTagline": {
+    "message": "Prostředí Haiilo, vylepšené pro vás"
+  },
+  "noCustomDomains": {
+    "message": "Nejsou přidány žádné vlastní domény. Výchozí: *.haiilo.app a *.haiilo.com"
+  },
+  "noCustomHomepages": {
+    "message": "Nejsou nastaveny žádné vlastní domovské stránky. Nastavte ji pomocí kontextové nabídky na kartě domovské stránky."
+  },
+  "remove": {
+    "message": "Odebrat"
+  },
+  "settingsSaved": {
+    "message": "Nastavení uloženo"
+  },
+  "localeDefaultsApplied": {
+    "message": "Použita výchozí nastavení jazyka"
+  },
+  "couldNotApplyLocale": {
+    "message": "Výchozí nastavení jazyka se nepodařilo použít"
+  },
+  "domainAdded": {
+    "message": "Doména byla úspěšně přidána"
+  },
+  "domainRemoved": {
+    "message": "Doména byla úspěšně odebrána"
+  },
+  "domainAlreadyExists": {
+    "message": "Doména již existuje"
+  },
+  "validDomain": {
+    "message": "Zadejte platný název domény"
+  },
+  "permissionDenied": {
+    "message": "Přístup byl zamítnut. Musíte této doméně udělit přístup."
+  },
+  "allSettingsExported": {
+    "message": "Všechna nastavení byla úspěšně exportována"
+  },
+  "invalidImport": {
+    "message": "Neplatný formát souboru – musí obsahovat mutedUsers nebo settings"
+  },
+  "failedImport": {
+    "message": "Import dat se nezdařil: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid file"
+      }
+    }
+  },
+  "cloudSyncUnavailable": {
+    "message": "Synchronizace cloudu není dostupná. Zkontrolujte, zda jste přihlášeni k účtu prohlížeče."
+  },
+  "importedData": {
+    "message": "Importováno: $DETAILS$",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "all settings"
+      }
+    }
+  },
+  "resetComplete": {
+    "message": "Všechna nastavení byla obnovena na výchozí hodnoty"
+  },
+  "extensionNameVersion": {
+    "message": "Haiilo Enhancer v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.5.0"
+      }
+    }
+  },
+  "reactionsLabel": {
+    "message": "Reakce: $TEXT$",
+    "placeholders": {
+      "text": {
+        "content": "$1",
+        "example": "👍 3"
+      }
+    }
+  },
+  "reactionCounts": {
+    "message": "Počty reakcí"
+  },
+  "reactionCount": {
+    "message": "$COUNT$ reakcí",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "icsDownloaded": {
+    "message": "Soubor ICS byl stažen. Otevřete jej ve stažených souborech prohlížeče a importujte jej."
+  },
+  "addToCalendar": {
+    "message": "Přidat do kalendáře"
+  },
+  "event": {
+    "message": "Událost"
+  },
+  "host": {
+    "message": "Pořadatel: $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "googleCalendar": {
+    "message": "Google Calendar"
+  },
+  "outlookCalendar": {
+    "message": "Outlook.com"
+  },
+  "yahooCalendar": {
+    "message": "Yahoo Calendar"
+  },
+  "downloadIcs": {
+    "message": "Stáhnout soubor ICS"
+  },
+  "importMutedUsers": {"message":"$COUNT$ ztlumených uživatelů","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importAllSettings": {"message":"všechna nastavení"},
+  "importDomainsNeedReauth": {"message":"$COUNT$ vlastní doména(y) vyžaduje ruční opětovnou autorizaci (viz upozornění výše)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importCustomHomepages": {"message":"$COUNT$ vlastní domovská stránka(y)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "homepageHome": {"message":"Domů"},
+  "homepageHomeSoft": {"message":"Domů (soft)"},
+  "homepageSection": {"message":"Domů ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
+  "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "confirmReset": {"message":"Opravdu chcete vše obnovit na výchozí hodnoty? Tuto akci nelze vrátit zpět."},
+  "ringSettingsReset": {"message":"Nastavení kruhového okraje obnoveno na výchozí"},
+  "squareSettingsReset": {"message":"Nastavení čtvercového okraje obnoveno na výchozí"},
+  "badgeSettingsReset": {"message":"Nastavení odznaku obnoveno na výchozí"},
+  "languageSettings": {"message":"Jazyk"},
+  "language": {"message":"Jazyk rozšíření:"},
+  "languageBrowser": {"message":"Výchozí jazyk prohlížeče"},
+  "languageEnglish": {"message":"Angličtina"},
+  "languageGerman": {"message":"Němčina"},
+  "languageCzech": {"message":"Čeština"},
+  "languageSpanish": {"message":"Španělština"},
+  "languageFrench": {"message":"Francouzština"},
+  "languageHungarian": {"message":"Maďarština"},
+  "languageItalian": {"message":"Italština"},
+  "languageDutch": {"message":"Nizozemština"},
+  "languagePolish": {"message":"Polština"}
+}

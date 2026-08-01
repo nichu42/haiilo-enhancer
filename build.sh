@@ -18,7 +18,8 @@ build_chrome() {
     mkdir -p "$CHROME_DIR"
 
     # Copy files
-    cp manifest.json background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css "$CHROME_DIR"
+    cp manifest.json background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css i18n.js shared.js "$CHROME_DIR"
+    cp -R _locales "$CHROME_DIR/_locales"
 
     # Copy icons
     cp -r icons "$CHROME_DIR/icons"
@@ -39,7 +40,8 @@ build_firefox() {
 
     # Copy files (Firefox uses different manifest)
     cp manifest.firefox.json "$FIREFOX_DIR/manifest.json"
-    cp LICENSE background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css "$FIREFOX_DIR"
+    cp LICENSE background.js content.js content.css popup.html popup.css popup.js options.html options.css options.js colors.css i18n.js shared.js "$FIREFOX_DIR"
+    cp -R _locales "$FIREFOX_DIR/_locales"
 
     # Copy icons
     cp -r icons "$FIREFOX_DIR/icons"

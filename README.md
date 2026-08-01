@@ -18,6 +18,7 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 - **🛠️ Custom domains** — works on your organization's custom Haiilo URL, not just haiilo.app.
 - **📅 Add to calendar** — adds an "Add to calendar" button to Haiilo events, letting you export to Google Calendar, Outlook.com, Yahoo Calendar, or a standard ICS file.
 - **💾 Import / export / reset** — back up your muted users and all settings to a JSON file.
+- **🌐 Manual language selection** — choose Browser default, English, German, Czech, Spanish, French, Hungarian, Italian, Dutch, or Polish for the extension UI and Haiilo enhancements.
 - **☁️ Browser sync** — optionally sync your muted users and settings across devices via your browser account (opt-in, up to 50 muted users).
 
 ## 🚀 Quick start
@@ -124,3 +125,10 @@ Packages are written to `dist/`. The Windows script may need `Set-ExecutionPolic
 
 - **Chromium-based**: open `chrome://extensions/`, enable Developer mode, **Load unpacked** the project root.
 - **Firefox**: build first, then **Load Temporary Add-on…** in `about:debugging` and pick `dist/firefox/manifest.json`.
+
+### Localization
+
+The extension uses native WebExtension catalogs in `_locales/`. English is the
+source catalog; German, French, Spanish, and Dutch catalogs are included.
+See [LOCALIZATION.md](LOCALIZATION.md) for catalog validation and the optional
+POEditor account-side hand-off.

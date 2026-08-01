@@ -3,6 +3,7 @@
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+const t = (key, substitutions) => i18nMessage(key, substitutions);
 
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 async function getHaiiloDomains() {
@@ -40,12 +41,15 @@ if (document.readyState === 'loading') {
 }
 
 async function initPopup() {
+  await HaiiloI18n.initializeI18n();
+  HaiiloI18n.localizeDocument();
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
   const versionEl = document.getElementById('versionInfo');
   if (versionEl) versionEl.textContent = `v${manifest.version}`;
 
   await loadMutedUsers();
+  updateHiddenSummary(0);
   await loadHiddenCount();
   setupHiddenDetailsToggle();
   await loadSettings();
@@ -60,7 +64,7 @@ async function loadMutedUsers() {
   if (!response || response.length === 0) {
     const emptyEl = document.createElement('p');
     emptyEl.className = 'empty-state';
-    emptyEl.textContent = 'No muted users yet. Right-click on a username to mute.';
+    emptyEl.textContent = t('noMutedUsers');
     mutedList.appendChild(emptyEl);
     return;
   }
@@ -92,7 +96,7 @@ function createUserElement(user) {
   const expiryClass = user.permanent ? 'permanent' : '';
   const expiryDiv = document.createElement('div');
   expiryDiv.className = `muted-user-expiry ${expiryClass}`;
-  expiryDiv.textContent = user.permanent ? 'Permanently muted' : `Expires ${formatExpiry(user.expiresAt)}`;
+  expiryDiv.textContent = user.permanent ? t('permanentlyMuted') : t('expiresIn', formatExpiry(user.expiresAt));
 
   infoDiv.appendChild(nameDiv);
   infoDiv.appendChild(expiryDiv);
@@ -100,7 +104,7 @@ function createUserElement(user) {
   const btn = document.createElement('button');
   btn.className = 'unmute-btn';
   btn.dataset.user = user.name;
-  btn.textContent = 'Unmute';
+  btn.textContent = t('unmute');
 
   div.appendChild(infoDiv);
   div.appendChild(btn);
@@ -112,18 +116,29 @@ function formatExpiry(timestamp) {
   const now = Date.now();
   const diff = timestamp - now;
 
-  if (diff < 0) return 'expired';
+  if (diff < 0) return t('expired');
 
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));
   const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
 
   if (days > 0) {
-    return `in ${days} day${days > 1 ? 's' : ''}`;
+    return t('inDays', days);
   } else if (hours > 0) {
-    return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+    return t('inHours', hours);
   } else {
-    return 'soon';
+    return t('soon');
   }
+}
+
+function updateHiddenSummary(count) {
+  const summary = document.getElementById('hiddenSummary');
+  if (!summary) return;
+  summary.textContent = '';
+  const countEl = document.createElement('span');
+  countEl.id = 'hiddenCount';
+  countEl.textContent = String(count);
+  summary.appendChild(countEl);
+  summary.appendChild(document.createTextNode(t('itemsHiddenSummary', count).replace(String(count), '')));
 }
 
 async function loadHiddenCount() {
@@ -133,6 +148,7 @@ async function loadHiddenCount() {
       const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' });
       if (response && typeof response.count === 'number') {
         document.getElementById('hiddenCount').textContent = response.count;
+        updateHiddenSummary(response.count);
         updateHiddenDetailsVisibility(response.count);
       }
     }
@@ -180,12 +196,16 @@ async function loadHiddenDetails() {
   const count = Number(document.getElementById('hiddenCount')?.textContent || 0);
   if (count <= 0) return;
 
-  contentEl.textContent = 'Loading hidden content details...';
+  contentEl.textContent = t('loadingHiddenDetails');
 
   try {
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
     if (!tab || !await isHaiiloUrl(tab.url)) {
-      contentEl.innerHTML = '<p class="empty-state">Open a Haiilo page to view hidden content details.</p>';
+      contentEl.textContent = '';
+      const openMessage = document.createElement('p');
+      openMessage.className = 'empty-state';
+      openMessage.textContent = t('openHaiiloToViewDetails');
+      contentEl.appendChild(openMessage);
       return;
     }
 
@@ -193,7 +213,11 @@ async function loadHiddenDetails() {
     const items = response && Array.isArray(response.items) ? response.items : [];
 
     if (items.length === 0) {
-      contentEl.innerHTML = '<p class="empty-state">Nothing is hidden on this page right now.</p>';
+      contentEl.textContent = '';
+      const nothingMessage = document.createElement('p');
+      nothingMessage.className = 'empty-state';
+      nothingMessage.textContent = t('nothingHidden');
+      contentEl.appendChild(nothingMessage);
       return;
     }
 
@@ -205,12 +229,16 @@ async function loadHiddenDetails() {
     if (items.length > 20) {
       const more = document.createElement('p');
       more.className = 'hidden-details-more';
-      more.textContent = `Showing 20 of ${items.length} hidden items.`;
+      more.textContent = t('showingHiddenItems', items.length);
       contentEl.appendChild(more);
     }
   } catch (e) {
     debugLog('Could not load hidden details:', e);
-    contentEl.innerHTML = '<p class="empty-state">Could not load hidden content details.</p>';
+    contentEl.textContent = '';
+    const errorMessage = document.createElement('p');
+    errorMessage.className = 'empty-state';
+    errorMessage.textContent = t('couldNotLoadHiddenDetails');
+    contentEl.appendChild(errorMessage);
   }
 }
 
@@ -227,7 +255,7 @@ function createHiddenDetailElement(item, index) {
 
   const kindEl = document.createElement('span');
   kindEl.className = 'hidden-detail-kind';
-  kindEl.textContent = item.kind || 'hidden item';
+  kindEl.textContent = item.kind || t('hiddenItem');
 
   title.appendChild(indexEl);
   title.appendChild(kindEl);
@@ -236,12 +264,12 @@ function createHiddenDetailElement(item, index) {
   authors.className = 'hidden-detail-authors';
   const authorList = Array.isArray(item.matchedAuthors) ? item.matchedAuthors.filter(Boolean) : [];
   authors.textContent = authorList.length > 0
-    ? `Matched: ${authorList.join(' · ')}`
-    : `Muted user: ${item.mutedUser || 'unknown'}`;
+    ? t('matchedAuthors', authorList.join(' · '))
+    : t('mutedUser', item.mutedUser || 'unknown');
 
   const excerpt = document.createElement('div');
   excerpt.className = 'hidden-detail-excerpt';
-  excerpt.textContent = item.excerpt || 'No preview available.';
+  excerpt.textContent = item.excerpt || t('noPreviewAvailable');
 
   card.appendChild(title);
   card.appendChild(authors);

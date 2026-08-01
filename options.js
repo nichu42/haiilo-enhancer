@@ -3,56 +3,13 @@
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+const t = (key, substitutions) => i18nMessage(key, substitutions);
 let saveSettingsTimeout = null;
-const MESSENGER_WIDTH_MIN = 50;
-const MESSENGER_WIDTH_MAX = 125;
-const MESSENGER_WIDTH_DEFAULT = 100;
 
-function clampMessengerPanelWidthPercent(value) {
-  const parsed = parseInt(value, 10);
-  if (isNaN(parsed)) return MESSENGER_WIDTH_DEFAULT;
-  return Math.max(MESSENGER_WIDTH_MIN, Math.min(MESSENGER_WIDTH_MAX, parsed));
-}
-
-const DATE_TIME_PRESETS = {
-  northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h', label: 'MM/DD/YYYY (North American)' },
-  westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Western European)' },
-  westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Western European)' },
-  centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h', label: 'DD.MM.YYYY (Central European)' },
-  dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h', label: 'DD-MM-YYYY (Dutch)' },
-  iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h', label: 'YYYY-MM-DD (ISO 8601)' },
-  eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h', label: 'YYYY/MM/DD (East Asian)' },
-  eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h', label: 'YYYY/MM/DD (East Asian)' },
-  hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h', label: 'YYYY. MM. DD. (Hungarian)' },
-  finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h', label: 'D.M.YYYY (Finnish)' },
-  spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h', label: 'D. M. YYYY (Central European)' },
-  dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h', label: 'D.M.YYYY. (Central European)' },
-  spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h', label: 'D. M. YYYY. (Central European)' },
-  korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h', label: 'YYYY. M. D. (Korean)' },
-  southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (South Asian)' },
-  southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (South Asian)' },
-  latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Latin American)' },
-  latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Latin American)' },
-  middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Middle Eastern)' },
-  southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Southeast Asian)' },
-  southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Southeast Asian)' }
-};
-
-function normalizeDateFormatValue(value) {
-  const aliasMap = {
-    MMDD: 'northAmerican12h',
-    DDMM: 'westernEuropean24h',
-    'DD.MM': 'centralEuropean24h',
-    'DD-MM': 'dutch24h',
-    westernEuropean12h: 'westernEuropean24h',
-    eastAsian12h: 'eastAsian24h',
-    southAsian24h: 'southAsian12h',
-    latinAmerican12h: 'latinAmerican24h',
-    southeastAsian12h: 'southeastAsian24h'
-  };
-  if (DATE_TIME_PRESETS[value]) return value;
-  return aliasMap[value] || 'northAmerican12h';
-}
+// Shared constants and helpers (single source of truth in shared.js)
+const clampMessengerPanelWidthPercent = HaiiloShared.clampMessengerPanelWidthPercent;
+const DATE_TIME_PRESETS = HaiiloShared.DATE_TIME_PRESETS;
+const normalizeDateFormatValue = HaiiloShared.normalizeDateFormatValue;
 
 function getPresetForDateFormat(value) {
   return DATE_TIME_PRESETS[normalizeDateFormatValue(value)] || DATE_TIME_PRESETS.northAmerican12h;
@@ -96,10 +53,12 @@ if (document.readyState === 'loading') {
 }
 
 async function initOptions() {
+  await HaiiloI18n.initializeI18n();
+  HaiiloI18n.localizeDocument();
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
   document.getElementById('versionInfo').textContent = `v${manifest.version}`;
-  document.getElementById('footerVersion').textContent = `Haiilo Enhancer v${manifest.version}`;
+  document.getElementById('footerVersion').textContent = t('extensionNameVersion', manifest.version);
 
   // Show Chrome-specific warning only on Chrome/Edge
   const isChrome = typeof browser === 'undefined';
@@ -122,31 +81,38 @@ function organizeOptionSections() {
 
   const categories = [
     {
-      title: 'General',
-      sectionIds: ['general', 'general-muting', 'general-date-time']
+      title: t('general'),
+      slug: 'general',
+      sectionIds: ['general', 'general-language', 'general-muting', 'general-date-time']
     },
     {
-      title: 'Interface',
+      title: t('interface'),
+      slug: 'interface',
       sectionIds: ['interface', 'interface-avatars', 'interface-reactions']
     },
     {
-      title: 'Behavior',
+      title: t('behavior'),
+      slug: 'behavior',
       sectionIds: ['behavior-homepage', 'behavior']
     },
     {
-      title: 'Domains',
+      title: t('domains'),
+      slug: 'domains',
       sectionIds: ['domains']
     },
     {
-      title: 'Data & Privacy',
+      title: t('dataPrivacy'),
+      slug: 'data-privacy',
       sectionIds: ['data']
     },
     {
-      title: 'Advanced',
+      title: t('advanced'),
+      slug: 'advanced',
       sectionIds: ['advanced']
     },
     {
-      title: 'About',
+      title: t('about'),
+      slug: 'about',
       sectionIds: [],
       includeFooter: true
     }
@@ -157,11 +123,11 @@ function organizeOptionSections() {
   const categoryGroups = categories.map(category => {
     const group = document.createElement('section');
     group.className = 'options-category';
-    group.setAttribute('aria-labelledby', `${category.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`);
+    group.setAttribute('aria-labelledby', `${category.slug}-heading`);
 
     const heading = document.createElement('h2');
     heading.className = 'options-category-title';
-    heading.id = `${category.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`;
+    heading.id = `${category.slug}-heading`;
     heading.textContent = category.title;
     const rule = document.createElement('hr');
     rule.className = 'options-category-rule';
@@ -229,6 +195,11 @@ async function loadSettings() {
   const extensionEnabledInput = document.getElementById('extensionEnabled');
   if (extensionEnabledInput) {
     extensionEnabledInput.checked = settings.extensionEnabled !== false;
+  }
+
+  const languageSelect = document.getElementById('language');
+  if (languageSelect) {
+    languageSelect.value = settings.language || 'browser';
   }
 
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
@@ -314,7 +285,7 @@ async function loadDomains() {
   if (domains.length === 0) {
     const emptyEl = document.createElement('p');
     emptyEl.className = 'empty-state';
-    emptyEl.textContent = 'No custom domains added. Default: *.haiilo.app and *.haiilo.com';
+    emptyEl.textContent = t('noCustomDomains');
     domainsList.appendChild(emptyEl);
     return;
   }
@@ -330,7 +301,7 @@ async function loadDomains() {
     const btn = document.createElement('button');
     btn.className = 'danger remove-domain-btn';
     btn.dataset.domain = domain;
-    btn.textContent = 'Remove';
+    btn.textContent = t('remove');
 
     div.appendChild(span);
     div.appendChild(btn);
@@ -348,7 +319,7 @@ async function loadCustomHomepages() {
   if (entries.length === 0) {
     const emptyEl = document.createElement('p');
     emptyEl.className = 'empty-state';
-    emptyEl.textContent = 'No custom homepages set. Use the context menu on a homepage tab to set one.';
+    emptyEl.textContent = t('noCustomHomepages');
     homepagesList.appendChild(emptyEl);
     return;
   }
@@ -364,11 +335,11 @@ async function loadCustomHomepages() {
       if (displayPath.startsWith('/home/')) {
         const section = displayPath.substring(6);
         if (section === 'members') {
-          displayName = 'Home';
+          displayName = t('homepageHome');
         } else if (section === 'timeline') {
-          displayName = 'Home (soft)';
+          displayName = t('homepageHomeSoft');
         } else {
-          displayName = 'Home (' + section.charAt(0).toUpperCase() + section.slice(1) + ')';
+          displayName = t('homepageSection', section.charAt(0).toUpperCase() + section.slice(1));
         }
       } else if (displayPath.startsWith('/pages/')) {
         displayName = 'Pages';
@@ -396,12 +367,12 @@ async function loadCustomHomepages() {
     const descSpan = document.createElement('span');
     descSpan.className = 'domain-item-text';
     descSpan.style.cssText = 'font-size: 0.9em; opacity: 0.7;';
-    descSpan.textContent = displayName + ' [' + displayPath + ']';
+    descSpan.textContent = t('homepageLocation', [displayName, displayPath]);
 
     const btn = document.createElement('button');
     btn.className = 'danger remove-homepage-btn';
     btn.dataset.baseurl = baseUrl;
-    btn.textContent = 'Remove';
+    btn.textContent = t('remove');
 
     textContainer.appendChild(nameSpan);
     textContainer.appendChild(descSpan);
@@ -435,6 +406,8 @@ function setupEventListeners() {
   }
   document.getElementById('defaultMuteDays').addEventListener('change', saveSettings);
   document.getElementById('showMutedIndicator').addEventListener('change', saveSettings);
+  const languageSelect = document.getElementById('language');
+  if (languageSelect) languageSelect.addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
   document.getElementById('keepMessengerExpanded').addEventListener('change', saveSettings);
   document.getElementById('messengerPanelWidthPercent').addEventListener('input', (e) => {
@@ -532,7 +505,7 @@ function setupEventListeners() {
         } catch (err) {
           // Sync not available — revert the checkbox and warn the user
           e.target.checked = false;
-          showStatus('Cloud sync is not available. Make sure you are signed into your browser account.', 'error');
+          showStatus(t('cloudSyncUnavailable'), 'error');
           return;
         }
       }
@@ -619,7 +592,7 @@ async function addDomain() {
 
   // Basic validation
   if (!domain.includes('.')) {
-    showStatus('Please enter a valid domain name', 'error');
+    showStatus(t('validDomain'), 'error');
     return;
   }
 
@@ -627,7 +600,7 @@ async function addDomain() {
     // Check if domain already exists
     const existingDomains = await browserAPI.runtime.sendMessage({ action: 'getCustomDomains' });
     if (existingDomains && existingDomains.includes(domain)) {
-      showStatus('Domain already exists', 'error');
+      showStatus(t('domainAlreadyExists'), 'error');
       return;
     }
 
@@ -642,7 +615,7 @@ async function addDomain() {
     });
 
     if (!granted) {
-      showStatus('Permission denied. You must grant access to this domain.', 'error');
+      showStatus(t('permissionDenied'), 'error');
       return;
     }
 
@@ -651,14 +624,14 @@ async function addDomain() {
     if (response && response.success) {
       input.value = '';
       await loadDomains();
-      showStatus('Domain added successfully', 'success');
+      showStatus(t('domainAdded'), 'success');
     } else {
       const errorMsg = response && response.error ? response.error : 'Failed to add domain';
       showStatus(errorMsg, 'error');
       console.error('Error adding domain:', errorMsg);
     }
   } catch (error) {
-    showStatus('Error adding domain: ' + error.message, 'error');
+    showStatus(t('failedImport', error.message), 'error');
     console.error('Error adding domain:', error);
   }
 }
@@ -689,15 +662,15 @@ async function removeDomain(domain) {
       // Chrome may report success but not actually remove the permission (known limitation)
       // Inform user they may need to manually revoke
       await loadDomains();
-      showStatus('Domain removed. If permissions persist, manually revoke via chrome://extensions', 'success');
+      showStatus(t('domainRemoved'), 'success');
       return;
     }
 
     await loadDomains();
-    showStatus('Domain removed successfully', 'success');
+    showStatus(t('domainRemoved'), 'success');
   } catch (error) {
     console.error('Error removing domain:', error);
-    showStatus('Error removing domain: ' + error.message, 'error');
+    showStatus(t('failedImport', error.message), 'error');
   }
 }
 
@@ -705,10 +678,10 @@ async function removeCustomHomepage(baseUrl) {
   try {
     await browserAPI.runtime.sendMessage({ action: 'removeCustomHomepage', baseUrl });
     await loadCustomHomepages();
-    showStatus('Custom homepage removed successfully', 'success');
+    showStatus(t('domainRemoved'), 'success');
   } catch (error) {
     console.error('Error removing custom homepage:', error);
-    showStatus('Error removing custom homepage: ' + error.message, 'error');
+    showStatus(t('failedImport', error.message), 'error');
   }
 }
 
@@ -731,6 +704,7 @@ async function saveSettings() {
   const normalizedDateFormat = normalizeDateFormatValue(document.getElementById('dateFormat').value);
 
   const settings = {
+    language: document.getElementById('language')?.value || 'browser',
     extensionEnabled: document.getElementById('extensionEnabled').checked,
     defaultMuteDays: parseInt(document.getElementById('defaultMuteDays').value, 10),
     showMutedIndicator: document.getElementById('showMutedIndicator').checked,
@@ -762,7 +736,11 @@ async function saveSettings() {
   await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
   debugLog('[Options] Settings saved');
 
-  showStatus('Settings saved', 'success');
+  if (settings.language !== HaiiloI18n.getLanguagePreference()) {
+    window.location.reload();
+    return;
+  }
+  showStatus(t('settingsSaved'), 'success');
 }
 
 async function applyLocaleDefaults() {
@@ -771,13 +749,13 @@ async function applyLocaleDefaults() {
     const response = await browserAPI.runtime.sendMessage({ action: 'applyLocaleDefaults', locale });
     if (response && response.success) {
       await loadSettings();
-      showStatus('Locale defaults applied', 'success');
+      showStatus(t('localeDefaultsApplied'), 'success');
       return;
     }
-    showStatus('Could not apply locale defaults', 'error');
+    showStatus(t('couldNotApplyLocale'), 'error');
   } catch (error) {
     console.error('Error applying locale defaults:', error);
-    showStatus('Error applying locale defaults: ' + error.message, 'error');
+    showStatus(t('failedImport', error.message), 'error');
   }
 }
 
@@ -805,7 +783,7 @@ async function exportData() {
   a.click();
 
   URL.revokeObjectURL(url);
-  showStatus('All settings exported successfully', 'success');
+  showStatus(t('allSettingsExported'), 'success');
 }
 
 async function importData(e) {
@@ -818,7 +796,7 @@ async function importData(e) {
 
     // Validate file has required data
     if (!data.mutedUsers && !data.settings) {
-      throw new Error('Invalid file format - must contain mutedUsers and/or settings');
+      throw new Error(t('invalidImport'));
     }
 
     // Import muted users
@@ -866,14 +844,18 @@ async function importData(e) {
     }
 
     const messages = [];
-    if (userCount > 0) messages.push(`${userCount} muted users`);
-    if (data.settings) messages.push('all settings');
-    if (data.customDomains && data.customDomains.length > 0) messages.push(`${data.customDomains.length} custom domain(s) need manual re-authorization (see warning above)`);
-    if (data.customHomepages && Object.keys(data.customHomepages).length > 0) messages.push(`${Object.keys(data.customHomepages).length} custom homepage(s)`);
+    if (userCount > 0) messages.push(t('importMutedUsers', userCount));
+    if (data.settings) messages.push(t('importAllSettings'));
+    if (data.customDomains && data.customDomains.length > 0) {
+      messages.push(t('importDomainsNeedReauth', data.customDomains.length));
+    }
+    if (data.customHomepages && Object.keys(data.customHomepages).length > 0) {
+      messages.push(t('importCustomHomepages', Object.keys(data.customHomepages).length));
+    }
 
-    showStatus(`Imported ${messages.join(' and ')}`, 'success');
+    showStatus(t('importedData', messages.join(' and ')), 'success');
   } catch (err) {
-    showStatus('Failed to import data: ' + err.message, 'error');
+    showStatus(t('failedImport', err.message), 'error');
   }
 
   // Reset file input
@@ -881,7 +863,7 @@ async function importData(e) {
 }
 
 async function clearAllData() {
-  if (!confirm('Are you sure you want to reset everything to defaults? This cannot be undone.')) {
+  if (!confirm(t('confirmReset'))) {
     return;
   }
 
@@ -895,7 +877,7 @@ async function clearAllData() {
   await browserAPI.runtime.sendMessage({ action: 'resetSettings' });
   await loadSettings();
 
-  showStatus('All settings have been reset to defaults', 'success');
+  showStatus(t('resetComplete'), 'success');
 }
 
 function showStatus(message, type) {
@@ -1003,31 +985,7 @@ function updatePreview(shouldUpdateColor = false) {
       `;
 
       {
-        const svgNS = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(svgNS, 'svg');
-        const svgSize = Math.floor(badgeSize * 0.6);
-        svg.setAttribute('width', svgSize);
-        svg.setAttribute('height', svgSize);
-        svg.setAttribute('viewBox', '0 0 24 24');
-        svg.setAttribute('fill', 'white');
-        svg.style.display = 'block';
-
-        const c1 = document.createElementNS(svgNS, 'circle');
-        c1.setAttribute('cx', '8');
-        c1.setAttribute('cy', '8');
-        c1.setAttribute('r', '4');
-
-        const c2 = document.createElementNS(svgNS, 'circle');
-        c2.setAttribute('cx', '16');
-        c2.setAttribute('cy', '8');
-        c2.setAttribute('r', '4');
-
-        const p = document.createElementNS(svgNS, 'path');
-        p.setAttribute('d', 'M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z');
-
-        svg.appendChild(c1);
-        svg.appendChild(c2);
-        svg.appendChild(p);
+        const svg = HaiiloShared.buildGroupBadgeSVG(Math.floor(badgeSize * 0.6));
         badge.appendChild(svg);
       }
 
@@ -1041,7 +999,7 @@ function resetRingSettings() {
   document.getElementById('channelAvatarRingWidth').value = 2;
   updatePreview(false);
   scheduleSaveSettings();
-  showStatus('Ring settings reset to default', 'success');
+  showStatus(t('ringSettingsReset'), 'success');
 }
 
 function resetSquareSettings() {
@@ -1049,7 +1007,7 @@ function resetSquareSettings() {
   document.getElementById('channelAvatarSquareWidth').value = 2;
   updatePreview(false);
   scheduleSaveSettings();
-  showStatus('Square settings reset to default', 'success');
+  showStatus(t('squareSettingsReset'), 'success');
 }
 
 function resetBadgeSettings() {
@@ -1057,7 +1015,7 @@ function resetBadgeSettings() {
   document.getElementById('badgeSizeValue').textContent = '100%';
   updatePreview(false);
   saveSettings();
-  showStatus('Badge settings reset to default', 'success');
+  showStatus(t('badgeSettingsReset'), 'success');
 }
 
 function updatePageDisabledState() {

@@ -1,0 +1,695 @@
+{
+  "extensionName": {
+    "message": "Haiilo Enhancer"
+  },
+  "extensionDescription": {
+    "message": "Verbessere dein Haiilo-Erlebnis – schalte Benutzer stumm, passe deinen Feed an und vieles mehr"
+  },
+  "actionTitle": {
+    "message": "Haiilo Enhancer"
+  },
+  "settings": {
+    "message": "Einstellungen"
+  },
+  "toggleExtension": {
+    "message": "Erweiterung umschalten"
+  },
+  "openExtensionSettings": {
+    "message": "Erweiterungseinstellungen öffnen"
+  },
+  "itemsHiddenOnPage": {
+    "message": "$COUNT$ Elemente auf dieser Seite ausgeblendet",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "openHiddenSection": {
+    "message": "Öffne diesen Abschnitt, um die ausgeblendeten Inhalte anzuzeigen."
+  },
+  "mutedUsers": {
+    "message": "Stummgeschaltete Benutzer"
+  },
+  "noMutedUsers": {
+    "message": "Noch keine stummgeschalteten Benutzer. Klicke mit der rechten Maustaste auf einen Benutzernamen, um ihn stummzuschalten."
+  },
+  "addUserManually": {
+    "message": "Benutzer manuell hinzufügen"
+  },
+  "enterUsername": {
+    "message": "Benutzernamen eingeben"
+  },
+  "permanently": {
+    "message": "Dauerhaft"
+  },
+  "oneDay": {
+    "message": "1 Tag"
+  },
+  "threeDays": {
+    "message": "3 Tage"
+  },
+  "sevenDays": {
+    "message": "7 Tage"
+  },
+  "fourteenDays": {
+    "message": "14 Tage"
+  },
+  "thirtyDays": {
+    "message": "30 Tage"
+  },
+  "ninetyDays": {
+    "message": "90 Tage"
+  },
+  "mute": {
+    "message": "Stummschalten"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 nichu42 und Mitwirkende"
+  },
+  "warranty": {
+    "message": "Dieses Programm wird OHNE JEDE GARANTIE bereitgestellt. Siehe die"
+  },
+  "license": {
+    "message": "GNU Affero General Public License"
+  },
+  "forMoreDetails": {
+    "message": "für weitere Informationen."
+  },
+  "reportIssue": {
+    "message": "Fehler melden / Funktion vorschlagen"
+  },
+  "support": {
+    "message": "Unterstützung"
+  },
+  "supportProject": {
+    "message": "Dieses Projekt unterstützen:"
+  },
+  "liberapay": {
+    "message": "Liberapay"
+  },
+  "koFi": {
+    "message": "Ko-fi"
+  },
+  "permanentlyMuted": {
+    "message": "Dauerhaft stummgeschaltet"
+  },
+  "expiresIn": {
+    "message": "Läuft $TIME$ ab",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "in 7 days"
+      }
+    }
+  },
+  "unmute": {
+    "message": "Stummschaltung aufheben"
+  },
+  "expired": {
+    "message": "abgelaufen"
+  },
+  "inDays": {
+    "message": "in $COUNT$ Tag(en)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "inHours": {
+    "message": "in $COUNT$ Stunde(n)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "soon": {
+    "message": "bald"
+  },
+  "loadingHiddenDetails": {
+    "message": "Details der ausgeblendeten Inhalte werden geladen..."
+  },
+  "openHaiiloToViewDetails": {
+    "message": "Öffne eine Haiilo-Seite, um Details zu ausgeblendeten Inhalten anzuzeigen."
+  },
+  "nothingHidden": {
+    "message": "Auf dieser Seite ist derzeit nichts ausgeblendet."
+  },
+  "showingHiddenItems": {
+    "message": "20 von $COUNT$ ausgeblendeten Elementen werden angezeigt.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "couldNotLoadHiddenDetails": {
+    "message": "Details der ausgeblendeten Inhalte konnten nicht geladen werden."
+  },
+  "hiddenItem": {
+    "message": "ausgeblendetes Element"
+  },
+  "noPreviewAvailable": {
+    "message": "Keine Vorschau verfügbar."
+  },
+  "matchedAuthors": {
+    "message": "Übereinstimmungen: $AUTHORS$",
+    "placeholders": {
+      "authors": {
+        "content": "$1",
+        "example": "Alex · Sam"
+      }
+    }
+  },
+  "mutedUser": {
+    "message": "Stummgeschalteter Benutzer: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "general": {
+    "message": "Allgemein"
+  },
+  "interface": {
+    "message": "Oberfläche"
+  },
+  "behavior": {
+    "message": "Verhalten"
+  },
+  "domains": {
+    "message": "Domains"
+  },
+  "dataPrivacy": {
+    "message": "Daten & Datenschutz"
+  },
+  "advanced": {
+    "message": "Erweitert"
+  },
+  "about": {
+    "message": "Über"
+  },
+  "optionsSections": {
+    "message": "Optionsbereiche"
+  },
+  "extensionStatus": {
+    "message": "Erweiterungsstatus"
+  },
+  "extensionStatusDescription": {
+    "message": "Alle Erweiterungsfunktionen (Stummschalten, Avatargestaltung, Messenger-Erweiterung, Datumsüberschreibungen) vorübergehend deaktivieren, ohne die Erweiterung zu deinstallieren."
+  },
+  "interfaceOptions": {
+    "message": "Oberflächenoptionen"
+  },
+  "keepMessengerExpanded": {
+    "message": "Messenger-Bereich geöffnet halten"
+  },
+  "messengerPanelWidth": {
+    "message": "Breite des Messenger-Bereichs"
+  },
+  "savedApplied": {
+    "message": "Bei Änderung gespeichert und angewendet."
+  },
+  "mutingOptions": {
+    "message": "Stummschaltungsoptionen"
+  },
+  "mutingDescription": {
+    "message": "Klicke auf Haiilo mit der rechten Maustaste auf einen beliebigen Benutzernamen und wähle Haiilo Enhancer → Für … stummschalten. Beiträge und Kommentare stummgeschalteter Benutzer werden auf jeder Seite ausgeblendet, bis die Stummschaltung abläuft. Hebe die Stummschaltung im Toolbar-Popup dieser Erweiterung, über das Kontextmenü oder durch erneutes Hinzufügen bei deaktivierter Option „Dauerhaft“ auf und warte die Laufzeit ab."
+  },
+  "defaultMutePeriod": {
+    "message": "Standard-Stummschaltungszeitraum (verwendet von „Für den Standardzeitraum stummschalten“):"
+  },
+  "showHiddenCount": {
+    "message": "Badge mit der Anzahl ausgeblendeter Inhalte auf dem Erweiterungssymbol anzeigen"
+  },
+  "dateTimeFormat": {
+    "message": "Datums- und Zeitformat"
+  },
+  "dateTimeDescription": {
+    "message": "Die standardmäßige Datums- und Zeitanzeige von Haiilo überschreiben. Bei neuen Installationen kann automatisch die Browsersprache verwendet werden; bestehende Installationen können die Spracheinstellung mit der Schaltfläche unten erneut anwenden."
+  },
+  "applyBrowserLocale": {
+    "message": "Browsersprach-Standards anwenden"
+  },
+  "dateFormat": {
+    "message": "Datumsformat (Datumsstandard):"
+  },
+  "chooseLocalePreset": {
+    "message": "Wähle eine sprachabhängige Voreinstellung. Dadurch wird auch das Zeitformat auf den Standard dieser Voreinstellung zurückgesetzt."
+  },
+  "timeFormat": {
+    "message": "Zeitformat:"
+  },
+  "twelveHour": {
+    "message": "12-Stunden (AM/PM)"
+  },
+  "twentyFourHour": {
+    "message": "24-Stunden"
+  },
+  "chooseTimeFormat": {
+    "message": "Wähle zwischen der 12-Stunden-Anzeige (AM/PM) und der 24-Stunden-Anzeige."
+  },
+  "channelAvatarCustomization": {
+    "message": "Anpassung von Kanalavataren"
+  },
+  "replaceGroupIcons": {
+    "message": "Allgemeine Gruppensymbole durch die Initialen einzelner Kanäle ersetzen"
+  },
+  "avatarDescription": {
+    "message": "Passe an, wie Gruppenchat-Avatare angezeigt werden, damit sie sich von einzelnen Benutzern unterscheiden."
+  },
+  "preview": {
+    "message": "Vorschau"
+  },
+  "backgroundColor": {
+    "message": "Hintergrundfarbe"
+  },
+  "randomColorPerGroup": {
+    "message": "Zufällige Farbe pro Gruppe"
+  },
+  "fixedColor": {
+    "message": "Feste Farbe:"
+  },
+  "avatarStyle": {
+    "message": "Avatar-Stil:"
+  },
+  "ringBorder": {
+    "message": "Ringrahmen"
+  },
+  "roundedSquare": {
+    "message": "Abgerundetes Quadrat"
+  },
+  "iconBadgeOverlay": {
+    "message": "Symbol-Badge"
+  },
+  "distinguishGroupChats": {
+    "message": "Wähle, wie Gruppenchats visuell von einzelnen Benutzern unterschieden werden"
+  },
+  "ringCustomization": {
+    "message": "Anpassung des Ringrahmens:"
+  },
+  "squareCustomization": {
+    "message": "Anpassung des quadratischen Rahmens:"
+  },
+  "widthPx": {
+    "message": "Breite (px)"
+  },
+  "reset": {
+    "message": "Zurücksetzen"
+  },
+  "customizeRing": {
+    "message": "Farbe und Breite des Ringrahmens anpassen"
+  },
+  "customizeSquare": {
+    "message": "Farbe und Breite des quadratischen Rahmens anpassen"
+  },
+  "badgeIconSize": {
+    "message": "Größe des Badge-Symbols:"
+  },
+  "adjustBadgeSize": {
+    "message": "Größe der Badge-Symbolüberlagerung anpassen (Prozentsatz der Grundgröße)"
+  },
+  "badgePosition": {
+    "message": "Position des Badge-Symbols:"
+  },
+  "lowerLeft": {
+    "message": "Untere linke Ecke"
+  },
+  "upperLeft": {
+    "message": "Obere linke Ecke"
+  },
+  "chooseBadgePosition": {
+    "message": "Wähle, wo das Badge-Symbol auf dem Avatar angezeigt wird"
+  },
+  "customHomepageSettings": {
+    "message": "Einstellungen für benutzerdefinierte Startseiten"
+  },
+  "customHomepageDescription": {
+    "message": "Lege fest, auf welche Startseite das Logo für jede Haiilo-Instanz weiterleitet. Klicke mit der rechten Maustaste auf einen Startseiten-Tab (z. B. „Home“, „Home (soft)“) und wähle „Als Standard-Startseite festlegen“, um ihn zu konfigurieren."
+  },
+  "reactions": {
+    "message": "Reaktionen"
+  },
+  "reactionsDescription": {
+    "message": "Verbessere die Darstellung von Emoji-Reaktionen auf Beiträgen und Kommentaren."
+  },
+  "sortReactions": {
+    "message": "Reaktions-Emojis nach Anzahl sortieren (meistverwendete zuerst)"
+  },
+  "reactionTooltip": {
+    "message": "Aufschlüsselung der Reaktionsanzahl beim Darüberfahren anzeigen (z. B. 👍22 💡2)"
+  },
+  "reactionInline": {
+    "message": "Reaktionsanzahlen neben den Emojis anzeigen"
+  },
+  "autoExpandDescription": {
+    "message": "Die linke Seitenleiste von Haiilo zeigt nur eine begrenzte Anzahl an Arbeitsbereichen und Seiten, bevor der Rest hinter einer Schaltfläche „Mehr anzeigen“ verborgen wird. Aktiviere diese Option, um die Schaltfläche beim Laden der Seite automatisch anzuklicken und alle Einträge sofort anzuzeigen."
+  },
+  "autoExpand": {
+    "message": "Seitenleistenlisten beim Laden automatisch erweitern"
+  },
+  "whichLists": {
+    "message": "Welche Listen erweitert werden sollen:"
+  },
+  "bothLists": {
+    "message": "Arbeitsbereiche und Seiten"
+  },
+  "workspacesOnly": {
+    "message": "Nur Arbeitsbereiche"
+  },
+  "pagesOnly": {
+    "message": "Nur Seiten"
+  },
+  "chooseLists": {
+    "message": "Wähle, welche Seitenleistenlisten der automatische Erweitern-Mechanismus beeinflussen soll."
+  },
+  "showMoreClicks": {
+    "message": "„Mehr anzeigen“-Klicks pro Liste:"
+  },
+  "clicksHelp": {
+    "message": "Wie oft pro Liste auf „Mehr anzeigen“ geklickt werden soll (Arbeitsbereiche und Seiten werden unabhängig erweitert). 0 deaktiviert das Klicken für diese Liste. Max. 10."
+  },
+  "delayBetweenClicks": {
+    "message": "Verzögerung zwischen Klicks (ms):"
+  },
+  "delayHelp": {
+    "message": "Wie lange zwischen aufeinanderfolgenden Klicks auf „Mehr anzeigen“ gewartet werden soll. Niedrigere Werte wirken schneller, höhere Werte sind schonender für den Server. Bereich: 100–1000 ms."
+  },
+  "customDomains": {
+    "message": "Benutzerdefinierte Haiilo-Domains"
+  },
+  "customDomainsDescription": {
+    "message": "Wenn deine Organisation eine eigene Haiilo-URL verwendet (nicht *.haiilo.app oder *.haiilo.com), füge sie hier hinzu. Der Browser fragt beim ersten Mal nach Zugriff – das ist erwartbar und bedeutet einfach: „Ja, auch auf dieser Website ausführen.“"
+  },
+  "addCustomDomain": {
+    "message": "Benutzerdefinierte Domain hinzufügen:"
+  },
+  "addDomain": {
+    "message": "Domain hinzufügen"
+  },
+  "domainPlaceholder": {
+    "message": "example.com"
+  },
+  "domainHelp": {
+    "message": "Gib nur den Domainnamen ein (z. B. intranet.company.com)"
+  },
+  "chromePermissionWarning": {
+    "message": "Hinweis: Aufgrund einer Einschränkung von Chrome können Domainberechtigungen nach ihrer Erteilung nicht widerrufen werden. Wenn du eine Domain hier entfernst, wird sie nicht mehr von der Erweiterung verwendet, aber die Berechtigung bleibt unter chrome://extensions sichtbar, bis du die Erweiterung neu installierst."
+  },
+  "dataManagement": {
+    "message": "Datenverwaltung"
+  },
+  "syncSettings": {
+    "message": "Einstellungen und stummgeschaltete Benutzer über das Browserkonto synchronisieren"
+  },
+  "syncHelp": {
+    "message": "Wenn aktiviert, werden deine Einstellungen und bis zu 50 stummgeschaltete Benutzer im integrierten Sync-Speicher des Browsers gespeichert und auf mehreren Geräten synchronisiert. Benutzerdefinierte Domains sind ausgeschlossen – füge sie auf jedem Gerät manuell hinzu. Die Cloud-Synchronisierung wird automatisch deaktiviert, wenn deine Liste mehr als 50 Benutzer enthält."
+  },
+  "cloudSyncDisabled": {
+    "message": "⚠️ Cloudsynchronisierung automatisch deaktiviert"
+  },
+  "cloudSyncDisabledDescription": {
+    "message": "Deine Liste stummgeschalteter Benutzer hat das Limit von 50 Benutzern für die Cloud-Synchronisierung überschritten. Deine Daten werden weiterhin lokal gespeichert, und es ist nichts verloren gegangen. Um die Cloud-Synchronisierung wieder zu aktivieren, reduziere deine Liste auf höchstens 50 Benutzer."
+  },
+  "backupDescription": {
+    "message": "Exportiere deine Einstellungen und stummgeschalteten Benutzer als JSON-Datei zur Sicherung oder importiere einen früheren Export, um sie wiederherzustellen. „Auf Standardwerte zurücksetzen“ löscht alles; exportiere zuerst, falls du dies rückgängig machen möchtest."
+  },
+  "exportSettings": {
+    "message": "Alle Einstellungen exportieren"
+  },
+  "importSettings": {
+    "message": "Alle Einstellungen importieren"
+  },
+  "resetEverything": {
+    "message": "Alles auf Standard zurücksetzen"
+  },
+  "domainsNeedPermission": {
+    "message": "⚠️ Für benutzerdefinierte Domains ist eine erneute Berechtigung erforderlich"
+  },
+  "domainsNeedPermissionDescription": {
+    "message": "Die folgenden Domains waren in deiner Sicherung enthalten, konnten aber nicht automatisch wiederhergestellt werden – aus Sicherheitsgründen musst du den Zugriff manuell gewähren:"
+  },
+  "domainsNeedPermissionHowTo": {
+    "message": "Um sie erneut hinzuzufügen: Scrolle zu „Benutzerdefinierte Haiilo-Domains“, gib jede Domain ein und klicke auf „Domain hinzufügen“, um den Browserzugriff zu gewähren."
+  },
+  "advancedOptions": {
+    "message": "Erweiterte Optionen"
+  },
+  "debugLogging": {
+    "message": "Debug-Protokollierung aktivieren (zur Fehlersuche)"
+  },
+  "footerTagline": {
+    "message": "Das Haiilo-Erlebnis – für dich verbessert"
+  },
+  "noCustomDomains": {
+    "message": "Keine benutzerdefinierten Domains hinzugefügt. Standard: *.haiilo.app und *.haiilo.com"
+  },
+  "noCustomHomepages": {
+    "message": "Keine benutzerdefinierten Startseiten festgelegt. Verwende das Kontextmenü eines Startseiten-Tabs, um eine festzulegen."
+  },
+  "remove": {
+    "message": "Entfernen"
+  },
+  "settingsSaved": {
+    "message": "Einstellungen gespeichert"
+  },
+  "localeDefaultsApplied": {
+    "message": "Lokale Standards angewendet"
+  },
+  "couldNotApplyLocale": {
+    "message": "Die Spracheinstellungen konnten nicht angewendet werden"
+  },
+  "domainAdded": {
+    "message": "Domain erfolgreich hinzugefügt"
+  },
+  "domainRemoved": {
+    "message": "Domain erfolgreich entfernt"
+  },
+  "domainAlreadyExists": {
+    "message": "Domain existiert bereits"
+  },
+  "validDomain": {
+    "message": "Bitte gib einen gültigen Domainnamen ein"
+  },
+  "permissionDenied": {
+    "message": "Berechtigung verweigert. Du musst den Zugriff auf diese Domain erlauben."
+  },
+  "allSettingsExported": {
+    "message": "Alle Einstellungen erfolgreich exportiert"
+  },
+  "invalidImport": {
+    "message": "Ungültiges Dateiformat – muss „mutedUsers“ und/oder „settings“ enthalten"
+  },
+  "failedImport": {
+    "message": "Daten konnten nicht importiert werden: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid file"
+      }
+    }
+  },
+  "extensionNameVersion": {
+    "message": "Haiilo Enhancer v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.5.0"
+      }
+    }
+  },
+  "reactionsLabel": {
+    "message": "Reaktionen: $TEXT$",
+    "placeholders": {
+      "text": {
+        "content": "$1",
+        "example": "👍 3"
+      }
+    }
+  },
+  "reactionCounts": {
+    "message": "Reaktionsanzahlen"
+  },
+  "reactionCount": {
+    "message": "$COUNT$ Reaktionen",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "icsDownloaded": {
+    "message": "ICS-Datei heruntergeladen. Öffne sie über deine Browser-Downloads, um sie zu importieren."
+  },
+  "addToCalendar": {
+    "message": "Zum Kalender hinzufügen"
+  },
+  "event": {
+    "message": "Ereignis"
+  },
+  "host": {
+    "message": "Veranstalter: $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "muteUserPermanently": {
+    "message": "Diesen Benutzer dauerhaft stummschalten"
+  },
+  "muteDefaultPeriod": {
+    "message": "Für den Standardzeitraum stummschalten"
+  },
+  "muteForDays": {
+    "message": "Für $COUNT$ Tag(e) stummschalten",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "setDefaultHomepage": {
+    "message": "Als Standard-Startseite festlegen"
+  },
+  "googleCalendar": {
+    "message": "Google Calendar"
+  },
+  "outlookCalendar": {
+    "message": "Outlook.com"
+  },
+  "yahooCalendar": {
+    "message": "Yahoo Calendar"
+  },
+  "downloadIcs": {
+    "message": "ICS-Datei herunterladen"
+  },
+  "optionsTitle": {
+    "message": "Haiilo Enhancer – Optionen"
+  },
+  "itemsHiddenSummary": {
+    "message": "$COUNT$ Elemente auf dieser Seite ausgeblendet",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "warrantyFull": {
+    "message": "Dieses Programm wird OHNE JEDE GARANTIE bereitgestellt. Weitere Informationen finden Sie in der GNU Affero General Public License."
+  },
+  "northAmericanDate": {
+    "message": "MM/DD/YYYY (Nordamerikanisch)"
+  },
+  "westernEuropeanDate": {
+    "message": "DD/MM/YYYY (Westeuropäisch)"
+  },
+  "centralEuropeanDate": {
+    "message": "DD.MM.YYYY (Mitteleuropäisch)"
+  },
+  "dutchDate": {
+    "message": "DD-MM-YYYY (Niederländisch)"
+  },
+  "isoDate": {
+    "message": "YYYY-MM-DD (ISO 8601)"
+  },
+  "eastAsianDate": {
+    "message": "YYYY/MM/DD (Ostasiatisch)"
+  },
+  "hungarianDate": {
+    "message": "YYYY. MM. DD. (Ungarisch)"
+  },
+  "finnishDate": {
+    "message": "D.M.YYYY (Finnisch)"
+  },
+  "spacedCentralDate": {
+    "message": "D. M. YYYY (Mitteleuropäisch)"
+  },
+  "dottedSlavicDate": {
+    "message": "D.M.YYYY. (Mitteleuropäisch)"
+  },
+  "spacedSlavicDate": {
+    "message": "D. M. YYYY. (Mitteleuropäisch)"
+  },
+  "koreanDate": {
+    "message": "YYYY. M. D. (Koreanisch)"
+  },
+  "latinAmericanDate": {
+    "message": "DD/MM/YYYY (Lateinamerikanisch)"
+  },
+  "middleEasternDate": {
+    "message": "DD/MM/YYYY (Nahöstlich)"
+  },
+  "southeastAsianDate": {
+    "message": "DD/MM/YYYY (Südostasiatisch)"
+  },
+  "southAsianDate": {
+    "message": "DD/MM/YYYY (Südasiatisch)"
+  },
+  "licensePermission": {
+    "message": "Dieses Programm ist freie Software: Sie dürfen es gemäß den Bedingungen der GNU Affero General Public License, wie von der Free Software Foundation veröffentlicht, weitergeben und/oder ändern, entweder nach Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren Version."
+  },
+  "licenseWarrantyFull": {
+    "message": "Dieses Programm wird in der Hoffnung verbreitet, dass es nützlich ist, jedoch OHNE JEDE GARANTIE; auch ohne die stillschweigende Garantie der MARKTGÄNGIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK. Weitere Informationen finden Sie in der GNU Affero General Public License."
+  },
+  "independentDisclaimer": {
+    "message": "Dies ist ein unabhängiges Open-Source-Projekt, das nicht mit Haiilo GmbH oder einer ihrer Tochter- oder verbundenen Gesellschaften verbunden, von ihnen unterstützt oder in irgendeiner Weise offiziell mit ihnen verknüpft ist. Der Name Haiilo und verwandte Kennzeichen sind eingetragene Marken ihrer jeweiligen Inhaber."
+  },
+  "cloudSyncUnavailable": {
+    "message": "Cloud-Synchronisierung ist nicht verfügbar. Stelle sicher, dass du in deinem Browserkonto angemeldet bist."
+  },
+  "importedData": {
+    "message": "$DETAILS$ importiert",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "all settings"
+      }
+    }
+  },
+  "resetComplete": {
+    "message": "Alle Einstellungen wurden auf die Standardwerte zurückgesetzt"
+  },
+  "donateLiberapay": {
+    "message": "Auf Liberapay spenden"
+  },
+  "donateKofi": {
+    "message": "Auf Ko-fi spenden"
+  },
+  "importMutedUsers": {"message":"$COUNT$ stummgeschaltete Benutzer","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importAllSettings": {"message":"alle Einstellungen"},
+  "importDomainsNeedReauth": {"message":"$COUNT$ benutzerdefinierte Domain(s) müssen manuell erneut autorisiert werden (siehe Warnung oben)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importCustomHomepages": {"message":"$COUNT$ benutzerdefinierte Startseite(n)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "homepageHome": {"message":"Startseite"},
+  "homepageHomeSoft": {"message":"Startseite (soft)"},
+  "homepageSection": {"message":"Startseite ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
+  "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "confirmReset": {"message":"Möchtest du wirklich alles auf die Standardwerte zurücksetzen? Dies kann nicht rückgängig gemacht werden."},
+  "ringSettingsReset": {"message":"Ringeinstellungen auf Standard zurückgesetzt"},
+  "squareSettingsReset": {"message":"Einstellungen des quadratischen Rahmens auf Standard zurückgesetzt"},
+  "badgeSettingsReset": {"message":"Badge-Einstellungen auf Standard zurückgesetzt"},
+  "languageSettings": {"message":"Sprache"},
+  "language": {"message":"Sprache der Erweiterung:"},
+  "languageBrowser": {"message":"Browsersprache"},
+  "languageEnglish": {"message":"Englisch"},
+  "languageGerman": {"message":"Deutsch"},
+  "languageCzech": {"message":"Tschechisch"},
+  "languageSpanish": {"message":"Spanisch"},
+  "languageFrench": {"message":"Französisch"},
+  "languageHungarian": {"message":"Ungarisch"},
+  "languageItalian": {"message":"Italienisch"},
+  "languageDutch": {"message":"Niederländisch"},
+  "languagePolish": {"message":"Polnisch"}
+}

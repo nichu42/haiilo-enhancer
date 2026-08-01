@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Haiilo Enhancer - Options</title>
+  <title data-i18n="optionsTitle"></title>
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="stylesheet" href="options.css">
 </head>
@@ -13,143 +13,155 @@
       <div class="title-container">
         <h1>
           <img class="app-icon" src="icons/icon.svg" alt="" width="32" height="32">
-          Haiilo Enhancer
+          <span data-i18n="extensionName"></span>
         </h1>
         <span class="version" id="versionInfo"></span>
       </div>
     </header>
 
     <div class="options-layout">
-      <nav class="options-nav" aria-label="Options sections">
-        <p class="options-nav-title">Settings</p>
-        <a href="#general-heading" class="options-nav-link" data-section="general">General</a>
-        <a href="#interface-heading" class="options-nav-link" data-section="interface">Interface</a>
-        <a href="#behavior-heading" class="options-nav-link" data-section="behavior">Behavior</a>
-        <a href="#domains-heading" class="options-nav-link" data-section="domains">Domains</a>
-        <a href="#data-privacy-heading" class="options-nav-link" data-section="data">Data &amp; Privacy</a>
-        <a href="#advanced-heading" class="options-nav-link" data-section="advanced">Advanced</a>
-        <a href="#about-heading" class="options-nav-link" data-section="about">About</a>
+      <nav class="options-nav" data-i18n-aria-label="optionsSections" aria-label="Options sections">
+        <p class="options-nav-title" data-i18n="settings"></p>
+        <a href="#general-heading" class="options-nav-link" data-section="general" data-i18n="general"></a>
+        <a href="#interface-heading" class="options-nav-link" data-section="interface" data-i18n="interface"></a>
+        <a href="#behavior-heading" class="options-nav-link" data-section="behavior" data-i18n="behavior"></a>
+        <a href="#domains-heading" class="options-nav-link" data-section="domains" data-i18n="domains"></a>
+        <a href="#data-privacy-heading" class="options-nav-link" data-section="data" data-i18n="dataPrivacy"></a>
+        <a href="#advanced-heading" class="options-nav-link" data-section="advanced" data-i18n="advanced"></a>
+        <a href="#about-heading" class="options-nav-link" data-section="about" data-i18n="about"></a>
       </nav>
 
       <main class="options-content">
     <section id="general" class="extension-toggle-section" data-nav-section="general">
       <div class="extension-toggle-container">
         <div class="extension-toggle-text">
-          <h2>Extension Status</h2>
-          <p class="description">Temporarily turn off all extension features (muting, avatar styling, messenger expansion, date overrides) without uninstalling the extension.</p>
+          <h2 data-i18n="extensionStatus"></h2>
+          <p class="description" data-i18n="extensionStatusDescription"></p>
         </div>
-        <label class="switch-toggle" aria-label="Toggle Extension">
+        <label class="switch-toggle" data-i18n-aria-label="toggleExtension" aria-label="Toggle Extension">
           <input type="checkbox" id="extensionEnabled" checked>
           <span class="slider-round"></span>
         </label>
       </div>
     </section>
 
+    <section id="general-language" data-nav-section="general">
+      <h2 data-i18n="languageSettings"></h2>
+      <div class="form-group">
+        <label for="language" data-i18n="language"></label>
+        <select id="language">
+          <option value="browser" data-i18n="languageBrowser"></option>
+          <option value="en" data-i18n="languageEnglish"></option>
+          <option value="de" data-i18n="languageGerman"></option>
+          <option value="cs" data-i18n="languageCzech"></option>
+          <option value="es" data-i18n="languageSpanish"></option>
+          <option value="fr" data-i18n="languageFrench"></option>
+          <option value="hu" data-i18n="languageHungarian"></option>
+          <option value="it" data-i18n="languageItalian"></option>
+          <option value="nl" data-i18n="languageDutch"></option>
+          <option value="pl" data-i18n="languagePolish"></option>
+        </select>
+      </div>
+    </section>
+
     <section id="interface" data-nav-section="interface">
-      <h2>Interface Options</h2>
+      <h2 data-i18n="interfaceOptions"></h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="keepMessengerExpanded">
-          <span>Keep messenger panel expanded</span>
+          <span data-i18n="keepMessengerExpanded"></span>
         </label>
       </div>
       <div class="form-group slider-group">
         <div class="slider-header">
-          <label for="messengerPanelWidthPercent">Messenger panel width</label>
+          <label for="messengerPanelWidthPercent" data-i18n="messengerPanelWidth"></label>
           <output id="messengerPanelWidthValue" for="messengerPanelWidthPercent">100%</output>
         </div>
         <div class="slider-row">
           <input type="range" id="messengerPanelWidthPercent" min="50" max="125" step="5" value="100">
         </div>
-        <p class="slider-help">Saved and applied when changed.</p>
+        <p class="slider-help" data-i18n="savedApplied"></p>
       </div>
     </section>
 
     <section id="general-muting" data-nav-section="general">
-      <h2>Muting Options</h2>
-      <p class="description">
-        <strong>Right-click any username on Haiilo</strong> and choose
-        <em>Haiilo Enhancer → Mute for …</em>. Muted users' posts and
-        comments are hidden on every page until they expire. Unmute
-        them from this extension's toolbar popup, or via the context
-        menu, or by adding them again with "Permanently" off and
-        waiting it out.
-      </p>
+      <h2 data-i18n="mutingOptions"></h2>
+      <p class="description" data-i18n="mutingDescription"></p>
       <div class="form-group">
-        <label for="defaultMuteDays">Default mute period (used by "Mute for default period"):</label>
+        <label for="defaultMuteDays" data-i18n="defaultMutePeriod"></label>
         <select id="defaultMuteDays">
-          <option value="1">1 day</option>
-          <option value="3">3 days</option>
-          <option value="7">7 days</option>
-          <option value="14">14 days</option>
-          <option value="30">30 days</option>
-          <option value="90">90 days</option>
+          <option value="1" data-i18n="oneDay"></option>
+          <option value="3" data-i18n="threeDays"></option>
+          <option value="7" data-i18n="sevenDays"></option>
+          <option value="14" data-i18n="fourteenDays"></option>
+          <option value="30" data-i18n="thirtyDays"></option>
+          <option value="90" data-i18n="ninetyDays"></option>
         </select>
       </div>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="showMutedIndicator">
-          <span>Show badge with hidden content count on the extension icon</span>
+          <span data-i18n="showHiddenCount"></span>
         </label>
       </div>
     </section>
 
     <section id="general-date-time" data-nav-section="general">
-      <h2>Date & Time Format</h2>
-      <p class="description">Override Haiilo's default date and time display. New installs can match the browser locale automatically; existing installs can re-apply the locale preset with the button below.</p>
+      <h2 data-i18n="dateTimeFormat"></h2>
+      <p class="description" data-i18n="dateTimeDescription"></p>
       <div class="button-group" style="margin-bottom: 20px;">
-        <button type="button" class="secondary" id="applyLocaleDefaults">Apply browser locale defaults</button>
+        <button type="button" class="secondary" id="applyLocaleDefaults" data-i18n="applyBrowserLocale"></button>
       </div>
 
       <div class="form-group">
-        <label for="dateFormat">Date format (date standard):</label>
+        <label for="dateFormat" data-i18n="dateFormat"></label>
         <select id="dateFormat">
-          <option value="northAmerican12h">MM/DD/YYYY (North American)</option>
-          <option value="westernEuropean24h">DD/MM/YYYY (Western European)</option>
-          <option value="centralEuropean24h">DD.MM.YYYY (Central European)</option>
-          <option value="dutch24h">DD-MM-YYYY (Dutch)</option>
-          <option value="iso860124h">YYYY-MM-DD (ISO 8601)</option>
-          <option value="eastAsian24h">YYYY/MM/DD (East Asian)</option>
-          <option value="hungarian24h">YYYY. MM. DD. (Hungarian)</option>
-          <option value="finnish24h">D.M.YYYY (Finnish)</option>
-          <option value="spacedCentral24h">D. M. YYYY (Central European)</option>
-          <option value="dottedSlavic24h">D.M.YYYY. (Central European)</option>
-          <option value="spacedSlavic24h">D. M. YYYY. (Central European)</option>
-          <option value="korean24h">YYYY. M. D. (Korean)</option>
-          <option value="latinAmerican24h">DD/MM/YYYY (Latin American)</option>
-          <option value="middleEastern24h">DD/MM/YYYY (Middle Eastern)</option>
-          <option value="southeastAsian24h">DD/MM/YYYY (Southeast Asian)</option>
-          <option value="southAsian12h">DD/MM/YYYY (South Asian)</option>
+          <option value="northAmerican12h" data-i18n="northAmericanDate"></option>
+          <option value="westernEuropean24h" data-i18n="westernEuropeanDate"></option>
+          <option value="centralEuropean24h" data-i18n="centralEuropeanDate"></option>
+          <option value="dutch24h" data-i18n="dutchDate"></option>
+          <option value="iso860124h" data-i18n="isoDate"></option>
+          <option value="eastAsian24h" data-i18n="eastAsianDate"></option>
+          <option value="hungarian24h" data-i18n="hungarianDate"></option>
+          <option value="finnish24h" data-i18n="finnishDate"></option>
+          <option value="spacedCentral24h" data-i18n="spacedCentralDate"></option>
+          <option value="dottedSlavic24h" data-i18n="dottedSlavicDate"></option>
+          <option value="spacedSlavic24h" data-i18n="spacedSlavicDate"></option>
+          <option value="korean24h" data-i18n="koreanDate"></option>
+          <option value="latinAmerican24h" data-i18n="latinAmericanDate"></option>
+          <option value="middleEastern24h" data-i18n="middleEasternDate"></option>
+          <option value="southeastAsian24h" data-i18n="southeastAsianDate"></option>
+          <option value="southAsian12h" data-i18n="southAsianDate"></option>
         </select>
-        <small class="help-text">Choose a locale-based preset. Changing this will also reset time format to that preset's default.</small>
+        <small class="help-text" data-i18n="chooseLocalePreset"></small>
       </div>
 
       <div class="form-group">
-        <label for="timeFormat">Time format:</label>
+        <label for="timeFormat" data-i18n="timeFormat"></label>
         <select id="timeFormat">
-          <option value="12h">12-hour (AM/PM)</option>
-          <option value="24h">24-hour</option>
+          <option value="12h" data-i18n="twelveHour"></option>
+          <option value="24h" data-i18n="twentyFourHour"></option>
         </select>
-        <small class="help-text">Choose between 12-hour (AM/PM) and 24-hour time display.</small>
+        <small class="help-text" data-i18n="chooseTimeFormat"></small>
       </div>
     </section>
 
     <section id="interface-avatars" data-nav-section="interface">
-      <h2>Channel Avatar Customization</h2>
+      <h2 data-i18n="channelAvatarCustomization"></h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="enhanceChannelAvatars">
-          <span>Replace generic group chat icons with individual channel initials</span>
+          <span data-i18n="replaceGroupIcons"></span>
         </label>
       </div>
 
       <div id="channelAvatarOptions" style="display: none;">
-        <p class="description">Customize how group chat avatars appear to distinguish them from individual users.</p>
+        <p class="description" data-i18n="avatarDescription"></p>
 
         <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
           <!-- Preview -->
           <div class="avatar-preview-container">
-            <h3>Preview</h3>
+            <h3 data-i18n="preview"></h3>
             <div class="avatar-preview-wrapper">
               <div class="avatar-preview empty-avatar cui-text-m" id="previewAvatar">
                 <span id="previewInitials">HT</span>
@@ -159,17 +171,17 @@
 
           <!-- Color Settings -->
           <div class="avatar-color-settings">
-            <h3>Background Color</h3>
+            <h3 data-i18n="backgroundColor"></h3>
             <div class="form-group">
               <label>
                 <input type="radio" name="colorMode" value="random" id="colorModeRandom" checked>
-                <span>Random color per group</span>
+                <span data-i18n="randomColorPerGroup"></span>
               </label>
             </div>
             <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
               <label style="margin: 0;">
                 <input type="radio" name="colorMode" value="fixed" id="colorModeFixed">
-                <span>Fixed color:</span>
+                <span data-i18n="fixedColor"></span>
               </label>
               <input type="color" id="channelAvatarFixedColor" value="#0f939d">
             </div>
@@ -177,219 +189,203 @@
         </div>
 
       <div class="form-group">
-        <label for="channelAvatarStyle">Avatar style:</label>
+        <label for="channelAvatarStyle" data-i18n="avatarStyle"></label>
         <select id="channelAvatarStyle">
-          <option value="ring">Ring border</option>
-          <option value="square">Rounded square</option>
-          <option value="badge">Icon badge overlay</option>
+          <option value="ring" data-i18n="ringBorder"></option>
+          <option value="square" data-i18n="roundedSquare"></option>
+          <option value="badge" data-i18n="iconBadgeOverlay"></option>
         </select>
-        <small class="help-text">Choose how to visually distinguish group chats from individual users</small>
+        <small class="help-text" data-i18n="distinguishGroupChats"></small>
       </div>
 
       <!-- Ring Style Settings -->
       <div class="form-group style-settings" id="ringColorSettings">
-        <label for="channelAvatarRingColor">Ring border customization:</label>
+        <label for="channelAvatarRingColor" data-i18n="ringCustomization"></label>
         <div class="color-input-group">
           <input type="color" id="channelAvatarRingColor" value="#502379">
           <input type="number" id="channelAvatarRingWidth" min="0" max="5" step="0.5" value="2">
-          <span class="opacity-label">Width (px)</span>
-          <button type="button" class="secondary reset-btn" id="resetRing">Reset</button>
+          <span class="opacity-label" data-i18n="widthPx"></span>
+          <button type="button" class="secondary reset-btn" id="resetRing" data-i18n="reset"></button>
         </div>
-        <small class="help-text">Customize the ring border color and width</small>
+        <small class="help-text" data-i18n="customizeRing"></small>
       </div>
 
       <!-- Square Style Settings -->
       <div class="form-group style-settings" id="squareColorSettings" style="display: none;">
-        <label for="channelAvatarSquareColor">Square border customization:</label>
+        <label for="channelAvatarSquareColor" data-i18n="squareCustomization"></label>
         <div class="color-input-group">
           <input type="color" id="channelAvatarSquareColor" value="#502379">
           <input type="number" id="channelAvatarSquareWidth" min="0" max="5" step="0.5" value="2">
-          <span class="opacity-label">Width (px)</span>
-          <button type="button" class="secondary reset-btn" id="resetSquare">Reset</button>
+          <span class="opacity-label" data-i18n="widthPx"></span>
+          <button type="button" class="secondary reset-btn" id="resetSquare" data-i18n="reset"></button>
         </div>
-        <small class="help-text">Customize the square border color and width</small>
+        <small class="help-text" data-i18n="customizeSquare"></small>
       </div>
 
       <!-- Badge Style Settings -->
       <div class="form-group style-settings" id="badgeSizeSettings" style="display: none;">
-        <label for="channelAvatarBadgeSize">Badge icon size:</label>
+        <label for="channelAvatarBadgeSize" data-i18n="badgeIconSize"></label>
         <div class="slider-input-group">
           <input type="range" id="channelAvatarBadgeSize" min="50" max="150" step="10" value="100">
           <span class="slider-value" id="badgeSizeValue">100%</span>
-          <button type="button" class="secondary reset-btn" id="resetBadge">Reset</button>
+          <button type="button" class="secondary reset-btn" id="resetBadge" data-i18n="reset"></button>
         </div>
-        <small class="help-text">Adjust the size of the badge icon overlay (percentage of base size)</small>
+        <small class="help-text" data-i18n="adjustBadgeSize"></small>
       </div>
 
       <div class="form-group style-settings" id="badgePositionSettings" style="display: none;">
-        <label for="channelAvatarBadgePosition">Badge position:</label>
+        <label for="channelAvatarBadgePosition" data-i18n="badgePosition"></label>
         <select id="channelAvatarBadgePosition">
-          <option value="bottom-left">Lower left corner</option>
-          <option value="top-left">Upper left corner</option>
+          <option value="bottom-left" data-i18n="lowerLeft"></option>
+          <option value="top-left" data-i18n="upperLeft"></option>
         </select>
-        <small class="help-text">Choose where the badge icon appears on the avatar</small>
+        <small class="help-text" data-i18n="chooseBadgePosition"></small>
       </div>
       </div>
     </section>
 
     <section id="behavior-homepage" data-nav-section="behavior">
-      <h2>Custom Homepage Settings</h2>
-      <p class="description">Set which homepage the logo redirects to for each Haiilo instance. Right-click on a homepage tab (e.g., "Home", "Home (soft)") and select "Set as default homepage" to configure.</p>
+      <h2 data-i18n="customHomepageSettings"></h2>
+      <p class="description" data-i18n="customHomepageDescription"></p>
       <div id="homepagesList" class="domains-list"></div>
     </section>
 
     <section id="interface-reactions" data-nav-section="interface">
-      <h2>Reactions</h2>
-      <p class="description">Improve how emoji reactions are displayed on posts and comments.</p>
+      <h2 data-i18n="reactions"></h2>
+      <p class="description" data-i18n="reactionsDescription"></p>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="sortReactionsByCount">
-          <span>Sort reaction emojis by count (most used first)</span>
+          <span data-i18n="sortReactions"></span>
         </label>
       </div>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="showReactionCountTooltip">
-          <span>Show reaction count breakdown on hover (e.g. 👍22 💡2)</span>
+          <span data-i18n="reactionTooltip"></span>
         </label>
       </div>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="showReactionCountInline">
-          <span>Show reaction counts inline next to the emojis</span>
+          <span data-i18n="reactionInline"></span>
         </label>
       </div>
     </section>
 
     <section id="behavior" data-nav-section="behavior">
-      <p class="description">Haiilo's left sidebar shows a limited number of Workspaces and Pages before hiding the rest behind a "Show more" button. Enable this to auto-click that button on page load so all entries are visible at once.</p>
+      <p class="description" data-i18n="autoExpandDescription"></p>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="autoExpandEnabled">
-          <span>Auto-expand sidebar lists on page load</span>
+          <span data-i18n="autoExpand"></span>
         </label>
       </div>
       <div class="form-group">
-        <label for="autoExpandScope">Which lists to expand:</label>
+        <label for="autoExpandScope" data-i18n="whichLists"></label>
         <select id="autoExpandScope">
-          <option value="both">Both Workspaces and Pages</option>
-          <option value="workspaces">Workspaces only</option>
-          <option value="pages">Pages only</option>
+          <option value="both" data-i18n="bothLists"></option>
+          <option value="workspaces" data-i18n="workspacesOnly"></option>
+          <option value="pages" data-i18n="pagesOnly"></option>
         </select>
-        <small class="help-text">Choose which sidebar lists the auto-expander should affect.</small>
+        <small class="help-text" data-i18n="chooseLists"></small>
       </div>
       <div class="form-group">
-        <label for="autoExpandClicksPerList">"Show more" clicks per list:</label>
+        <label for="autoExpandClicksPerList" data-i18n="showMoreClicks"></label>
         <input type="number" id="autoExpandClicksPerList" min="0" max="10" step="1" value="3">
-        <small class="help-text">How many times to click "Show more" for each list (Workspaces and Pages are expanded independently). 0 disables clicking for that list. Max 10.</small>
+        <small class="help-text" data-i18n="clicksHelp"></small>
       </div>
       <div class="form-group">
-        <label for="autoExpandDelayMs">Delay between clicks (ms):</label>
+        <label for="autoExpandDelayMs" data-i18n="delayBetweenClicks"></label>
         <input type="number" id="autoExpandDelayMs" min="100" max="1000" step="50" value="300">
-        <small class="help-text">How long to wait between consecutive "Show more" clicks. Lower values feel snappier, higher values are gentler on the server. Range: 100-1000 ms.</small>
+        <small class="help-text" data-i18n="delayHelp"></small>
       </div>
     </section>
 
     <section id="domains" data-nav-section="domains">
-      <h2>Custom Haiilo Domains</h2>
-      <p class="description">If your organization uses a custom Haiilo URL (not *.haiilo.app or *.haiilo.com), add it here. The browser will ask you to grant access the first time — that's expected, it just means "yes, run on this site too."</p>
+      <h2 data-i18n="customDomains"></h2>
+      <p class="description" data-i18n="customDomainsDescription"></p>
       <div id="domainsList" class="domains-list"></div>
       <div class="form-group">
-        <label for="newDomain">Add custom domain:</label>
+        <label for="newDomain" data-i18n="addCustomDomain"></label>
         <div class="domain-input-group">
-          <input type="text" id="newDomain" placeholder="example.com">
-          <button type="button" id="addDomain" class="secondary">Add Domain</button>
+          <input type="text" id="newDomain" data-i18n-placeholder="domainPlaceholder" placeholder="example.com">
+          <button type="button" id="addDomain" class="secondary" data-i18n="addDomain"></button>
         </div>
-        <small class="help-text">Enter just the domain name (e.g., intranet.company.com)</small>
-        <small class="help-text warning-text" id="chromePermissionWarning">Note: Due to a Chrome limitation, domain permissions cannot be revoked after being granted. Removing a domain here stops the extension from using it, but the permission will remain visible in chrome://extensions until you reinstall the extension.</small>
+        <small class="help-text" data-i18n="domainHelp"></small>
+        <small class="help-text warning-text" id="chromePermissionWarning" data-i18n="chromePermissionWarning"></small>
       </div>
     </section>
 
     <section id="data" data-nav-section="data">
-      <h2>Data Management</h2>
+      <h2 data-i18n="dataManagement"></h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="cloudSync">
-          <span>Sync settings and muted users via browser account</span>
+          <span data-i18n="syncSettings"></span>
         </label>
-        <small class="help-text">When enabled, your settings and up to 50 muted users are stored in your browser's built-in sync storage (Google account for Chrome, Firefox account for Firefox) and roam across devices. Custom domains are excluded — re-add them manually on each device. Cloud sync is disabled automatically if your muted list exceeds 50 users.</small>
+        <small class="help-text" data-i18n="syncHelp"></small>
         <div id="cloudSyncWarning" class="reauth-warning" style="display: none;">
-          <strong>⚠️ Cloud sync was automatically disabled</strong>
-          <p>Your muted users list exceeded the 50-user limit for cloud sync. Your data is still stored locally and nothing was lost. To re-enable cloud sync, reduce your muted users list to 50 or fewer.</p>
+          <strong data-i18n="cloudSyncDisabled"></strong>
+          <p data-i18n="cloudSyncDisabledDescription"></p>
         </div>
       </div>
-      <p class="description">Export your settings and muted users to a JSON file as a backup, or import a previous export to restore them. <strong>Reset to Defaults</strong> wipes everything; export first if you might want to undo it.</p>
+      <p class="description" data-i18n="backupDescription"></p>
       <div class="button-group">
-        <button id="exportData" class="secondary">Export All Settings</button>
-        <button id="importData" class="secondary">Import All Settings</button>
-        <button id="clearAll" class="danger">Reset Everything to Defaults</button>
+        <button id="exportData" class="secondary" data-i18n="exportSettings"></button>
+        <button id="importData" class="secondary" data-i18n="importSettings"></button>
+        <button id="clearAll" class="danger" data-i18n="resetEverything"></button>
       </div>
       <input type="file" id="importFile" accept=".json" style="display: none;">
       <div id="domainReauthWarning" class="reauth-warning" style="display: none;">
-        <strong>⚠️ Custom domains need permission re-grant</strong>
-        <p>The following domains were in your backup but could not be restored automatically — browser security requires you to grant access manually:</p>
+        <strong data-i18n="domainsNeedPermission"></strong>
+        <p data-i18n="domainsNeedPermissionDescription"></p>
         <ul id="domainReauthList"></ul>
-        <p>To re-add them: scroll down to <strong>Custom Haiilo Domains</strong>, enter each domain, and click <strong>Add Domain</strong> to grant browser access.</p>
+        <p data-i18n="domainsNeedPermissionHowTo"></p>
       </div>
     </section>
 
     <div class="save-status" id="saveStatus"></div>
 
     <section id="advanced" data-nav-section="advanced">
-      <h2>Advanced Options</h2>
+      <h2 data-i18n="advancedOptions"></h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="debugMode">
-          <span>Enable debug logging (for troubleshooting)</span>
+          <span data-i18n="debugLogging"></span>
         </label>
       </div>
     </section>
 
     <footer id="about" data-nav-section="about">
       <p class="footer-title" id="footerVersion">Haiilo Enhancer</p>
-      <p class="credits">The Haiilo experience, enhanced for you</p>
+      <p class="credits" data-i18n="footerTagline"></p>
       <p class="footer-spacer"></p>
+      <p class="license-text" data-i18n="copyright"></p>
+      <p class="license-text" data-i18n="licensePermission"></p>
+      <p class="license-text" data-i18n="licenseWarrantyFull"></p>
       <p class="license-text">
-        Copyright &copy; 2026 nichu42 and contributors
-      </p>
-      <p class="license-text">
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU Affero General Public License as published
-        by the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-      </p>
-      <p class="license-text">
-        This program is distributed in the hope that it will be useful, but
-        WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-        <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">GNU Affero General Public License</a>
-        for more details.
-      </p>
-      <p class="license-text">
-        <a href="https://github.com/nichu42/haiilo-enhancer/issues" target="_blank" rel="noopener">Report a bug / request a feature</a>
+        <a href="https://github.com/nichu42/haiilo-enhancer/issues" target="_blank" rel="noopener" data-i18n="reportIssue"></a>
       </p>
       <p class="license-text footer-donate">
-        <span class="donate-label">Support this project:</span>
-        <a class="donate-link donate-liberapay" href="https://liberapay.com/nichu42/" target="_blank" rel="noopener" aria-label="Donate on Liberapay">
+        <span class="donate-label" data-i18n="supportProject"></span>
+        <a class="donate-link donate-liberapay" href="https://liberapay.com/nichu42/" target="_blank" rel="noopener" data-i18n-aria-label="donateLiberapay" aria-label="Donate on Liberapay">
           <svg class="donate-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#f6c915"/><text x="12" y="16" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="800" font-size="11" fill="#1a171b">lp</text></svg>
-          <span>Liberapay</span>
+          <span data-i18n="liberapay"></span>
         </a>
-        <a class="donate-link donate-kofi" href="https://ko-fi.com/nichu42" target="_blank" rel="noopener" aria-label="Donate on Ko-fi">
+        <a class="donate-link donate-kofi" href="https://ko-fi.com/nichu42" target="_blank" rel="noopener" data-i18n-aria-label="donateKofi" aria-label="Donate on Ko-fi">
           <svg class="donate-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#FF5E5B"/><path d="M6 10h11v1a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5v-1zm0-2a1 1 0 0 1 1-1h11a1 1 0 0 1 0 2H7a1 1 0 0 1-1-1z" fill="#ffffff"/></svg>
-          <span>Ko-fi</span>
+          <span data-i18n="koFi"></span>
         </a>
       </p>
-      <p class="disclaimer">
-        This is an independent, open-source project not affiliated with, endorsed
-        by, or in any way officially connected with Haiilo GmbH or any of its
-        subsidiaries or affiliates. The name Haiilo and related marks are
-        registered trademarks of their respective owners.
-      </p>
+      <p class="disclaimer" data-i18n="independentDisclaimer"></p>
     </footer>
       </main>
     </div>
   </div>
 
+  <script src="shared.js"></script>
+  <script src="i18n.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+{
+  "name": "haiilo-enhancer",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Browser extension to mute/filter posts from specific users on Haiilo platform.",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "test": "node --test",
+    "lint": "node scripts/lint-console.mjs && node scripts/check-locales.mjs && node scripts/check-localized-html.mjs",
+    "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build.mjs -Chrome",
+    "build:firefox": "node scripts/build.mjs -Firefox"
+  },
+  "engines": {
+    "node": ">=18.13.0"
+  }
+}

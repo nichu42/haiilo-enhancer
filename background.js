@@ -2,6 +2,12 @@
 // Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
 //# sourceURL=haiilo-enhancer/background.js
 
+try {
+  importScripts('shared.js', 'i18n.js');
+} catch (error) {
+  console.error('Failed to load shared libraries:', error);
+}
+
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 // Firefox MV2 uses browser.browserAction; Chrome MV3 uses chrome.action (or browser.action)
@@ -11,29 +17,11 @@ const badgeAPI = (typeof browser !== 'undefined' && browser.browserAction)
   ? browser.browserAction
   : (browserAPI.action || chrome.action);
 
-const DATE_TIME_PRESETS = {
-  northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h', label: 'MM/DD/YYYY (North American)' },
-  westernEuropean12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Western European)' },
-  westernEuropean24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Western European)' },
-  centralEuropean24h: { dateFormat: 'DD.MM.YYYY', timeFormat: '24h', label: 'DD.MM.YYYY (Central European)' },
-  dutch24h: { dateFormat: 'DD-MM-YYYY', timeFormat: '24h', label: 'DD-MM-YYYY (Dutch)' },
-  iso860124h: { dateFormat: 'YYYY-MM-DD', timeFormat: '24h', label: 'YYYY-MM-DD (ISO 8601)' },
-  eastAsian12h: { dateFormat: 'YYYY/MM/DD', timeFormat: '12h', label: 'YYYY/MM/DD (East Asian)' },
-  eastAsian24h: { dateFormat: 'YYYY/MM/DD', timeFormat: '24h', label: 'YYYY/MM/DD (East Asian)' },
-  hungarian24h: { dateFormat: 'YYYY. MM. DD.', timeFormat: '24h', label: 'YYYY. MM. DD. (Hungarian)' },
-  finnish24h: { dateFormat: 'D.M.YYYY', timeFormat: '24h', label: 'D.M.YYYY (Finnish)' },
-  spacedCentral24h: { dateFormat: 'D. M. YYYY', timeFormat: '24h', label: 'D. M. YYYY (Central European)' },
-  dottedSlavic24h: { dateFormat: 'D.M.YYYY.', timeFormat: '24h', label: 'D.M.YYYY. (Central European)' },
-  spacedSlavic24h: { dateFormat: 'D. M. YYYY.', timeFormat: '24h', label: 'D. M. YYYY. (Central European)' },
-  korean24h: { dateFormat: 'YYYY. M. D.', timeFormat: '24h', label: 'YYYY. M. D. (Korean)' },
-  southAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (South Asian)' },
-  southAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (South Asian)' },
-  latinAmerican12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Latin American)' },
-  latinAmerican24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Latin American)' },
-  middleEastern24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Middle Eastern)' },
-  southeastAsian12h: { dateFormat: 'DD/MM/YYYY', timeFormat: '12h', label: 'DD/MM/YYYY (Southeast Asian)' },
-  southeastAsian24h: { dateFormat: 'DD/MM/YYYY', timeFormat: '24h', label: 'DD/MM/YYYY (Southeast Asian)' }
-};
+// Shared constants and helpers (single source of truth in shared.js).
+const DATE_TIME_PRESETS = HaiiloShared.DATE_TIME_PRESETS;
+const normalizeDateFormatValue = HaiiloShared.normalizeDateFormatValue;
+const getDateTimePresetOptions = HaiiloShared.getDateTimePresetOptions;
+const clampMessengerPanelWidthPercent = HaiiloShared.clampMessengerPanelWidthPercent;
 
 function normalizeLocale(locale) {
   return String(locale || '').replace('_', '-').trim().toLowerCase();
@@ -124,26 +112,6 @@ function getLocaleDateTimeDefaults(locale) {
   return DATE_TIME_PRESETS[getLocaleDateTimePresetId(locale)] || DATE_TIME_PRESETS.northAmerican12h;
 }
 
-function normalizeDateFormatValue(value) {
-  const aliasMap = {
-    MMDD: 'northAmerican12h',
-    DDMM: 'westernEuropean24h',
-    'DD.MM': 'centralEuropean24h',
-    'DD-MM': 'dutch24h',
-    westernEuropean12h: 'westernEuropean24h',
-    eastAsian12h: 'eastAsian24h',
-    southAsian24h: 'southAsian12h',
-    latinAmerican12h: 'latinAmerican24h',
-    southeastAsian12h: 'southeastAsian24h'
-  };
-  if (DATE_TIME_PRESETS[value]) return value;
-  return aliasMap[value] || 'northAmerican12h';
-}
-
-function getDateTimePresetOptions() {
-  return Object.entries(DATE_TIME_PRESETS).map(([value, preset]) => ({ value, ...preset }));
-}
-
 function getRequestedLocale(preferredLocale) {
   return normalizeLocale(preferredLocale || (browserAPI.i18n && typeof browserAPI.i18n.getUILanguage === 'function' ? browserAPI.i18n.getUILanguage() : '') || (typeof navigator !== 'undefined' ? navigator.language : '') || 'en-US');
 }
@@ -160,6 +128,7 @@ function debugLog(...args) {
 
 // Default settings
 const DEFAULT_SETTINGS = {
+  language: 'browser', // 'browser' or one of the bundled locale codes
   extensionEnabled: true,
   defaultMuteDays: 7,
   showMutedIndicator: true,
@@ -189,12 +158,6 @@ const DEFAULT_SETTINGS = {
   showReactionCountInline: false // Show counts next to reaction emojis
 };
 
-function clampMessengerPanelWidthPercent(value) {
-  const parsed = parseInt(value, 10);
-  if (isNaN(parsed)) return DEFAULT_SETTINGS.messengerPanelWidthPercent;
-  return Math.max(50, Math.min(125, parsed));
-}
-
 function normalizeSettings(settings = {}) {
   const normalized = { ...DEFAULT_SETTINGS };
   Object.keys(DEFAULT_SETTINGS).forEach(key => {
@@ -203,6 +166,9 @@ function normalizeSettings(settings = {}) {
     }
   });
   normalized.messengerPanelWidthPercent = clampMessengerPanelWidthPercent(normalized.messengerPanelWidthPercent);
+  normalized.language = ['browser', 'en', 'de', 'cs', 'es', 'fr', 'hu', 'it', 'nl', 'pl'].includes(normalized.language)
+    ? normalized.language
+    : DEFAULT_SETTINGS.language;
   normalized.dateFormat = normalizeDateFormatValue(normalized.dateFormat);
   const preset = DATE_TIME_PRESETS[normalized.dateFormat] || DATE_TIME_PRESETS.northAmerican12h;
   normalized.timeFormat = normalized.timeFormat === '24h' ? '24h' : preset.timeFormat;
@@ -284,6 +250,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'settings',
       'customDomains',
       'customHomepages',
+      'language',
       'extensionEnabled',
       'defaultMuteDays',
       'showMutedIndicator',
@@ -307,7 +274,10 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'autoExpandClicksPerList',
       'autoExpandDelayMs',
       'autoExpandScope',
-      'cloudSync'
+      'cloudSync',
+      'sortReactionsByCount',
+      'showReactionCountTooltip',
+      'showReactionCountInline'
     ]);
 
     if (!data.mutedUsers) {
@@ -356,7 +326,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
 // Create context menu on startup and re-register content scripts
 browserAPI.runtime.onStartup.addListener(async () => {
   await pullFromCloud();
-  createContextMenu();
+  await createContextMenu();
 
   // Re-register dynamic content scripts (they don't persist across browser restarts)
   await registerDynamicContentScripts();
@@ -366,14 +336,11 @@ browserAPI.runtime.onStartup.addListener(async () => {
 // Note: Dynamic content scripts handle automatic injection for custom domains
 // This listener serves as a fallback and handles default domains
 browserAPI.webNavigation.onCompleted.addListener(async (details) => {
-  // Firefox declares the default content script statically; only Chrome
-  // needs this navigation fallback for the default domains.
-  if (typeof browser !== 'undefined') return;
   if (await isHaiiloTab({ url: details.url })) {
     try {
       await browserAPI.scripting.executeScript({
         target: { tabId: details.tabId },
-        files: ['content.js']
+        files: ['shared.js', 'i18n.js', 'content.js']
       });
       debugLog('Content script injected on navigation to:', details.url);
     } catch (e) {
@@ -383,7 +350,8 @@ browserAPI.webNavigation.onCompleted.addListener(async (details) => {
 });
 
 async function createContextMenu() {
-  const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  const settings = normalizeSettings((await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS);
+  await initializeI18n(settings.language);
   if (settings.extensionEnabled === false) {
     browserAPI.contextMenus.removeAll();
     return;
@@ -427,7 +395,7 @@ async function createContextMenu() {
     // Create parent menu
     browserAPI.contextMenus.create({
       id: 'hush-parent',
-      title: 'Haiilo Enhancer',
+      title: i18nMessage('extensionName'),
       contexts: ['link', 'selection']
     });
 
@@ -435,7 +403,7 @@ async function createContextMenu() {
     browserAPI.contextMenus.create({
       id: 'mute-permanent',
       parentId: 'hush-parent',
-      title: 'Mute this user permanently',
+      title: i18nMessage('muteUserPermanently'),
       contexts: ['link', 'selection']
     });
 
@@ -443,7 +411,7 @@ async function createContextMenu() {
     browserAPI.contextMenus.create({
       id: 'mute-default',
       parentId: 'hush-parent',
-      title: 'Mute for default period',
+      title: i18nMessage('muteDefaultPeriod'),
       contexts: ['link', 'selection']
     });
 
@@ -461,7 +429,7 @@ async function createContextMenu() {
       browserAPI.contextMenus.create({
         id: `mute-${days}`,
         parentId: 'hush-parent',
-        title: `Mute for ${days} day${days > 1 ? 's' : ''}`,
+        title: i18nMessage('muteForDays', days),
         contexts: ['link', 'selection']
       });
     });
@@ -478,7 +446,7 @@ async function createContextMenu() {
     browserAPI.contextMenus.create({
       id: 'set-homepage',
       parentId: 'hush-parent',
-      title: 'Set as default homepage',
+      title: i18nMessage('setDefaultHomepage'),
       contexts: ['link'],
       documentUrlPatterns: documentUrlPatterns,
       targetUrlPatterns: targetUrlPatterns
@@ -516,7 +484,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
         // Content script not present, inject it
         await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
-          files: ['content.js']
+          files: ['shared.js', 'i18n.js', 'content.js']
         });
         debugLog('Content script injected successfully');
         
@@ -594,7 +562,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       await browserAPI.scripting.executeScript({
         target: { tabId: tab.id },
-        files: ['content.js']
+        files: ['shared.js', 'i18n.js', 'content.js']
       });
       debugLog('Re-injected content script, trying refresh again');
       await browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' });
@@ -667,7 +635,8 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Merge with existing stored settings so keys not present in the incoming
     // object are preserved.
     browserAPI.storage.local.get('settings').then(async (data) => {
-      const merged = { ...(data.settings || {}), ...message.settings };
+      const previousSettings = normalizeSettings(data.settings || DEFAULT_SETTINGS);
+      const merged = { ...previousSettings, ...message.settings };
       const settings = normalizeSettings(merged);
       await browserAPI.storage.local.set({ settings });
       // If cloudSync was just turned off, clear data from storage.sync
@@ -681,6 +650,9 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await createContextMenu();
       await updateAllBadges();
       await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
+      if (settings.language !== previousSettings.language) {
+        await broadcastMessageToAllHaiiloTabs({ action: 'languageChanged' });
+      }
       sendResponse({ success: true });
     }).catch(e => {
       console.error('Failed to save settings:', e);
@@ -694,6 +666,7 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await createContextMenu();
       await updateAllBadges();
       await broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
+      await broadcastMessageToAllHaiiloTabs({ action: 'languageChanged' });
       sendResponse({ success: true });
     });
     return true;
@@ -841,17 +814,21 @@ async function unmuteUser(userName) {
 
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
-  const tabs = await getHaiiloTabs();
+  const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
-    browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+    if (await isHaiiloTab(tab)) {
+      browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+    }
   }
 }
 
 // Broadcast a message to all Haiilo tabs
 async function broadcastMessageToAllHaiiloTabs(message) {
-  const tabs = await getHaiiloTabs();
+  const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
-    browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
+    if (await isHaiiloTab(tab)) {
+      browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
+    }
   }
 }
 
@@ -860,9 +837,8 @@ async function updateAllBadges() {
   if (!badgeAPI || typeof badgeAPI.setBadgeText !== 'function') return;
   const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
   const tabs = await browserAPI.tabs.query({});
-  const haiiloTabs = await getHaiiloTabs(tabs);
   for (const tab of tabs) {
-    if (haiiloTabs.includes(tab)) {
+    if (await isHaiiloTab(tab)) {
       if (settings.extensionEnabled === false) {
         badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
         badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
@@ -894,27 +870,20 @@ async function getAllDomains() {
 }
 
 // Check if a tab is a Haiilo tab
-async function isHaiiloTab(tab, allDomains = null) {
+async function isHaiiloTab(tab) {
   if (!tab || !tab.url) return false;
 
   try {
-    const domains = allDomains || await getAllDomains();
+    const allDomains = await getAllDomains();
     const url = new URL(tab.url);
 
-    return domains.some(domain => {
+    return allDomains.some(domain => {
       return url.hostname === domain || url.hostname.endsWith('.' + domain);
     });
   } catch (e) {
     debugLog('Error parsing URL in isHaiiloTab:', tab.url, e);
     return false;
   }
-}
-
-async function getHaiiloTabs(tabs = null) {
-  const allTabs = tabs || await browserAPI.tabs.query({});
-  const allDomains = await getAllDomains();
-  const matches = await Promise.all(allTabs.map(tab => isHaiiloTab(tab, allDomains)));
-  return allTabs.filter((tab, index) => matches[index]);
 }
 
 // Add a custom domain (permission must be granted before calling this)
@@ -1015,7 +984,7 @@ async function registerDynamicContentScripts() {
           {
             id: `haiilo-enhancer-${domain}`,
             matches: origins,
-            js: ['content.js'],
+            js: ['shared.js', 'i18n.js', 'content.js'],
             css: ['content.css'],
             runAt: 'document_idle'
           }
@@ -1035,24 +1004,25 @@ async function registerDynamicContentScripts() {
 // Inject content scripts into all Haiilo tabs
 async function injectContentScripts() {
   const tabs = await browserAPI.tabs.query({});
-  const haiiloTabs = await getHaiiloTabs(tabs);
 
-  for (const tab of haiiloTabs) {
-    try {
-      await browserAPI.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js']
-      });
+  for (const tab of tabs) {
+    if (await isHaiiloTab(tab)) {
+      try {
+        await browserAPI.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['shared.js', 'i18n.js', 'content.js']
+        });
 
-      await browserAPI.scripting.insertCSS({
-        target: { tabId: tab.id },
-        files: ['content.css']
-      });
+        await browserAPI.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ['content.css']
+        });
 
-      debugLog(`Injected content script into tab ${tab.id}`);
-    } catch (e) {
-      // Tab might not allow script injection (e.g., chrome:// pages)
-      debugLog(`Could not inject into tab ${tab.id}:`, e.message);
+        debugLog(`Injected content script into tab ${tab.id}`);
+      } catch (e) {
+        // Tab might not allow script injection (e.g., chrome:// pages)
+        debugLog(`Could not inject into tab ${tab.id}:`, e.message);
+      }
     }
   }
 }
@@ -1107,7 +1077,7 @@ async function handleSetHomepage(info, tab) {
       } catch (pingError) {
         await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
-          files: ['content.js']
+          files: ['shared.js', 'i18n.js', 'content.js']
         });
         await new Promise(resolve => setTimeout(resolve, 200));
       }

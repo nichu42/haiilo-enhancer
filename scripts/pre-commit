@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
-# Pre-commit hook: run the console-output lint on staged JS files.
+# Pre-commit hook: run the console-output lint on staged JS files and the
+# unit tests (node --test) on every commit.
 # Blocks the commit if any unguarded console.log / console.warn / console.info /
-# console.debug call is found.
+# console.debug call is found, or if any unit test fails.
 #
 # Install with: sh scripts/install-hooks.sh
 # Or manually:   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
@@ -12,24 +13,58 @@ HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
 
 # Only run if the JS files we care about are staged.
-STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|mjs)$' | grep -E '^(background|content|popup|options)\.js$')
-if [ -z "$STAGED" ]; then
-  exit 0
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|mjs)$' | grep -E '^(background|content|popup|options|shared|i18n)\.js$')
+if [ -n "$STAGED" ]; then
+  # Run the lint.
+  if command -v node >/dev/null 2>&1; then
+    cd "$REPO_ROOT" && node scripts/lint-console.mjs
+    EXIT=$?
+    if [ $EXIT -ne 0 ]; then
+      echo ""
+      echo "pre-commit: console-output lint failed."
+      echo "Wrap console.log/warn/info/debug calls in debugLog() or change to console.error."
+      echo "If this is a false positive, use 'git commit --no-verify' to bypass."
+      exit $EXIT
+    fi
+  else
+    echo "pre-commit: node not found, skipping console lint"
+  fi
 fi
 
-# Run the lint.
-if command -v node >/dev/null 2>&1; then
-  cd "$REPO_ROOT" && node scripts/lint-console.mjs
+LOCALES_STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^_locales/.*/messages\.json$')
+if [ -n "$LOCALES_STAGED" ] && command -v node >/dev/null 2>&1; then
+  cd "$REPO_ROOT" && node scripts/check-locales.mjs
   EXIT=$?
   if [ $EXIT -ne 0 ]; then
     echo ""
-    echo "pre-commit: console-output lint failed."
-    echo "Wrap console.log/warn/info/debug calls in debugLog() or change to console.error."
-    echo "If this is a false positive, use 'git commit --no-verify' to bypass."
+    echo "pre-commit: locale catalog validation failed."
+    exit $EXIT
+  fi
+fi
+
+HTML_STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(popup|options)\.html$')
+if [ -n "$HTML_STAGED" ] && command -v node >/dev/null 2>&1; then
+  cd "$REPO_ROOT" && node scripts/check-localized-html.mjs
+  EXIT=$?
+  if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "pre-commit: localized HTML contains hard-coded element text."
+    exit $EXIT
+  fi
+fi
+
+# Run the unit tests on every commit. The suite is fast (no dependencies).
+if command -v node >/dev/null 2>&1; then
+  cd "$REPO_ROOT" && node --test
+  EXIT=$?
+  if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "pre-commit: unit tests failed."
+    echo "Fix the failing tests, or use 'git commit --no-verify' to bypass."
     exit $EXIT
   fi
 else
-  echo "pre-commit: node not found, skipping console lint"
+  echo "pre-commit: node not found, skipping unit tests"
 fi
 
 exit 0

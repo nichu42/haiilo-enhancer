@@ -35,12 +35,15 @@ function Build-Chrome {
         "options.html",
         "options.css",
         "options.js",
-        "colors.css"
+        "colors.css",
+        "i18n.js",
+        "shared.js"
     )
 
     foreach ($file in $files) {
         Copy-Item $file $chromeDir
     }
+    Copy-Item -Recurse "_locales" "$chromeDir\_locales"
 
     # Copy icons
     Copy-Item -Recurse "icons" "$chromeDir\icons"
@@ -80,12 +83,15 @@ function Build-Firefox {
         "options.html",
         "options.css",
         "options.js",
-        "colors.css"
+        "colors.css",
+        "i18n.js",
+        "shared.js"
     )
 
     foreach ($file in $files) {
         Copy-Item $file $firefoxDir
     }
+    Copy-Item -Recurse "_locales" "$firefoxDir\_locales"
 
     # Copy icons
     Copy-Item -Recurse "icons" "$firefoxDir\icons"

@@ -4,5 +4,8 @@ AGENTS.md
 # Build output
 dist/
 
+# Dependencies (none currently, but keep it safe)
+node_modules/
+
 #other local-only files
 ideas.md

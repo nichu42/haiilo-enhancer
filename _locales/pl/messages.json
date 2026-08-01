@@ -1,0 +1,695 @@
+{
+  "extensionName": {
+    "message": "Haiilo Enhancer"
+  },
+  "extensionDescription": {
+    "message": "Ulepsz korzystanie z Haiilo — wyciszaj użytkowników, dostosuj kanał i nie tylko"
+  },
+  "actionTitle": {
+    "message": "Haiilo Enhancer"
+  },
+  "optionsTitle": {
+    "message": "Haiilo Enhancer — Ustawienia"
+  },
+  "northAmericanDate": {
+    "message": "MM/DD/YYYY (północnoamerykański)"
+  },
+  "westernEuropeanDate": {
+    "message": "DD/MM/YYYY (zachodnioeuropejski)"
+  },
+  "centralEuropeanDate": {
+    "message": "DD.MM.YYYY (środkowoeuropejski)"
+  },
+  "dutchDate": {
+    "message": "DD-MM-YYYY (holenderski)"
+  },
+  "isoDate": {
+    "message": "YYYY-MM-DD (ISO 8601)"
+  },
+  "eastAsianDate": {
+    "message": "YYYY/MM/DD (wschodnioazjatycki)"
+  },
+  "hungarianDate": {
+    "message": "YYYY. MM. DD. (węgierski)"
+  },
+  "finnishDate": {
+    "message": "D.M.YYYY (fiński)"
+  },
+  "spacedCentralDate": {
+    "message": "D. M. YYYY (środkowoeuropejski)"
+  },
+  "dottedSlavicDate": {
+    "message": "D.M.YYYY. (środkowoeuropejski)"
+  },
+  "spacedSlavicDate": {
+    "message": "D. M. YYYY. (środkowoeuropejski)"
+  },
+  "koreanDate": {
+    "message": "YYYY. M. D. (koreański)"
+  },
+  "latinAmericanDate": {
+    "message": "DD/MM/YYYY (latynoamerykański)"
+  },
+  "middleEasternDate": {
+    "message": "DD/MM/YYYY (bliskowschodni)"
+  },
+  "southeastAsianDate": {
+    "message": "DD/MM/YYYY (południowo-wschodnioazjatycki)"
+  },
+  "southAsianDate": {
+    "message": "DD/MM/YYYY (południowoazjatycki)"
+  },
+  "muteUserPermanently": {
+    "message": "Wycisz tego użytkownika na zawsze"
+  },
+  "muteDefaultPeriod": {
+    "message": "Wycisz na domyślny okres"
+  },
+  "muteForDays": {
+    "message": "Wycisz na $COUNT$ dzień/dni",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "setDefaultHomepage": {
+    "message": "Ustaw jako domyślną stronę główną"
+  },
+  "settings": {
+    "message": "Ustawienia"
+  },
+  "toggleExtension": {
+    "message": "Włącz/wyłącz rozszerzenie"
+  },
+  "openExtensionSettings": {
+    "message": "Otwórz ustawienia rozszerzenia"
+  },
+  "itemsHiddenOnPage": {
+    "message": "Liczba elementów ukrytych na tej stronie: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "itemsHiddenSummary": {
+    "message": "Liczba elementów ukrytych na tej stronie: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "openHiddenSection": {
+    "message": "Otwórz tę sekcję, aby zobaczyć ukrytą zawartość."
+  },
+  "mutedUsers": {
+    "message": "Wyciszeni użytkownicy"
+  },
+  "noMutedUsers": {
+    "message": "Brak wyciszonych użytkowników. Kliknij prawym przyciskiem myszy nazwę użytkownika, aby go wyciszyć."
+  },
+  "addUserManually": {
+    "message": "Dodaj użytkownika ręcznie"
+  },
+  "enterUsername": {
+    "message": "Wpisz nazwę użytkownika"
+  },
+  "permanently": {
+    "message": "Na zawsze"
+  },
+  "oneDay": {
+    "message": "1 dzień"
+  },
+  "threeDays": {
+    "message": "3 dni"
+  },
+  "sevenDays": {
+    "message": "7 dni"
+  },
+  "fourteenDays": {
+    "message": "14 dni"
+  },
+  "thirtyDays": {
+    "message": "30 dni"
+  },
+  "ninetyDays": {
+    "message": "90 dni"
+  },
+  "mute": {
+    "message": "Wycisz"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 nichu42 i współtwórcy"
+  },
+  "warranty": {
+    "message": "Ten program jest dostarczany ABSOLUTNIE BEZ ŻADNEJ GWARANCJI. Zobacz"
+  },
+  "warrantyFull": {
+    "message": "Ten program jest dostarczany ABSOLUTNIE BEZ ŻADNEJ GWARANCJI. Więcej informacji znajdziesz w GNU Affero General Public License."
+  },
+  "licensePermission": {
+    "message": "Ten program jest wolnym oprogramowaniem: możesz je rozpowszechniać i/lub modyfikować na warunkach GNU Affero General Public License opublikowanej przez Free Software Foundation, w wersji 3 lub dowolnej późniejszej."
+  },
+  "licenseWarrantyFull": {
+    "message": "Ten program jest rozpowszechniany z nadzieją, że będzie użyteczny, ale BEZ ŻADNEJ GWARANCJI; w tym bez dorozumianej gwarancji PRZYDATNOŚCI HANDLOWEJ ani PRZYDATNOŚCI DO OKREŚLONEGO CELU. Więcej informacji znajdziesz w GNU Affero General Public License."
+  },
+  "independentDisclaimer": {
+    "message": "To niezależny projekt open source, który nie jest powiązany z Haiilo GmbH ani żadną z jej jednostek zależnych lub stowarzyszonych, nie jest przez nie zatwierdzony ani w żaden sposób oficjalnie z nimi związany. Nazwa Haiilo i powiązane oznaczenia są zarejestrowanymi znakami towarowymi ich właścicieli."
+  },
+  "license": {
+    "message": "GNU Affero General Public License"
+  },
+  "forMoreDetails": {
+    "message": "aby uzyskać więcej informacji."
+  },
+  "reportIssue": {
+    "message": "Zgłoś błąd / poproś o funkcję"
+  },
+  "support": {
+    "message": "Pomoc"
+  },
+  "supportProject": {
+    "message": "Wesprzyj ten projekt:"
+  },
+  "liberapay": {
+    "message": "Liberapay"
+  },
+  "koFi": {
+    "message": "Ko-fi"
+  },
+  "donateLiberapay": {
+    "message": "Wpłać darowiznę na Liberapay"
+  },
+  "donateKofi": {
+    "message": "Wpłać darowiznę na Ko-fi"
+  },
+  "permanentlyMuted": {
+    "message": "Wyciszony na zawsze"
+  },
+  "expiresIn": {
+    "message": "Wygasa $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "in 7 days"
+      }
+    }
+  },
+  "unmute": {
+    "message": "Wyłącz wyciszenie"
+  },
+  "expired": {
+    "message": "wygasło"
+  },
+  "inDays": {
+    "message": "za $COUNT$ dzień/dni",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
+  "inHours": {
+    "message": "za $COUNT$ godzinę/godziny",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "soon": {
+    "message": "wkrótce"
+  },
+  "loadingHiddenDetails": {
+    "message": "Ładowanie szczegółów ukrytej zawartości…"
+  },
+  "openHaiiloToViewDetails": {
+    "message": "Otwórz stronę Haiilo, aby zobaczyć szczegóły ukrytej zawartości."
+  },
+  "nothingHidden": {
+    "message": "Na tej stronie nic nie jest obecnie ukryte."
+  },
+  "showingHiddenItems": {
+    "message": "Wyświetlanie 20 z $COUNT$ ukrytych elementów.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "couldNotLoadHiddenDetails": {
+    "message": "Nie udało się wczytać szczegółów ukrytej zawartości."
+  },
+  "hiddenItem": {
+    "message": "ukryty element"
+  },
+  "noPreviewAvailable": {
+    "message": "Podgląd niedostępny."
+  },
+  "matchedAuthors": {
+    "message": "Dopasowani: $AUTHORS$",
+    "placeholders": {
+      "authors": {
+        "content": "$1",
+        "example": "Alex · Sam"
+      }
+    }
+  },
+  "mutedUser": {
+    "message": "Wyciszony użytkownik: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "general": {
+    "message": "Ogólne"
+  },
+  "interface": {
+    "message": "Interfejs"
+  },
+  "behavior": {
+    "message": "Zachowanie"
+  },
+  "domains": {
+    "message": "Domeny"
+  },
+  "dataPrivacy": {
+    "message": "Dane i prywatność"
+  },
+  "advanced": {
+    "message": "Zaawansowane"
+  },
+  "about": {
+    "message": "Informacje"
+  },
+  "optionsSections": {
+    "message": "Sekcje ustawień"
+  },
+  "extensionStatus": {
+    "message": "Stan rozszerzenia"
+  },
+  "extensionStatusDescription": {
+    "message": "Tymczasowo wyłącz wszystkie funkcje rozszerzenia (wyciszanie, styl awatarów, rozwijanie komunikatora i zastępowanie dat) bez odinstalowywania rozszerzenia."
+  },
+  "interfaceOptions": {
+    "message": "Opcje interfejsu"
+  },
+  "keepMessengerExpanded": {
+    "message": "Pozostaw panel komunikatora rozwinięty"
+  },
+  "messengerPanelWidth": {
+    "message": "Szerokość panelu komunikatora"
+  },
+  "savedApplied": {
+    "message": "Zapisano i zastosowano po zmianie."
+  },
+  "mutingOptions": {
+    "message": "Opcje wyciszania"
+  },
+  "mutingDescription": {
+    "message": "Kliknij prawym przyciskiem myszy dowolną nazwę użytkownika w Haiilo i wybierz Haiilo Enhancer → Wycisz na …. Posty i komentarze wyciszonych użytkowników są ukrywane na każdej stronie do czasu wygaśnięcia wyciszenia. Wyłącz wyciszenie w wyskakującym oknie rozszerzenia, za pomocą menu kontekstowego lub dodając użytkownika ponownie przy wyłączonej opcji „Na zawsze” i czekając na wygaśnięcie."
+  },
+  "defaultMutePeriod": {
+    "message": "Domyślny okres wyciszenia (używany przez „Wycisz na domyślny okres”):"
+  },
+  "showHiddenCount": {
+    "message": "Pokazuj na ikonie rozszerzenia plakietkę z liczbą ukrytych treści"
+  },
+  "dateTimeFormat": {
+    "message": "Format daty i czasu"
+  },
+  "dateTimeDescription": {
+    "message": "Zastąp domyślne wyświetlanie daty i czasu w Haiilo. Nowe instalacje mogą automatycznie używać ustawień regionalnych przeglądarki; w istniejących instalacjach możesz ponownie zastosować ustawienia regionalne za pomocą poniższego przycisku."
+  },
+  "applyBrowserLocale": {
+    "message": "Zastosuj domyślne ustawienia regionalne przeglądarki"
+  },
+  "dateFormat": {
+    "message": "Format daty (standard daty):"
+  },
+  "chooseLocalePreset": {
+    "message": "Wybierz ustawienie regionalne. Zmiana spowoduje również przywrócenie domyślnego formatu czasu dla tego ustawienia."
+  },
+  "timeFormat": {
+    "message": "Format czasu:"
+  },
+  "twelveHour": {
+    "message": "12-godzinny (AM/PM)"
+  },
+  "twentyFourHour": {
+    "message": "24-godzinny"
+  },
+  "chooseTimeFormat": {
+    "message": "Wybierz 12-godzinne (AM/PM) lub 24-godzinne wyświetlanie czasu."
+  },
+  "channelAvatarCustomization": {
+    "message": "Dostosowywanie awatarów kanałów"
+  },
+  "replaceGroupIcons": {
+    "message": "Zastąp ogólne ikony czatów grupowych inicjałami poszczególnych kanałów"
+  },
+  "avatarDescription": {
+    "message": "Dostosuj wygląd awatarów czatów grupowych, aby odróżnić je od pojedynczych użytkowników."
+  },
+  "preview": {
+    "message": "Podgląd"
+  },
+  "backgroundColor": {
+    "message": "Kolor tła"
+  },
+  "randomColorPerGroup": {
+    "message": "Losowy kolor dla każdej grupy"
+  },
+  "fixedColor": {
+    "message": "Stały kolor:"
+  },
+  "avatarStyle": {
+    "message": "Styl awatara:"
+  },
+  "ringBorder": {
+    "message": "Okrągła obwódka"
+  },
+  "roundedSquare": {
+    "message": "Zaokrąglony kwadrat"
+  },
+  "iconBadgeOverlay": {
+    "message": "Nakładka z ikoną plakietki"
+  },
+  "distinguishGroupChats": {
+    "message": "Wybierz sposób wizualnego odróżnienia czatów grupowych od pojedynczych użytkowników"
+  },
+  "ringCustomization": {
+    "message": "Dostosowanie okrągłej obwódki:"
+  },
+  "squareCustomization": {
+    "message": "Dostosowanie kwadratowej obwódki:"
+  },
+  "widthPx": {
+    "message": "Szerokość (px)"
+  },
+  "reset": {
+    "message": "Resetuj"
+  },
+  "customizeRing": {
+    "message": "Dostosuj kolor i szerokość okrągłej obwódki"
+  },
+  "customizeSquare": {
+    "message": "Dostosuj kolor i szerokość kwadratowej obwódki"
+  },
+  "badgeIconSize": {
+    "message": "Rozmiar ikony plakietki:"
+  },
+  "adjustBadgeSize": {
+    "message": "Dostosuj rozmiar nakładki z ikoną plakietki (procent rozmiaru bazowego)"
+  },
+  "badgePosition": {
+    "message": "Położenie plakietki:"
+  },
+  "lowerLeft": {
+    "message": "Lewy dolny róg"
+  },
+  "upperLeft": {
+    "message": "Lewy górny róg"
+  },
+  "chooseBadgePosition": {
+    "message": "Wybierz miejsce wyświetlania ikony plakietki na awatarze"
+  },
+  "customHomepageSettings": {
+    "message": "Ustawienia niestandardowej strony głównej"
+  },
+  "customHomepageDescription": {
+    "message": "Ustaw stronę główną, do której logo przekierowuje w każdej instancji Haiilo. Kliknij prawym przyciskiem kartę strony głównej (np. „Strona główna”, „Strona główna (soft)”) i wybierz „Ustaw jako domyślną stronę główną”."
+  },
+  "reactions": {
+    "message": "Reakcje"
+  },
+  "reactionsDescription": {
+    "message": "Ulepsz sposób wyświetlania reakcji emoji w postach i komentarzach."
+  },
+  "sortReactions": {
+    "message": "Sortuj emoji reakcji według liczby (najczęściej używane najpierw)"
+  },
+  "reactionTooltip": {
+    "message": "Pokazuj podział liczby reakcji po najechaniu (np. 👍22 💡2)"
+  },
+  "reactionInline": {
+    "message": "Pokazuj liczbę reakcji obok emoji"
+  },
+  "autoExpandDescription": {
+    "message": "Lewy pasek boczny Haiilo pokazuje ograniczoną liczbę obszarów roboczych i stron, a resztę ukrywa za przyciskiem „Pokaż więcej”. Włącz tę funkcję, aby automatycznie kliknąć przycisk po załadowaniu strony i od razu wyświetlić wszystkie wpisy."
+  },
+  "autoExpand": {
+    "message": "Automatycznie rozwijaj listy paska bocznego po załadowaniu strony"
+  },
+  "whichLists": {
+    "message": "Które listy rozwijać:"
+  },
+  "bothLists": {
+    "message": "Obszary robocze i strony"
+  },
+  "workspacesOnly": {
+    "message": "Tylko obszary robocze"
+  },
+  "pagesOnly": {
+    "message": "Tylko strony"
+  },
+  "chooseLists": {
+    "message": "Wybierz, na które listy paska bocznego ma wpływać automatyczne rozwijanie."
+  },
+  "showMoreClicks": {
+    "message": "Kliknięcia „Pokaż więcej” na listę:"
+  },
+  "clicksHelp": {
+    "message": "Ile razy klikać „Pokaż więcej” dla każdej listy (obszary robocze i strony są rozwijane niezależnie). 0 wyłącza klikanie dla tej listy. Maksymalnie 10."
+  },
+  "delayBetweenClicks": {
+    "message": "Opóźnienie między kliknięciami (ms):"
+  },
+  "delayHelp": {
+    "message": "Jak długo czekać między kolejnymi kliknięciami „Pokaż więcej”. Mniejsze wartości są szybsze, większe łagodniejsze dla serwera. Zakres: 100–1000 ms."
+  },
+  "customDomains": {
+    "message": "Niestandardowe domeny Haiilo"
+  },
+  "customDomainsDescription": {
+    "message": "Jeśli Twoja organizacja używa niestandardowego adresu URL Haiilo (innego niż *.haiilo.app lub *.haiilo.com), dodaj go tutaj. Przy pierwszym użyciu przeglądarka poprosi o dostęp — to normalne i oznacza tylko „tak, uruchamiaj także w tej witrynie”."
+  },
+  "addCustomDomain": {
+    "message": "Dodaj niestandardową domenę:"
+  },
+  "addDomain": {
+    "message": "Dodaj domenę"
+  },
+  "domainPlaceholder": {
+    "message": "example.com"
+  },
+  "domainHelp": {
+    "message": "Wpisz tylko nazwę domeny (np. intranet.company.com)"
+  },
+  "chromePermissionWarning": {
+    "message": "Uwaga: z powodu ograniczenia Chrome uprawnień domeny nie można cofnąć po ich przyznaniu. Usunięcie domeny tutaj zatrzyma używanie jej przez rozszerzenie, ale uprawnienie pozostanie widoczne na chrome://extensions do czasu ponownej instalacji rozszerzenia."
+  },
+  "dataManagement": {
+    "message": "Zarządzanie danymi"
+  },
+  "syncSettings": {
+    "message": "Synchronizuj ustawienia i wyciszonych użytkowników za pomocą konta przeglądarki"
+  },
+  "syncHelp": {
+    "message": "Po włączeniu ustawienia i maksymalnie 50 wyciszonych użytkowników są przechowywane w wbudowanej pamięci synchronizacji przeglądarki i dostępne na wszystkich urządzeniach. Domeny niestandardowe są wyłączone — dodaj je ręcznie na każdym urządzeniu. Synchronizacja w chmurze zostanie automatycznie wyłączona, jeśli lista wyciszonych użytkowników przekroczy 50 osób."
+  },
+  "cloudSyncDisabled": {
+    "message": "⚠️ Synchronizacja w chmurze została automatycznie wyłączona"
+  },
+  "cloudSyncDisabledDescription": {
+    "message": "Lista wyciszonych użytkowników przekroczyła limit 50 osób dla synchronizacji w chmurze. Dane nadal są przechowywane lokalnie i nic nie zostało utracone. Aby ponownie włączyć synchronizację, zmniejsz listę do maksymalnie 50 użytkowników."
+  },
+  "backupDescription": {
+    "message": "Eksportuj ustawienia i wyciszonych użytkowników do pliku JSON jako kopię zapasową lub zaimportuj wcześniejszy eksport, aby je przywrócić. Resetowanie do ustawień domyślnych usuwa wszystko; najpierw wykonaj eksport, jeśli możesz chcieć cofnąć tę operację."
+  },
+  "exportSettings": {
+    "message": "Eksportuj wszystkie ustawienia"
+  },
+  "importSettings": {
+    "message": "Importuj wszystkie ustawienia"
+  },
+  "resetEverything": {
+    "message": "Resetuj wszystko do ustawień domyślnych"
+  },
+  "domainsNeedPermission": {
+    "message": "⚠️ Niestandardowe domeny wymagają ponownego przyznania uprawnień"
+  },
+  "domainsNeedPermissionDescription": {
+    "message": "Poniższe domeny znajdowały się w kopii zapasowej, ale nie można było ich automatycznie przywrócić — zabezpieczenia przeglądarki wymagają ręcznego przyznania dostępu:"
+  },
+  "domainsNeedPermissionHowTo": {
+    "message": "Aby dodać je ponownie: przewiń do sekcji Niestandardowe domeny Haiilo, wpisz każdą domenę i kliknij Dodaj domenę, aby przyznać przeglądarce dostęp."
+  },
+  "advancedOptions": {
+    "message": "Opcje zaawansowane"
+  },
+  "debugLogging": {
+    "message": "Włącz rejestrowanie debugowania (do rozwiązywania problemów)"
+  },
+  "footerTagline": {
+    "message": "Haiilo — lepsze doświadczenie dla Ciebie"
+  },
+  "noCustomDomains": {
+    "message": "Nie dodano niestandardowych domen. Domyślne: *.haiilo.app i *.haiilo.com"
+  },
+  "noCustomHomepages": {
+    "message": "Nie ustawiono niestandardowych stron głównych. Użyj menu kontekstowego karty strony głównej, aby ją ustawić."
+  },
+  "remove": {
+    "message": "Usuń"
+  },
+  "settingsSaved": {
+    "message": "Ustawienia zapisane"
+  },
+  "localeDefaultsApplied": {
+    "message": "Zastosowano ustawienia regionalne"
+  },
+  "couldNotApplyLocale": {
+    "message": "Nie udało się zastosować ustawień regionalnych"
+  },
+  "domainAdded": {
+    "message": "Domena została pomyślnie dodana"
+  },
+  "domainRemoved": {
+    "message": "Domena została pomyślnie usunięta"
+  },
+  "domainAlreadyExists": {
+    "message": "Domena już istnieje"
+  },
+  "validDomain": {
+    "message": "Wpisz prawidłową nazwę domeny"
+  },
+  "permissionDenied": {
+    "message": "Odmowa dostępu. Musisz przyznać dostęp do tej domeny."
+  },
+  "allSettingsExported": {
+    "message": "Wszystkie ustawienia zostały pomyślnie wyeksportowane"
+  },
+  "invalidImport": {
+    "message": "Nieprawidłowy format pliku — musi zawierać mutedUsers i/lub settings"
+  },
+  "failedImport": {
+    "message": "Import danych nie powiódł się: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid file"
+      }
+    }
+  },
+  "cloudSyncUnavailable": {
+    "message": "Synchronizacja w chmurze jest niedostępna. Upewnij się, że logujesz się na konto przeglądarki."
+  },
+  "importedData": {
+    "message": "Zaimportowano: $DETAILS$",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "all settings"
+      }
+    }
+  },
+  "resetComplete": {
+    "message": "Wszystkie ustawienia zostały przywrócone do wartości domyślnych"
+  },
+  "extensionNameVersion": {
+    "message": "Haiilo Enhancer v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.5.0"
+      }
+    }
+  },
+  "reactionsLabel": {
+    "message": "Reakcje: $TEXT$",
+    "placeholders": {
+      "text": {
+        "content": "$1",
+        "example": "👍 3"
+      }
+    }
+  },
+  "reactionCounts": {
+    "message": "Liczby reakcji"
+  },
+  "reactionCount": {
+    "message": "$COUNT$ reakcji",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "icsDownloaded": {
+    "message": "Plik ICS został pobrany. Otwórz go w pobranych plikach przeglądarki, aby go zaimportować."
+  },
+  "addToCalendar": {
+    "message": "Dodaj do kalendarza"
+  },
+  "event": {
+    "message": "Wydarzenie"
+  },
+  "host": {
+    "message": "Gospodarz: $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "Alex"
+      }
+    }
+  },
+  "googleCalendar": {
+    "message": "Google Calendar"
+  },
+  "outlookCalendar": {
+    "message": "Outlook.com"
+  },
+  "yahooCalendar": {
+    "message": "Yahoo Calendar"
+  },
+  "downloadIcs": {
+    "message": "Pobierz plik ICS"
+  },
+  "importMutedUsers": {"message":"$COUNT$ wyciszonych użytkowników","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importAllSettings": {"message":"wszystkie ustawienia"},
+  "importDomainsNeedReauth": {"message":"$COUNT$ niestandardowa domena wymaga ręcznej ponownej autoryzacji (zobacz ostrzeżenie powyżej)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importCustomHomepages": {"message":"$COUNT$ niestandardowych stron głównych","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "homepageHome": {"message":"Strona główna"},
+  "homepageHomeSoft": {"message":"Strona główna (soft)"},
+  "homepageSection": {"message":"Strona główna ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
+  "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "confirmReset": {"message":"Czy na pewno chcesz przywrócić wszystkie ustawienia domyślne? Tej operacji nie można cofnąć."},
+  "ringSettingsReset": {"message":"Ustawienia okrągłej obwódki przywrócone do wartości domyślnych"},
+  "squareSettingsReset": {"message":"Ustawienia kwadratowej obwódki przywrócone do wartości domyślnych"},
+  "badgeSettingsReset": {"message":"Ustawienia plakietki przywrócone do wartości domyślnych"},
+  "languageSettings": {"message":"Język"},
+  "language": {"message":"Język rozszerzenia:"},
+  "languageBrowser": {"message":"Domyślny język przeglądarki"},
+  "languageEnglish": {"message":"Angielski"},
+  "languageGerman": {"message":"Niemiecki"},
+  "languageCzech": {"message":"Czeski"},
+  "languageSpanish": {"message":"Hiszpański"},
+  "languageFrench": {"message":"Francuski"},
+  "languageHungarian": {"message":"Węgierski"},
+  "languageItalian": {"message":"Włoski"},
+  "languageDutch": {"message":"Niderlandzki"},
+  "languagePolish": {"message":"Polski"}
+}

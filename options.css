@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   font-size: 14px;
   color: var(--color-text-primary);
-  background: var(--gradient-primary);
+  background: var(--gradient-page-background);
   line-height: 1.6;
   min-height: 100vh;
 }
@@ -43,7 +43,7 @@ header h1 {
   gap: 12px;
   font-size: 32px;
   font-weight: 700;
-  background: var(--gradient-primary);
+  background: var(--gradient-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -231,6 +231,7 @@ section .description {
   border: 2px solid var(--color-border-light);
   border-radius: 8px;
   font-size: 14px;
+  color: var(--color-text-primary);
   background: var(--color-bg-light);
   transition: all 0.2s ease;
 }
@@ -241,6 +242,13 @@ section .description {
   border-color: var(--color-primary-teal);
   background: var(--color-bg-white);
   box-shadow: var(--focus-ring);
+}
+
+.form-group input::placeholder {
+  color: var(--color-text-tertiary);
+  /* Firefox applies its own ~54% opacity to placeholders, which would dim the
+   * themed color — restore full opacity so it renders as intended. */
+  opacity: 1;
 }
 
 .checkbox-group label {
@@ -261,6 +269,56 @@ section .description {
 .checkbox-group label:has(input:disabled) {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Theme picker: segmented System / Light / Dark control */
+.theme-form-group {
+  margin-top: 20px;
+}
+
+.theme-segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-bg-light);
+  border: 2px solid var(--color-border-light);
+  border-radius: 10px;
+}
+
+.theme-segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-segmented-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.theme-segmented-btn.active {
+  background: var(--color-bg-white);
+  color: var(--color-primary-teal);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-segmented-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.theme-segmented-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .slider-group {

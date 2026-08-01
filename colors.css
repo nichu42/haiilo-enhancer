@@ -2,6 +2,10 @@
 /* Based on Haiilo teal (#0f939d) and organization purple (#502379) */
 
 :root {
+  /* Let native UI (form controls, dropdown lists, scrollbars) render in
+   * light mode on these pages. Overridden to dark in the dark-theme blocks. */
+  color-scheme: light;
+
   /* Primary brand colors */
   --color-primary-teal: #0f939d;
   --color-primary-purple: #502379;
@@ -13,6 +17,14 @@
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #0f939d 0%, #502379 100%);
   --gradient-primary-dark: linear-gradient(135deg, #0d7a83 0%, #3d1c5c 100%);
+
+  /* Page background behind the extension's own panels (popup/options).
+   * Identical to --gradient-primary in light mode; darkened for dark mode. */
+  --gradient-page-background: linear-gradient(135deg, #0f939d 0%, #502379 100%);
+
+  /* Gradient text (headings). Brighter in dark mode so it stays readable
+   * against dark surfaces. */
+  --gradient-text: linear-gradient(135deg, #0f939d 0%, #502379 100%);
 
   /* Light backgrounds with brand colors */
   --gradient-light: linear-gradient(135deg, rgba(15, 147, 157, 0.15) 0%, rgba(80, 35, 121, 0.15) 100%);
@@ -63,4 +75,58 @@
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme for the extension's own pages (popup/options).
+ *
+ * The popup and options pages resolve the stored theme preference to a
+ * concrete mode and set data-theme on <html> to either "light" or "dark"
+ * (see HaiiloShared.getEffectiveThemeMode in shared.js). "system" never
+ * reaches CSS — it is resolved to light/dark by the page scripts, so this
+ * single dark block is the only dark palette and there is no duplicated
+ * prefers-color-scheme block to keep in sync.
+ *
+ * Content-script pages never receive a data-theme attribute, so they are
+ * never affected by these overrides — they keep their light palette.
+ */
+:root[data-theme="dark"] {
+  /* Native UI (form controls, dropdown lists, scrollbars) renders dark. */
+  color-scheme: dark;
+
+  --color-primary-teal: #2dd4bf;
+  --color-primary-purple: #c084fc;
+  --color-primary-teal-dark: #14b8a6;
+  --color-primary-purple-dark: #a855f7;
+
+  --gradient-page-background: linear-gradient(135deg, #0b2c31 0%, #241237 100%);
+  --gradient-text: linear-gradient(135deg, #2dd4bf 0%, #c084fc 100%);
+
+  --color-text-primary: #f4f6f9;
+  --color-text-secondary: #d9dfe8;
+  --color-text-tertiary: #c3cad4;
+  --color-text-label: #e1e6ec;
+
+  --color-bg-white: #1f2937;
+  --color-bg-light: #111827;
+  --color-bg-lighter: #0f172a;
+
+  --color-border-light: #374151;
+  --color-border-medium: #4b5563;
+
+  --color-danger: #f87171;
+  --color-danger-bg: rgba(248, 113, 113, 0.15);
+  --color-danger-border: rgba(248, 113, 113, 0.4);
+
+  --color-success: #34d399;
+  --color-success-bg: rgba(52, 211, 153, 0.15);
+
+  --color-warning: #fbbf24;
+  --color-warning-bg: rgba(251, 191, 36, 0.15);
+  --color-warning-border: rgba(251, 191, 36, 0.4);
+
+  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.25);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.35);
 }

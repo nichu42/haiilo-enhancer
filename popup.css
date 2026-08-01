@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   font-size: 14px;
   color: var(--color-text-primary);
-  background: var(--gradient-primary);
+  background: var(--gradient-page-background);
   min-width: 460px;
   width: 460px;
   line-height: 1.6;
@@ -44,10 +44,60 @@ header {
   gap: 8px;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Theme toggle: circular icon button cycling System → Dark → Light */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-bg-lighter);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.theme-toggle .theme-icon {
+  width: 18px;
+  height: 18px;
+  display: none;
+}
+
+.theme-toggle[data-state="system"] .theme-icon-auto,
+.theme-toggle[data-state="light"] .theme-icon-sun,
+.theme-toggle[data-state="dark"] .theme-icon-moon {
+  display: block;
+}
+
 header h1 {
   font-size: 22px;
   font-weight: 700;
-  background: var(--gradient-primary);
+  background: var(--gradient-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -401,6 +451,7 @@ section h2 {
   border: 2px solid var(--color-border-light);
   border-radius: 8px;
   font-size: 14px;
+  color: var(--color-text-primary);
   background: var(--color-bg-light);
   transition: all 0.2s ease;
 }
@@ -411,6 +462,13 @@ section h2 {
   border-color: var(--color-primary-teal);
   background: var(--color-bg-white);
   box-shadow: var(--focus-ring);
+}
+
+.add-user-section input::placeholder {
+  color: var(--color-text-tertiary);
+  /* Firefox applies its own ~54% opacity to placeholders, which would dim the
+   * themed color — restore full opacity so it renders as intended. */
+  opacity: 1;
 }
 
 .add-user-section button {

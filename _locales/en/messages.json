@@ -215,5 +215,10 @@
   "languageHungarian": {"message":"Hungarian"},
   "languageItalian": {"message":"Italian"},
   "languageDutch": {"message":"Dutch"},
-  "languagePolish": {"message":"Polish"}
+  "languagePolish": {"message":"Polish"},
+  "theme": {"message":"Theme"},
+  "themeSystem": {"message":"System (follow browser)"},
+  "themeLight": {"message":"Light"},
+  "themeDark": {"message":"Dark"},
+  "themeHelp": {"message":"Default follows your browser's light/dark setting."}
 }

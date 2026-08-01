@@ -153,6 +153,7 @@ const DEFAULT_SETTINGS = {
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
   autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
   cloudSync: false, // Sync settings and muted users via browser account (opt-in)
+  theme: 'system', // 'system' (follow browser), 'light', or 'dark'
   sortReactionsByCount: true, // Sort reaction emojis by count (most used first)
   showReactionCountTooltip: true, // Show reaction count breakdown on hover
   showReactionCountInline: false // Show counts next to reaction emojis
@@ -172,6 +173,9 @@ function normalizeSettings(settings = {}) {
   normalized.dateFormat = normalizeDateFormatValue(normalized.dateFormat);
   const preset = DATE_TIME_PRESETS[normalized.dateFormat] || DATE_TIME_PRESETS.northAmerican12h;
   normalized.timeFormat = normalized.timeFormat === '24h' ? '24h' : preset.timeFormat;
+  normalized.theme = ['system', 'light', 'dark'].includes(normalized.theme)
+    ? normalized.theme
+    : DEFAULT_SETTINGS.theme;
   return normalized;
 }
 
@@ -275,6 +279,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'autoExpandDelayMs',
       'autoExpandScope',
       'cloudSync',
+      'theme',
       'sortReactionsByCount',
       'showReactionCountTooltip',
       'showReactionCountInline'

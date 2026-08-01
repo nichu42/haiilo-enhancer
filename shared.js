@@ -71,6 +71,69 @@
     return Object.entries(DATE_TIME_PRESETS).map(([value, preset]) => ({ value, ...preset }));
   }
 
+  // Resolve a stored theme setting ('system' | 'light' | 'dark') to a valid
+  // preference. 'system' (the default) follows the OS via prefers-color-scheme;
+  // 'light' and 'dark' pin the extension's own pages to a specific mode.
+  // Anything else (undefined, legacy values) resolves to 'system'.
+  function resolveThemeMode(theme) {
+    return theme === 'light' || theme === 'dark' ? theme : 'system';
+  }
+
+  // Resolve a stored theme preference to the effective mode the page should
+  // render: always 'light' or 'dark'. 'system' follows the OS via
+  // prefers-color-scheme. `mql` is an optional MediaQueryList for
+  // 'prefers-color-scheme: dark' (injected for tests); when omitted it falls
+  // back to window.matchMedia, then to 'light' where that is unavailable.
+  function getEffectiveThemeMode(theme, mql) {
+    const preference = resolveThemeMode(theme);
+    if (preference !== 'system') return preference;
+    let matches;
+    if (mql) {
+      matches = mql.matches;
+    } else if (typeof root.matchMedia === 'function') {
+      matches = root.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return matches ? 'dark' : 'light';
+  }
+
+  // Set the data-theme attribute on the given document's <html> element
+  // (defaults to the global document) to the effective mode ('light'|'dark').
+  // The CSS dark palette is keyed off data-theme="dark", and the extension's
+  // own pages resolve 'system' to a concrete mode here — so colors.css never
+  // needs a prefers-color-scheme block of its own. Safe to call in contexts
+  // without a DOM (e.g. the background service worker) — it just becomes a
+  // no-op. Returns the effective mode.
+  function applyThemeMode(theme, doc) {
+    const mode = getEffectiveThemeMode(theme);
+    const documentRef = doc || root.document;
+    if (documentRef && documentRef.documentElement) {
+      documentRef.documentElement.setAttribute('data-theme', mode);
+    }
+    return mode;
+  }
+
+  // Re-apply the theme whenever the OS light/dark preference changes. Pages in
+  // 'system' mode rely on this to stay in sync now that the CSS media query is
+  // not used. `onChange` is invoked with no arguments; the caller decides
+  // whether (and how) to re-apply. Returns a cleanup function.
+  function bindSystemThemeChange(onChange) {
+    if (typeof root.matchMedia !== 'function') return () => {};
+    const mql = root.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => { if (typeof onChange === 'function') onChange(); };
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handler);
+    } else if (typeof mql.addListener === 'function') {
+      mql.addListener(handler);
+    }
+    return () => {
+      if (typeof mql.removeEventListener === 'function') {
+        mql.removeEventListener('change', handler);
+      } else if (typeof mql.removeListener === 'function') {
+        mql.removeListener(handler);
+      }
+    };
+  }
+
   // Build the group-people badge icon (two overlapping circles + person)
   // used on channel avatars. Requires a DOM; pass `doc` explicitly in
   // non-browser contexts (e.g. unit tests).
@@ -111,6 +174,10 @@
     normalizeDateFormatValue,
     clampMessengerPanelWidthPercent,
     getDateTimePresetOptions,
-    buildGroupBadgeSVG
+    buildGroupBadgeSVG,
+    resolveThemeMode,
+    getEffectiveThemeMode,
+    applyThemeMode,
+    bindSystemThemeChange
   };
 })(globalThis);

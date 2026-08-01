@@ -6,6 +6,10 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 const t = (key, substitutions) => i18nMessage(key, substitutions);
 let saveSettingsTimeout = null;
 
+// The stored theme preference ('system' | 'light' | 'dark'), tracked so the
+// OS theme-change listener knows whether to re-resolve.
+let currentThemePreference = 'system';
+
 // Shared constants and helpers (single source of truth in shared.js)
 const clampMessengerPanelWidthPercent = HaiiloShared.clampMessengerPanelWidthPercent;
 const DATE_TIME_PRESETS = HaiiloShared.DATE_TIME_PRESETS;
@@ -13,6 +17,23 @@ const normalizeDateFormatValue = HaiiloShared.normalizeDateFormatValue;
 
 function getPresetForDateFormat(value) {
   return DATE_TIME_PRESETS[normalizeDateFormatValue(value)] || DATE_TIME_PRESETS.northAmerican12h;
+}
+
+function setThemeControl(mode) {
+  const group = document.getElementById('themeGroup');
+  if (!group) return;
+  group.querySelectorAll('.theme-segmented-btn').forEach(btn => {
+    const isActive = btn.dataset.themeValue === mode;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function getThemeControlValue() {
+  const group = document.getElementById('themeGroup');
+  if (!group) return 'system';
+  const active = group.querySelector('.theme-segmented-btn.active');
+  return active ? active.dataset.themeValue : 'system';
 }
 
 // Debug logging helper - reads the debugMode flag from settings on each
@@ -53,6 +74,16 @@ if (document.readyState === 'loading') {
 }
 
 async function initOptions() {
+  // Apply the saved theme before any async work so the page doesn't flash
+  // its light palette while i18n catalogs load.
+  try {
+    const data = await browserAPI.storage.local.get('settings');
+    currentThemePreference = HaiiloShared.resolveThemeMode(data.settings && data.settings.theme);
+    HaiiloShared.applyThemeMode(data.settings && data.settings.theme);
+  } catch (e) {
+    debugLog('Could not apply theme:', e);
+  }
+
   await HaiiloI18n.initializeI18n();
   HaiiloI18n.localizeDocument();
   // Display version from manifest
@@ -216,6 +247,9 @@ async function loadSettings() {
     widthSlider.value = width;
     if (widthValue) widthValue.textContent = `${width}%`;
   }
+  currentThemePreference = HaiiloShared.resolveThemeMode(settings.theme);
+  setThemeControl(currentThemePreference);
+
   const normalizedDateFormat = normalizeDateFormatValue(settings.dateFormat || 'northAmerican12h');
   document.getElementById('dateFormat').value = normalizedDateFormat;
   document.getElementById('timeFormat').value = settings.timeFormat || getPresetForDateFormat(normalizedDateFormat).timeFormat;
@@ -410,6 +444,26 @@ function setupEventListeners() {
   if (languageSelect) languageSelect.addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
   document.getElementById('keepMessengerExpanded').addEventListener('change', saveSettings);
+  const themeGroup = document.getElementById('themeGroup');
+  if (themeGroup) {
+    themeGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('.theme-segmented-btn');
+      if (!btn) return;
+      const mode = btn.dataset.themeValue;
+      currentThemePreference = HaiiloShared.resolveThemeMode(mode);
+      setThemeControl(currentThemePreference);
+      HaiiloShared.applyThemeMode(mode);
+      saveSettings();
+    });
+  }
+
+  // Re-resolve the theme if the OS light/dark setting changes while the page
+  // is open (only matters in 'system' mode).
+  HaiiloShared.bindSystemThemeChange(() => {
+    if (currentThemePreference === 'system') {
+      HaiiloShared.applyThemeMode('system');
+    }
+  });
   document.getElementById('messengerPanelWidthPercent').addEventListener('input', (e) => {
     document.getElementById('messengerPanelWidthValue').textContent =
       `${clampMessengerPanelWidthPercent(e.target.value)}%`;
@@ -730,7 +784,8 @@ async function saveSettings() {
     showReactionCountInline: document.getElementById('showReactionCountInline').checked,
     keepMessengerExpanded: document.getElementById('keepMessengerExpanded').checked,
     messengerPanelWidthPercent: clampMessengerPanelWidthPercent(document.getElementById('messengerPanelWidthPercent').value),
-    cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false
+    cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false,
+    theme: HaiiloShared.resolveThemeMode(getThemeControlValue())
   };
 
   await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });

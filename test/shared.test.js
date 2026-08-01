@@ -128,3 +128,83 @@ test('buildGroupBadgeSVG builds the group-people icon', () => {
   assert.strictEqual(svg.children[2].attrs.d, 'M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z');
   assert.ok(namespaces.every(ns => ns === 'http://www.w3.org/2000/svg'), 'uses the SVG namespace');
 });
+
+test('resolveThemeMode passes through the three valid modes', () => {
+  assert.strictEqual(S.resolveThemeMode('system'), 'system');
+  assert.strictEqual(S.resolveThemeMode('light'), 'light');
+  assert.strictEqual(S.resolveThemeMode('dark'), 'dark');
+});
+
+test('resolveThemeMode falls back to system for unknown input', () => {
+  assert.strictEqual(S.resolveThemeMode('bogus'), 'system');
+  assert.strictEqual(S.resolveThemeMode(''), 'system');
+  assert.strictEqual(S.resolveThemeMode(undefined), 'system');
+  assert.strictEqual(S.resolveThemeMode(null), 'system');
+});
+
+test('getEffectiveThemeMode resolves system to the OS preference', () => {
+  assert.strictEqual(S.getEffectiveThemeMode('system', { matches: true }), 'dark');
+  assert.strictEqual(S.getEffectiveThemeMode('system', { matches: false }), 'light');
+  assert.strictEqual(S.getEffectiveThemeMode('dark', { matches: false }), 'dark');
+  assert.strictEqual(S.getEffectiveThemeMode('light', { matches: true }), 'light');
+});
+
+test('getEffectiveThemeMode falls back to light when matchMedia is unavailable', () => {
+  // Node has no matchMedia, so 'system' resolves to light.
+  assert.strictEqual(S.getEffectiveThemeMode('system'), 'light');
+  assert.strictEqual(S.getEffectiveThemeMode(undefined), 'light');
+  assert.strictEqual(S.getEffectiveThemeMode('bogus'), 'light');
+});
+
+test('applyThemeMode sets data-theme to the effective mode and returns it', () => {
+  const attrs = {};
+  const doc = {
+    documentElement: {
+      setAttribute: (k, v) => { attrs[k] = v; }
+    }
+  };
+  assert.strictEqual(S.applyThemeMode('dark', doc), 'dark');
+  assert.strictEqual(attrs['data-theme'], 'dark');
+  assert.strictEqual(S.applyThemeMode('light', doc), 'light');
+  assert.strictEqual(attrs['data-theme'], 'light');
+  // In Node (no matchMedia), 'system' resolves to light.
+  assert.strictEqual(S.applyThemeMode('system', doc), 'light');
+  assert.strictEqual(attrs['data-theme'], 'light');
+  assert.strictEqual(S.applyThemeMode(undefined, doc), 'light');
+  assert.strictEqual(attrs['data-theme'], 'light');
+});
+
+test('applyThemeMode is a safe no-op without a document element', () => {
+  // No documentElement → nothing is touched, but the effective mode is still returned.
+  assert.strictEqual(S.applyThemeMode('dark', {}), 'dark');
+  assert.strictEqual(S.applyThemeMode('system', undefined), 'light');
+});
+
+test('bindSystemThemeChange registers and cleans up a matchMedia change listener', () => {
+  const calls = [];
+  let handler = null;
+  const mql = {
+    matches: false,
+    addEventListener: (type, fn) => { handler = fn; },
+    removeEventListener: () => { handler = null; }
+  };
+  // Stub root.matchMedia via globalThis so shared.js picks it up.
+  const real = globalThis.matchMedia;
+  globalThis.matchMedia = () => mql;
+
+  try {
+    const cleanup = S.bindSystemThemeChange(() => calls.push('change'));
+    assert.ok(typeof cleanup === 'function', 'returns a cleanup function');
+    assert.ok(typeof handler === 'function', 'registers a change listener');
+    handler();
+    assert.deepStrictEqual(calls, ['change'], 'invokes the callback on change');
+    cleanup();
+    assert.strictEqual(handler, null, 'cleanup removes the listener');
+  } finally {
+    if (real === undefined) {
+      delete globalThis.matchMedia;
+    } else {
+      globalThis.matchMedia = real;
+    }
+  }
+});

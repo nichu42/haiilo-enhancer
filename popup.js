@@ -6,6 +6,45 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 const t = (key, substitutions) => i18nMessage(key, substitutions);
 
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
+const THEME_CYCLE = ['system', 'dark', 'light'];
+
+// The stored preference ('system' | 'light' | 'dark'), tracked so the OS
+// theme-change listener knows whether to re-resolve.
+let currentThemePreference = 'system';
+
+function applyTheme(theme) {
+  // The toggle reflects the stored preference ('system' shows the auto icon);
+  // the effective mode on <html> is resolved to light/dark by applyThemeMode.
+  const preference = HaiiloShared.resolveThemeMode(theme);
+  currentThemePreference = preference;
+  HaiiloShared.applyThemeMode(theme);
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.dataset.state = preference;
+    const modeLabel = preference === 'system' ? t('themeSystem') : preference === 'light' ? t('themeLight') : t('themeDark');
+    const label = `${t('theme')}: ${modeLabel}`;
+    toggle.title = label;
+    toggle.setAttribute('aria-label', label);
+  }
+  return preference;
+}
+
+function setupThemeToggle() {
+  const toggle = document.getElementById('themeToggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', async () => {
+    try {
+      const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
+      const current = HaiiloShared.resolveThemeMode(currentSettings.theme);
+      const next = THEME_CYCLE[(THEME_CYCLE.indexOf(current) + 1) % THEME_CYCLE.length];
+      currentSettings.theme = next;
+      await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
+      applyTheme(next);
+    } catch (error) {
+      console.error('[Popup] Error toggling theme:', error);
+    }
+  });
+}
 async function getHaiiloDomains() {
   const data = await browserAPI.storage.local.get('customDomains');
   return [...DEFAULT_DOMAINS, ...(data.customDomains || [])];
@@ -297,6 +336,7 @@ async function loadSettings() {
     });
   }
 
+  applyTheme(settings.theme);
   updatePopupDisabledState();
 }
 
@@ -318,6 +358,16 @@ function updatePopupDisabledState() {
 }
 
 function setupEventListeners() {
+  setupThemeToggle();
+
+  // Re-resolve the theme if the OS light/dark setting changes while the popup
+  // is open (only matters in 'system' mode).
+  HaiiloShared.bindSystemThemeChange(() => {
+    if (currentThemePreference === 'system') {
+      HaiiloShared.applyThemeMode('system');
+    }
+  });
+
   // Add user form
   document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     e.preventDefault();

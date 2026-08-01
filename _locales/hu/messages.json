@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Magyar"},
   "languageItalian": {"message":"Olasz"},
   "languageDutch": {"message":"Holland"},
-  "languagePolish": {"message":"Lengyel"}
+  "languagePolish": {"message":"Lengyel"},
+  "theme": {"message":"T\u00e9ma"},
+  "themeSystem": {"message":"Rendszer (b\u00f6ng\u00e9sz\u0151 be\u00e1ll\u00edt\u00e1sa)"},
+  "themeLight": {"message":"Vil\u00e1gos"},
+  "themeDark": {"message":"S\u00f6t\u00e9t"},
+  "themeHelp": {"message":"Alap\u00e9rtelmez\u00e9s szerint a b\u00f6ng\u00e9sz\u0151 vil\u00e1gos/s\u00f6t\u00e9t be\u00e1ll\u00edt\u00e1s\u00e1t k\u00f6veti."}
 }

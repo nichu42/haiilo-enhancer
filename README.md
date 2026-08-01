@@ -18,6 +18,7 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 - **🛠️ Custom domains** — works on your organization's custom Haiilo URL, not just haiilo.app.
 - **📅 Add to calendar** — adds an "Add to calendar" button to Haiilo events, letting you export to Google Calendar, Outlook.com, Yahoo Calendar, or a standard ICS file.
 - **💾 Import / export / reset** — back up your muted users and all settings to a JSON file.
+- **🌙 Dark mode** — the popup and options pages follow your browser's light/dark setting by default; toggle it on the fly with the sun/moon button in the popup.
 - **🌐 Manual language selection** — choose Browser default, English, German, Czech, Spanish, French, Hungarian, Italian, Dutch, or Polish for the extension UI and Haiilo enhancements.
 - **☁️ Browser sync** — optionally sync your muted users and settings across devices via your browser account (opt-in, up to 50 muted users).
 

@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Húngaro"},
   "languageItalian": {"message":"Italiano"},
   "languageDutch": {"message":"Neerlandés"},
-  "languagePolish": {"message":"Polaco"}
+  "languagePolish": {"message":"Polaco"},
+  "theme": {"message":"Tema"},
+  "themeSystem": {"message":"Sistema (seguir navegador)"},
+  "themeLight": {"message":"Claro"},
+  "themeDark": {"message":"Oscuro"},
+  "themeHelp": {"message":"Por defecto sigue la configuraci\u00f3n clara/oscura del navegador."}
 }

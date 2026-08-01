@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Hongaars"},
   "languageItalian": {"message":"Italiaans"},
   "languageDutch": {"message":"Nederlands"},
-  "languagePolish": {"message":"Pools"}
+  "languagePolish": {"message":"Pools"},
+  "theme": {"message":"Thema"},
+  "themeSystem": {"message":"Systeem (browser volgen)"},
+  "themeLight": {"message":"Licht"},
+  "themeDark": {"message":"Donker"},
+  "themeHelp": {"message":"Volgt standaard de licht-/donkerinstelling van de browser."}
 }

@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Ungarisch"},
   "languageItalian": {"message":"Italienisch"},
   "languageDutch": {"message":"Niederländisch"},
-  "languagePolish": {"message":"Polnisch"}
+  "languagePolish": {"message":"Polnisch"},
+  "theme": {"message":"Design"},
+  "themeSystem": {"message":"System (Browser folgen)"},
+  "themeLight": {"message":"Hell"},
+  "themeDark": {"message":"Dunkel"},
+  "themeHelp": {"message":"Folgt standardm\u00e4\u00dfig der Hell-/Dunkeleinstellung deines Browsers."}
 }

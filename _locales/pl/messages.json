@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Węgierski"},
   "languageItalian": {"message":"Włoski"},
   "languageDutch": {"message":"Niderlandzki"},
-  "languagePolish": {"message":"Polski"}
+  "languagePolish": {"message":"Polski"},
+  "theme": {"message":"Motyw"},
+  "themeSystem": {"message":"System (zgodnie z przegl\u0105dark\u0105)"},
+  "themeLight": {"message":"Jasny"},
+  "themeDark": {"message":"Ciemny"},
+  "themeHelp": {"message":"Domy\u015blnie pod\u0105\u017ca za jasnym/ciemnym ustawieniem przegl\u0105darki."}
 }

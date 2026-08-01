@@ -691,5 +691,10 @@
   "languageHungarian": {"message":"Maďarština"},
   "languageItalian": {"message":"Italština"},
   "languageDutch": {"message":"Nizozemština"},
-  "languagePolish": {"message":"Polština"}
+  "languagePolish": {"message":"Polština"},
+  "theme": {"message":"Téma"},
+  "themeSystem": {"message":"Systém (dle prohlížeče)"},
+  "themeLight": {"message":"Světlý"},
+  "themeDark": {"message":"Tmavý"},
+  "themeHelp": {"message":"Ve výchozím nastavení se řídí světlým/tmavým režimem prohlížeče."}
 }

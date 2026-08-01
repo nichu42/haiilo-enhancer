@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
+  "short_name": "HaiiloEnhc",
   "version": "0.5.0",
   "description": "__MSG_extensionDescription__",
+  "author": "nichu42",
+  "minimum_chrome_version": "105",
   "default_locale": "en",
   "homepage_url": "https://github.com/nichu42/haiilo-enhancer",
   "permissions": [

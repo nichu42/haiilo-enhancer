@@ -203,6 +203,21 @@
   "unmute": {
     "message": "Zrušit ztlumení"
   },
+  "mutedSearchPlaceholder": {
+    "message": "Vyhledat ztlumené uživatele"
+  },
+  "mutedSearchNoResults": {
+    "message": "Žádný ztlumený uživatel neodpovídá vašemu vyhledávání"
+  },
+  "undo": {
+    "message": "Zpět"
+  },
+  "unmutedUser": {
+    "message": "Ztlumení uživatele zrušeno: $USER$",
+    "placeholders": {
+      "user": { "content": "$1", "example": "Alex" }
+    }
+  },
   "expired": {
     "message": "vypršelo"
   },
@@ -497,6 +512,18 @@
   "domainHelp": {
     "message": "Zadejte pouze název domény (např. intranet.company.com)"
   },
+  "domainToggleDescription": {
+    "message": "Haiilo Enhancer běží na všech níže uvedených doménách. Vypnutím domény ponecháte tuto instanci Haiilo zcela nedotčenou."
+  },
+  "domainToggleHelp": {
+    "message": "Přidejte níže vlastní Haiilo doménu vaší organizace, aby se zde zobrazila."
+  },
+  "domainEnabled": {
+    "message": "Aktivní na $DOMAIN$",
+    "placeholders": {
+      "domain": { "content": "$1", "example": "haiilo.app" }
+    }
+  },
   "chromePermissionWarning": {
     "message": "Poznámka: Kvůli omezení Chromu nelze oprávnění domény po udělení odvolat. Odebráním domény zde rozšíření přestane doménu používat, ale oprávnění zůstane viditelné na chrome://extensions, dokud rozšíření znovu nenainstalujete."
   },
@@ -678,6 +705,7 @@
   "homepageHomeSoft": {"message":"Domů (soft)"},
   "homepageSection": {"message":"Domů ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
   "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "customHomepageSet": { "message": "Vlastní domovská stránka nastavena" },
   "confirmReset": {"message":"Opravdu chcete vše obnovit na výchozí hodnoty? Tuto akci nelze vrátit zpět."},
   "ringSettingsReset": {"message":"Nastavení kruhového okraje obnoveno na výchozí"},
   "squareSettingsReset": {"message":"Nastavení čtvercového okraje obnoveno na výchozí"},

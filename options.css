@@ -640,6 +640,20 @@ footer .donate-icon {
   background: var(--color-bg-white);
 }
 
+.domain-toggle {
+  width: 18px;
+  height: 18px;
+  margin: 0 12px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary-teal);
+  cursor: pointer;
+}
+
+.domain-item:has(.domain-toggle:not(:checked)) .domain-item-text {
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+}
+
 .domain-item-text {
   font-family: 'Courier New', monospace;
   font-size: 14px;

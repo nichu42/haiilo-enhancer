@@ -76,6 +76,7 @@
   let observer = null;
   let debugMode = false;
   let extensionEnabled = true;
+  let domainDisabled = false;
   let enhanceChannelAvatars = false;
   let channelAvatarsProcessed = false;
   let avatarStyle = 'ring';
@@ -1628,6 +1629,72 @@
 
   let messageListenerRegistered = false;
 
+  // In-tab toast: shown at the bottom of the page so the user sees feedback
+  // for context-menu actions (muting, setting the homepage). Optionally shows
+  // an Undo button that reverts the action.
+  let tabUndoToast = null;
+  let tabUndoToastTimer = null;
+  let tabUndoToastAction = null;
+
+  function ensureTabUndoToast() {
+    if (tabUndoToast && tabUndoToast.isConnected) return tabUndoToast;
+    tabUndoToast = document.createElement('div');
+    tabUndoToast.className = 'haiilo-enhancer-undo-toast';
+    tabUndoToast.setAttribute('role', 'status');
+
+    const messageEl = document.createElement('span');
+    messageEl.className = 'haiilo-enhancer-undo-toast-message';
+
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 'haiilo-enhancer-undo-toast-btn';
+    undoBtn.type = 'button';
+    undoBtn.textContent = t('undo');
+    undoBtn.addEventListener('click', async () => {
+      const action = tabUndoToastAction;
+      hideTabUndoToast();
+      if (!action) return;
+      try {
+        if (action.action === 'unmuteUser') {
+          await safeSendMessage({ action: 'unmuteUser', userName: action.userName });
+        }
+      } catch (e) {
+        console.error('Failed to undo action in tab:', e);
+      }
+    });
+
+    tabUndoToast.appendChild(messageEl);
+    tabUndoToast.appendChild(undoBtn);
+    document.body.appendChild(tabUndoToast);
+    return tabUndoToast;
+  }
+
+  // Show a toast at the bottom of the page. `undoAction` is optional; when
+  // provided ({ action: 'unmuteUser', userName }), an Undo button appears and
+  // clicking it executes the reversal. Without it the toast is a plain
+  // confirmation that auto-hides.
+  function showTabToast(message, undoAction) {
+    if (!isExtensionContextValid() || !document.body) return;
+    const toast = ensureTabUndoToast();
+    const messageEl = toast.querySelector('.haiilo-enhancer-undo-toast-message');
+    const undoBtn = toast.querySelector('.haiilo-enhancer-undo-toast-btn');
+    messageEl.textContent = message;
+    tabUndoToastAction = undoAction || null;
+    undoBtn.hidden = !tabUndoToastAction;
+    toast.classList.add('visible');
+    clearTimeout(tabUndoToastTimer);
+    tabUndoToastTimer = setTimeout(hideTabUndoToast, 4000);
+  }
+
+  function showTabUndoToast(userName) {
+    showTabToast(t('mutedUser', userName), { action: 'unmuteUser', userName });
+  }
+
+  function hideTabUndoToast() {
+    clearTimeout(tabUndoToastTimer);
+    tabUndoToastAction = null;
+    if (tabUndoToast) tabUndoToast.classList.remove('visible');
+  }
+
   async function init() {
     try {
       debugLog('Content script initialized');
@@ -1746,6 +1813,24 @@
               sendResponse({ success: true });
               return true;
             }
+
+            if (message.action === 'showUndoToast') {
+              if (!extensionEnabled) {
+                sendResponse({ success: true });
+                return;
+              }
+              if (message.userName) showTabUndoToast(message.userName);
+              sendResponse({ success: true });
+            }
+
+            if (message.action === 'showHomepageToast') {
+              if (!extensionEnabled) {
+                sendResponse({ success: true });
+                return;
+              }
+              showTabToast(t('customHomepageSet'));
+              sendResponse({ success: true });
+            }
           } catch (e) {
             console.error('Error in message handler:', e);
             sendResponse({ success: false, error: e.message });
@@ -1799,12 +1884,28 @@
     }
   }
 
+  // Check whether the current page's hostname is one the user disabled for
+  // this extension (e.g. 'team.haiilo.app' matches the base domain 'haiilo.app').
+  function isCurrentDomainDisabled(disabledDomains) {
+    if (!Array.isArray(disabledDomains) || disabledDomains.length === 0) return false;
+    try {
+      const hostname = window.location.hostname;
+      return disabledDomains.some(domain =>
+        hostname === domain || hostname.endsWith('.' + domain)
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function loadSettings() {
     try {
       if (isExtensionContextValid()) {
         try {
           const settings = await safeSendMessage({ action: 'getSettings' });
-          extensionEnabled = settings.extensionEnabled !== false; // Default to true
+          const disabledDomains = await safeSendMessage({ action: 'getDisabledDomains' });
+          domainDisabled = isCurrentDomainDisabled(disabledDomains);
+          extensionEnabled = settings.extensionEnabled !== false && !domainDisabled; // Default to true
           debugMode = settings.debugMode || false;
           enhanceChannelAvatars = settings.enhanceChannelAvatars !== false; // Default to true
           avatarStyle = settings.channelAvatarStyle || 'ring';
@@ -1843,6 +1944,7 @@
           // safeSendMessage already handles context errors
           console.error('Failed to load settings:', error);
           extensionEnabled = true;
+          domainDisabled = false;
           debugMode = false;
           enhanceChannelAvatars = true; // Default to enabled
           avatarStyle = 'ring';
@@ -1865,6 +1967,7 @@
       } else {
         debugLog('Cannot load settings: extension context invalid');
         extensionEnabled = true;
+        domainDisabled = false;
         debugMode = false;
         enhanceChannelAvatars = true; // Default to enabled
         avatarStyle = 'ring';
@@ -1886,6 +1989,7 @@
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
+      domainDisabled = false;
       debugMode = false;
       enhanceChannelAvatars = true; // Default to enabled
       avatarStyle = 'ring';
@@ -2154,13 +2258,6 @@
     return out;
   }
 
-  function itemHasMutedAuthor(item, userName, selectors) {
-    if (!item || !userName || !selectors || selectors.length === 0) return false;
-
-    const normalizedName = userName.trim();
-    return collectMatchedTexts(item, selectors).some(text => text === normalizedName);
-  }
-
   function buildHiddenItemDetails(item, userName, kind, selectors, matchedSelector) {
     const matchedAuthors = collectMatchedTexts(item, selectors);
     const text = normalizeWhitespace(item && item.innerText ? item.innerText : item && item.textContent);
@@ -2213,81 +2310,91 @@
     debugLog('Starting content filtering...');
     const hiddenElements = new WeakSet();
 
-    // Simple approach like the original working script
+    // Build the muted-name lookup table once, then scan each post once.
+    // The old code re-scanned the whole page for every muted user, which got
+    // slow with 50 people.
+    const mutedNames = new Set();
     mutedUsers.forEach(user => {
-      const userName = user.name.trim();
-      const timelineAuthorSelectors = [
-        'cat-sender-link',
-        '[data-test="comment-author"]',
-        'sectionheader cat-sender-link',
-        'sectionheader [data-test="comment-author"]',
-        'sectionheader button',
-        'sectionheader a',
-        '[role="sectionheader"] cat-sender-link',
-        '[role="sectionheader"] [data-test="comment-author"]',
-        '[role="sectionheader"] button',
-        '[role="sectionheader"] a'
-      ];
+      const name = (user.name || '').trim();
+      if (name) mutedNames.add(name);
+    });
 
-      // Hide posts by the user (simple selector like original)
-      document.querySelectorAll('coyo-timeline-item').forEach(item => {
-        if (!hiddenElements.has(item) && itemHasMutedAuthor(item, userName, timelineAuthorSelectors)) {
+    // Return the muted name found inside `item` (via the author selectors),
+    // or null. The matched name is used for the hidden-item details.
+    const findMutedAuthor = (item, selectors) => {
+      if (!item || !selectors || selectors.length === 0) return null;
+      return collectMatchedTexts(item, selectors).find(text => mutedNames.has(text)) || null;
+    };
+
+    // Hide posts by muted users (simple selector like original)
+    const timelineAuthorSelectors = [
+      'cat-sender-link',
+      '[data-test="comment-author"]',
+      'sectionheader cat-sender-link',
+      'sectionheader [data-test="comment-author"]',
+      'sectionheader button',
+      'sectionheader a',
+      '[role="sectionheader"] cat-sender-link',
+      '[role="sectionheader"] [data-test="comment-author"]',
+      '[role="sectionheader"] button',
+      '[role="sectionheader"] a'
+    ];
+    document.querySelectorAll('coyo-timeline-item').forEach(item => {
+      if (hiddenElements.has(item)) return;
+      const userName = findMutedAuthor(item, timelineAuthorSelectors);
+      if (userName) {
+        hiddenElements.add(item);
+        hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'timeline item', timelineAuthorSelectors, 'timeline-header'));
+        debugLog('Hidden timeline post by:', userName);
+      }
+    });
+
+    // Hide comments by muted users (simple selector like original)
+    document.querySelectorAll('coyo-comment').forEach(comment => {
+      if (hiddenElements.has(comment)) return;
+      const userName = findMutedAuthor(comment, ['[data-test="comment-author"]']);
+      if (userName) {
+        hiddenElements.add(comment);
+        hideMatchedElement(comment, buildHiddenItemDetails(comment, userName, 'comment', ['[data-test="comment-author"]'], 'comment-author'));
+        debugLog('Hidden comment by:', userName);
+      }
+    });
+
+    // Additional selectors for broader coverage (including dynamically loaded content)
+    const additionalSelectors = [
+      '[class*="blog-post"]',
+      '[class*="article-item"]', 
+      '[class*="news-item"]',
+      '[class*="feed-item"]',
+      '[class*="post-item"]',
+      '[class*="activity-item"]'
+    ];
+    const additionalAuthorSelectors = [
+      'cat-sender-link',
+      '[data-test="comment-author"]',
+      'sectionheader cat-sender-link',
+      'sectionheader [data-test="comment-author"]',
+      'sectionheader button',
+      'sectionheader a',
+      '[role="sectionheader"] cat-sender-link',
+      '[role="sectionheader"] [data-test="comment-author"]',
+      '[role="sectionheader"] button',
+      '[role="sectionheader"] a',
+      '[class*="author"]',
+      '[class*="user-name"]',
+      'a[href*="/user/"]',
+      'a[href*="/profile/"]'
+    ];
+
+    additionalSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(item => {
+        if (hiddenElements.has(item)) return;
+        const userName = findMutedAuthor(item, additionalAuthorSelectors);
+        if (userName) {
           hiddenElements.add(item);
-          hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'timeline item', timelineAuthorSelectors, 'timeline-header'));
-          debugLog('Hidden timeline post by:', userName);
+          hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'content item', additionalAuthorSelectors, 'content-item'));
+          debugLog('Hidden item (selector:', selector, ') by:', userName);
         }
-      });
-
-      // Hide comments by the user (simple selector like original)
-      document.querySelectorAll('coyo-comment').forEach(comment => {
-        if (!hiddenElements.has(comment) && itemHasMutedAuthor(comment, userName, ['[data-test="comment-author"]'])) {
-          hiddenElements.add(comment);
-          hideMatchedElement(comment, buildHiddenItemDetails(comment, userName, 'comment', ['[data-test="comment-author"]'], 'comment-author'));
-          debugLog('Hidden comment by:', userName);
-        }
-      });
-
-      // Additional selectors for broader coverage (including dynamically loaded content)
-      const additionalSelectors = [
-        '[class*="blog-post"]',
-        '[class*="article-item"]', 
-        '[class*="news-item"]',
-        '[class*="feed-item"]',
-        '[class*="post-item"]',
-        '[class*="activity-item"]'
-      ];
-
-      additionalSelectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(item => {
-          if (hiddenElements.has(item)) return;
-          // Try multiple author selectors
-          const authorSelectors = [
-            'cat-sender-link',
-            '[data-test="comment-author"]',
-            'sectionheader cat-sender-link',
-            'sectionheader [data-test="comment-author"]',
-            'sectionheader button',
-            'sectionheader a',
-            '[role="sectionheader"] cat-sender-link',
-            '[role="sectionheader"] [data-test="comment-author"]',
-            '[role="sectionheader"] button',
-            '[role="sectionheader"] a',
-            '[class*="author"]',
-            '[class*="user-name"]',
-            'a[href*="/user/"]',
-            'a[href*="/profile/"]'
-          ];
-
-          for (const authorSelector of authorSelectors) {
-            const authorElement = item.querySelector(authorSelector);
-            if (authorElement && authorElement.textContent.trim() === userName) {
-              hiddenElements.add(item);
-              hideMatchedElement(item, buildHiddenItemDetails(item, userName, 'content item', authorSelectors, authorSelector));
-              debugLog('Hidden item (selector:', selector, ') by:', userName);
-              break;
-            }
-          }
-        });
       });
     });
 
@@ -2304,10 +2411,11 @@
         return;
       }
 
-      debugLog('Updating badge with count:', hiddenCount);
+      debugLog('Updating badge with count:', hiddenCount, 'domainDisabled:', domainDisabled);
       safeSendMessage({
         action: 'updateHiddenCount',
-        count: hiddenCount
+        count: hiddenCount,
+        domainDisabled: domainDisabled
       }).catch(error => {
         // safeSendMessage already handles context errors, so this should only be other errors
         console.error('Failed to update badge:', error);

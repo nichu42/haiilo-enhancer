@@ -203,6 +203,21 @@
   "unmute": {
     "message": "Némítás feloldása"
   },
+  "mutedSearchPlaceholder": {
+    "message": "Némított felhasználók keresése"
+  },
+  "mutedSearchNoResults": {
+    "message": "Nincs a keresésnek megfelelő némított felhasználó"
+  },
+  "undo": {
+    "message": "Visszavonás"
+  },
+  "unmutedUser": {
+    "message": "Felhasználó némítása visszavonva: $USER$",
+    "placeholders": {
+      "user": { "content": "$1", "example": "Alex" }
+    }
+  },
   "expired": {
     "message": "lejárt"
   },
@@ -497,6 +512,18 @@
   "domainHelp": {
     "message": "Csak a tartomány nevét add meg (pl. intranet.company.com)"
   },
+  "domainToggleDescription": {
+    "message": "A Haiilo Enhancer minden alábbi domainen fut. Kapcsold ki az adott domaint, hogy az adott Haiilo-példány teljesen érintetlen maradjon."
+  },
+  "domainToggleHelp": {
+    "message": "Add meg alább a szervezeted egyedi Haiilo-domainjét, hogy itt megjelenjen."
+  },
+  "domainEnabled": {
+    "message": "Aktív itt: $DOMAIN$",
+    "placeholders": {
+      "domain": { "content": "$1", "example": "haiilo.app" }
+    }
+  },
   "chromePermissionWarning": {
     "message": "Megjegyzés: A Chrome korlátozása miatt a tartományengedélyek megadás után nem vonhatók vissza. A tartomány eltávolítása itt leállítja a kiegészítő használatát rajta, de az engedély a chrome://extensions oldalon látható marad, amíg újra nem telepíted a kiegészítőt."
   },
@@ -678,6 +705,7 @@
   "homepageHomeSoft": {"message":"Kezdőlap (soft)"},
   "homepageSection": {"message":"Kezdőlap ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
   "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "customHomepageSet": { "message": "Egyéni kezdőlap beállítva" },
   "confirmReset": {"message":"Biztosan visszaállítasz mindent az alapértelmezett értékekre? Ez nem vonható vissza."},
   "ringSettingsReset": {"message":"A gyűrű beállításai visszaállítva az alapértelmezettre"},
   "squareSettingsReset": {"message":"A négyzet beállításai visszaállítva az alapértelmezettre"},

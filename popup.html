@@ -57,6 +57,7 @@
 
     <section class="muted-list-section">
       <h2 data-i18n="mutedUsers"></h2>
+      <input type="search" id="mutedSearch" class="muted-search" data-i18n-placeholder="mutedSearchPlaceholder" data-i18n-aria-label="mutedSearchPlaceholder" placeholder="Search muted users" aria-label="Search muted users" hidden>
       <div id="mutedList" class="muted-list">
         <p class="empty-state" data-i18n="noMutedUsers"></p>
       </div>
@@ -99,6 +100,11 @@
         </a>
       </p>
     </footer>
+  </div>
+
+  <div id="undoToast" class="undo-toast" role="status" hidden>
+    <span id="undoToastMessage" class="undo-toast-message"></span>
+    <button type="button" id="undoButton" class="undo-toast-btn" data-i18n="undo"></button>
   </div>
 
   <script src="shared.js"></script>

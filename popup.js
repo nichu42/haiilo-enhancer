@@ -8,6 +8,17 @@ const t = (key, substitutions) => i18nMessage(key, substitutions);
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 const THEME_CYCLE = ['system', 'dark', 'light'];
 
+const UNDO_TOAST_DURATION = 4000;
+
+// Full muted-user list from storage and the current search filter, kept so
+// typing in the search box re-renders without another storage round-trip.
+let mutedUsersCache = [];
+let mutedSearchQuery = '';
+
+// Pending undo state: the reversal of the last mute/unmute, plus the timer
+// that auto-hides the toast. `null` means nothing can be undone right now.
+let undoState = null;
+
 // The stored preference ('system' | 'light' | 'dark'), tracked so the OS
 // theme-change listener knows whether to re-resolve.
 let currentThemePreference = 'system';
@@ -97,10 +108,19 @@ async function initPopup() {
 
 async function loadMutedUsers() {
   const response = await browserAPI.runtime.sendMessage({ action: 'getMutedUsers' });
+  mutedUsersCache = Array.isArray(response) ? response : [];
+  renderMutedUsers();
+}
+
+function renderMutedUsers() {
   const mutedList = document.getElementById('mutedList');
+  const searchInput = document.getElementById('mutedSearch');
   mutedList.textContent = '';
 
-  if (!response || response.length === 0) {
+  const hasUsers = mutedUsersCache.length > 0;
+  if (searchInput) searchInput.hidden = !hasUsers;
+
+  if (!hasUsers) {
     const emptyEl = document.createElement('p');
     emptyEl.className = 'empty-state';
     emptyEl.textContent = t('noMutedUsers');
@@ -108,15 +128,87 @@ async function loadMutedUsers() {
     return;
   }
 
-  response.forEach(user => mutedList.appendChild(createUserElement(user)));
+  const query = mutedSearchQuery.trim().toLowerCase();
+  const filtered = query
+    ? mutedUsersCache.filter(user => user.name.toLowerCase().includes(query))
+    : mutedUsersCache;
+
+  if (filtered.length === 0) {
+    const emptyEl = document.createElement('p');
+    emptyEl.className = 'empty-state';
+    emptyEl.textContent = t('mutedSearchNoResults');
+    mutedList.appendChild(emptyEl);
+    return;
+  }
+
+  filtered.forEach(user => mutedList.appendChild(createUserElement(user)));
 
   // Add event listeners to unmute buttons
   mutedList.querySelectorAll('.unmute-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const userName = e.target.dataset.user;
+      const userName = e.currentTarget.dataset.user;
+      const user = mutedUsersCache.find(u => u.name === userName);
       await browserAPI.runtime.sendMessage({ action: 'unmuteUser', userName });
+      showUndoToast(
+        t('unmutedUser', userName),
+        { action: 'mute', userName, days: user && !user.permanent ? Math.max(1, Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))) : null }
+      );
       await loadMutedUsers();
     });
+  });
+}
+
+function setupMutedSearch() {
+  const searchInput = document.getElementById('mutedSearch');
+  if (!searchInput) return;
+  searchInput.addEventListener('input', () => {
+    mutedSearchQuery = searchInput.value;
+    renderMutedUsers();
+  });
+}
+
+function hideUndoToast() {
+  if (undoState) {
+    clearTimeout(undoState.timer);
+    undoState = null;
+  }
+  const toast = document.getElementById('undoToast');
+  if (toast) toast.hidden = true;
+}
+
+// Show a small floating "Undo" bubble for a few seconds. `undoAction` is the
+// reversal of the action just performed: { action: 'mute'|'unmute', userName,
+// days } — clicking Undo executes it and clears the toast.
+function showUndoToast(message, undoAction) {
+  hideUndoToast();
+  const toast = document.getElementById('undoToast');
+  const messageEl = document.getElementById('undoToastMessage');
+  if (!toast || !messageEl) return;
+  messageEl.textContent = message;
+  toast.hidden = false;
+  undoState = {
+    ...(undoAction || {}),
+    timer: setTimeout(hideUndoToast, UNDO_TOAST_DURATION)
+  };
+}
+
+function setupUndoButton() {
+  const undoBtn = document.getElementById('undoButton');
+  if (!undoBtn) return;
+  undoBtn.addEventListener('click', async () => {
+    const state = undoState;
+    hideUndoToast();
+    if (!state) return;
+    try {
+      if (state.action === 'unmute') {
+        await browserAPI.runtime.sendMessage({ action: 'unmuteUser', userName: state.userName });
+      } else if (state.action === 'mute') {
+        await browserAPI.runtime.sendMessage({ action: 'muteUser', userName: state.userName, days: state.days });
+      }
+    } catch (error) {
+      console.error('[Popup] Error undoing last action:', error);
+    }
+    await loadMutedUsers();
   });
 }
 
@@ -142,8 +234,21 @@ function createUserElement(user) {
 
   const btn = document.createElement('button');
   btn.className = 'unmute-btn';
+  btn.type = 'button';
   btn.dataset.user = user.name;
-  btn.textContent = t('unmute');
+  btn.title = t('unmute');
+  btn.setAttribute('aria-label', t('unmute'));
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('d', 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
+  svg.appendChild(path);
+  btn.appendChild(svg);
 
   div.appendChild(infoDiv);
   div.appendChild(btn);
@@ -359,6 +464,8 @@ function updatePopupDisabledState() {
 
 function setupEventListeners() {
   setupThemeToggle();
+  setupMutedSearch();
+  setupUndoButton();
 
   // Re-resolve the theme if the OS light/dark setting changes while the popup
   // is open (only matters in 'system' mode).
@@ -389,6 +496,7 @@ function setupEventListeners() {
     });
 
     userNameInput.value = '';
+    showUndoToast(t('mutedUser', userName), { action: 'unmute', userName });
     await loadMutedUsers();
   });
 

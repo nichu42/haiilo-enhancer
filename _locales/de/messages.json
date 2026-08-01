@@ -107,6 +107,21 @@
   "unmute": {
     "message": "Stummschaltung aufheben"
   },
+  "mutedSearchPlaceholder": {
+    "message": "Stummgeschaltete Benutzer durchsuchen"
+  },
+  "mutedSearchNoResults": {
+    "message": "Keine stummgeschalteten Benutzer entsprechen deiner Suche"
+  },
+  "undo": {
+    "message": "Rückgängig"
+  },
+  "unmutedUser": {
+    "message": "Benutzer entstummt: $USER$",
+    "placeholders": {
+      "user": { "content": "$1", "example": "Alex" }
+    }
+  },
   "expired": {
     "message": "abgelaufen"
   },
@@ -401,6 +416,18 @@
   "domainHelp": {
     "message": "Gib nur den Domainnamen ein (z. B. intranet.company.com)"
   },
+  "domainToggleDescription": {
+    "message": "Haiilo Enhancer läuft auf jeder unten aufgeführten Domain. Schalte eine Domain ab, um diese Haiilo-Instanz komplett unangetastet zu lassen."
+  },
+  "domainToggleHelp": {
+    "message": "Füge unten die benutzerdefinierte Haiilo-Domain deiner Organisation hinzu, um sie hier aufzunehmen."
+  },
+  "domainEnabled": {
+    "message": "Aktiv auf $DOMAIN$",
+    "placeholders": {
+      "domain": { "content": "$1", "example": "haiilo.app" }
+    }
+  },
   "chromePermissionWarning": {
     "message": "Hinweis: Aufgrund einer Einschränkung von Chrome können Domainberechtigungen nach ihrer Erteilung nicht widerrufen werden. Wenn du eine Domain hier entfernst, wird sie nicht mehr von der Erweiterung verwendet, aber die Berechtigung bleibt unter chrome://extensions sichtbar, bis du die Erweiterung neu installierst."
   },
@@ -678,6 +705,7 @@
   "homepageHomeSoft": {"message":"Startseite (soft)"},
   "homepageSection": {"message":"Startseite ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
   "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "customHomepageSet": { "message": "Benutzerdefinierte Startseite festgelegt" },
   "confirmReset": {"message":"Möchtest du wirklich alles auf die Standardwerte zurücksetzen? Dies kann nicht rückgängig gemacht werden."},
   "ringSettingsReset": {"message":"Ringeinstellungen auf Standard zurückgesetzt"},
   "squareSettingsReset": {"message":"Einstellungen des quadratischen Rahmens auf Standard zurückgesetzt"},

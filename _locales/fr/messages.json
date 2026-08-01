@@ -107,6 +107,21 @@
   "unmute": {
     "message": "Afficher"
   },
+  "mutedSearchPlaceholder": {
+    "message": "Rechercher des utilisateurs masqués"
+  },
+  "mutedSearchNoResults": {
+    "message": "Aucun utilisateur masqué ne correspond à votre recherche"
+  },
+  "undo": {
+    "message": "Annuler"
+  },
+  "unmutedUser": {
+    "message": "Utilisateur non masqué : $USER$",
+    "placeholders": {
+      "user": { "content": "$1", "example": "Alex" }
+    }
+  },
   "expired": {
     "message": "expiré"
   },
@@ -401,6 +416,18 @@
   "domainHelp": {
     "message": "Saisissez uniquement le nom de domaine (par ex. intranet.company.com)"
   },
+  "domainToggleDescription": {
+    "message": "Haiilo Enhancer fonctionne sur chaque domaine ci-dessous. Désactivez un domaine pour laisser cette instance Haiilo complètement intacte."
+  },
+  "domainToggleHelp": {
+    "message": "Ajoutez ci-dessous le domaine Haiilo personnalisé de votre organisation pour l'inclure ici."
+  },
+  "domainEnabled": {
+    "message": "Actif sur $DOMAIN$",
+    "placeholders": {
+      "domain": { "content": "$1", "example": "haiilo.app" }
+    }
+  },
   "chromePermissionWarning": {
     "message": "Remarque : en raison d’une limitation de Chrome, les autorisations de domaine ne peuvent pas être révoquées après avoir été accordées. Supprimer un domaine ici empêche l’extension de l’utiliser, mais l’autorisation restera visible dans chrome://extensions jusqu’à la réinstallation de l’extension."
   },
@@ -678,6 +705,7 @@
   "homepageHomeSoft": {"message":"Accueil (soft)"},
   "homepageSection": {"message":"Accueil ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
   "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "customHomepageSet": { "message": "Page d’accueil personnalisée définie" },
   "confirmReset": {"message":"Voulez-vous vraiment tout réinitialiser aux valeurs par défaut ? Cette action est irréversible."},
   "ringSettingsReset": {"message":"Paramètres de la bordure circulaire réinitialisés par défaut"},
   "squareSettingsReset": {"message":"Paramètres de la bordure carrée réinitialisés par défaut"},

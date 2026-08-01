@@ -370,6 +370,59 @@ section h2 {
   border: 2px solid var(--color-bg-lighter);
   border-radius: 8px;
   background: var(--color-bg-light);
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Match the popup body's scrollbar styling so the list looks native */
+.muted-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.muted-list::-webkit-scrollbar-track {
+  background: var(--color-bg-lighter);
+}
+
+.muted-list::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary);
+  border-radius: 5px;
+  border: 2px solid var(--color-bg-lighter);
+}
+
+.muted-list::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-primary-dark);
+}
+
+/* Search box above the muted list */
+.muted-search {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 2px solid var(--color-border-light);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.muted-search:focus {
+  outline: none;
+  border-color: var(--color-primary-teal);
+  background: var(--color-bg-white);
+  box-shadow: var(--focus-ring);
+}
+
+.muted-search::placeholder {
+  color: var(--color-text-tertiary);
+  /* Firefox applies its own ~54% opacity to placeholders, which would dim the
+   * themed color — restore full opacity so it renders as intended. */
+  opacity: 1;
+}
+
+.muted-search[hidden] {
+  display: none;
 }
 
 .muted-list .empty-state {
@@ -422,21 +475,34 @@ section h2 {
 }
 
 .unmute-btn {
-  background: var(--color-danger-bg);
-  border: 2px solid var(--color-danger-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
   color: var(--color-danger);
   cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
+}
+
+.unmute-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .unmute-btn:hover {
-  background: var(--color-danger-border);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+  background: var(--color-danger-bg);
+}
+
+.unmute-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .add-user-section form {
@@ -581,6 +647,69 @@ footer {
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
   margin-top: 16px;
+}
+
+/* Undo toast — a small floating bubble with an Undo button, shown for a few
+ * seconds after a mute/unmute so the last action can be reverted. */
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 32px);
+  padding: 10px 14px;
+  background: var(--color-bg-white);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  animation: undo-toast-in 0.2s ease;
+}
+
+.undo-toast[hidden] {
+  display: none;
+}
+
+.undo-toast-message {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.undo-toast-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.undo-toast-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.undo-toast-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@keyframes undo-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 footer a {

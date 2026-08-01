@@ -143,7 +143,6 @@ const DEFAULT_SETTINGS = {
   channelAvatarBadgePosition: 'bottom-left', // 'bottom-left' or 'top-left'
   channelAvatarColorMode: 'random', // 'random' or 'fixed'
   channelAvatarFixedColor: '#0f939d', // Haiilo teal color when colorMode is 'fixed'
-  hiddenCount: 0,
   dateFormat: 'northAmerican12h', // locale-aware preset id
   timeFormat: '12h', // '12h' or '24h'
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
@@ -254,6 +253,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'settings',
       'customDomains',
       'customHomepages',
+      'disabledDomains',
       'language',
       'extensionEnabled',
       'defaultMuteDays',
@@ -269,7 +269,6 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'channelAvatarBadgePosition',
       'channelAvatarColorMode',
       'channelAvatarFixedColor',
-      'hiddenCount',
       'dateFormat',
       'timeFormat',
       'keepMessengerExpanded',
@@ -301,6 +300,10 @@ browserAPI.runtime.onInstalled.addListener(async () => {
 
     if (!data.customHomepages) {
       await browserAPI.storage.local.set({ customHomepages: {} });
+    }
+
+    if (!data.disabledDomains) {
+      await browserAPI.storage.local.set({ disabledDomains: [] });
     }
 
     // Create context menu
@@ -575,6 +578,15 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
       console.error('Failed to refresh after re-injection:', retryError);
     }
   }
+
+  // Show an undo toast in the tab so the mute can be reverted from the page.
+  // Best effort — the tab may not have the content script loaded yet.
+  try {
+    await browserAPI.tabs.sendMessage(tab.id, { action: 'showUndoToast', userName });
+    debugLog('Sent showUndoToast message to tab', tab.id);
+  } catch (e) {
+    debugLog('Could not send undo toast to tab', tab.id);
+  }
 });
 
 // Mute a user
@@ -705,7 +717,7 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Update badge with hidden count or OFF status
     browserAPI.storage.local.get('settings').then(data => {
       const settings = data.settings || DEFAULT_SETTINGS;
-      if (settings.extensionEnabled === false) {
+      if (settings.extensionEnabled === false || message.domainDisabled === true) {
         badgeAPI.setBadgeText({ text: 'OFF', tabId: sender.tab.id });
         badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: sender.tab.id });
         debugLog('Badge updated with OFF status');
@@ -728,6 +740,22 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getCustomDomains') {
     browserAPI.storage.local.get('customDomains').then(data => {
       sendResponse(data.customDomains || []);
+    });
+    return true;
+  }
+
+  if (message.action === 'getDisabledDomains') {
+    browserAPI.storage.local.get('disabledDomains').then(data => {
+      sendResponse(data.disabledDomains || []);
+    });
+    return true;
+  }
+
+  if (message.action === 'setDomainEnabled') {
+    setDomainEnabled(message.domain, message.enabled).then(() => {
+      sendResponse({ success: true });
+      broadcastMessageToAllHaiiloTabs({ action: 'settingsUpdated' });
+      updateAllBadges();
     });
     return true;
   }
@@ -844,7 +872,7 @@ async function updateAllBadges() {
   const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
     if (await isHaiiloTab(tab)) {
-      if (settings.extensionEnabled === false) {
+      if (settings.extensionEnabled === false || await isTabDomainDisabled(tab)) {
         badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
         badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
       } else {
@@ -921,11 +949,13 @@ async function addCustomDomain(domain) {
 
 // Remove a custom domain (permissions should be removed by the options page before calling this)
 async function removeCustomDomain(domain) {
-  const data = await browserAPI.storage.local.get('customDomains');
+  const data = await browserAPI.storage.local.get(['customDomains', 'disabledDomains']);
   const customDomains = data.customDomains || [];
+  const disabledDomains = data.disabledDomains || [];
 
   const filtered = customDomains.filter(d => d !== domain);
-  await browserAPI.storage.local.set({ customDomains: filtered });
+  const remainingDisabled = disabledDomains.filter(d => d !== domain);
+  await browserAPI.storage.local.set({ customDomains: filtered, disabledDomains: remainingDisabled });
 
   // Rebuild context menu to remove domain from targetUrlPatterns
   await createContextMenu();
@@ -934,6 +964,41 @@ async function removeCustomDomain(domain) {
   await registerDynamicContentScripts();
 
   debugLog(`Removed custom domain: ${domain}`);
+}
+
+// Enable or disable the extension for a single Haiilo domain. Disabled domains
+// are stored in `disabledDomains` so each site remembers its own state.
+async function setDomainEnabled(domain, enabled) {
+  const data = await browserAPI.storage.local.get('disabledDomains');
+  const disabledDomains = data.disabledDomains || [];
+  const idx = disabledDomains.indexOf(domain);
+
+  if (enabled && idx >= 0) {
+    disabledDomains.splice(idx, 1);
+  } else if (!enabled && idx < 0) {
+    disabledDomains.push(domain);
+  } else {
+    return; // state already matches
+  }
+
+  await browserAPI.storage.local.set({ disabledDomains });
+  debugLog(`Domain ${enabled ? 'enabled' : 'disabled'}: ${domain}`);
+}
+
+// Check whether a tab's hostname is a domain the user disabled.
+async function isTabDomainDisabled(tab) {
+  if (!tab || !tab.url) return false;
+  const data = await browserAPI.storage.local.get('disabledDomains');
+  const disabledDomains = data.disabledDomains || [];
+  if (disabledDomains.length === 0) return false;
+  try {
+    const hostname = new URL(tab.url).hostname;
+    return disabledDomains.some(domain =>
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch (e) {
+    return false;
+  }
 }
 
 // Register dynamic content scripts for custom domains
@@ -1096,6 +1161,14 @@ async function handleSetHomepage(info, tab) {
     if (response && response.homepageUrl && response.baseUrl) {
       await setCustomHomepage(response.baseUrl, response.homepageUrl);
       debugLog(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
+
+      // Show a confirmation toast in the tab where the user right-clicked
+      try {
+        await browserAPI.tabs.sendMessage(tab.id, { action: 'showHomepageToast' });
+        debugLog('Sent showHomepageToast message to tab', tab.id);
+      } catch (toastError) {
+        debugLog('Could not send homepage toast to tab', tab.id);
+      }
 
       // Notify all tabs of the same instance to update
       const tabs = await browserAPI.tabs.query({});

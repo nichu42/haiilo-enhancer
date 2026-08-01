@@ -4,6 +4,8 @@
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 const t = (key, substitutions) => i18nMessage(key, substitutions);
+
+const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
 let saveSettingsTimeout = null;
 
 // The stored theme preference ('system' | 'light' | 'dark'), tracked so the
@@ -310,35 +312,45 @@ async function loadSettings() {
 }
 
 async function loadDomains() {
-  const response = await browserAPI.runtime.sendMessage({ action: 'getCustomDomains' });
-  const domains = response || [];
+  const [customDomains, disabledDomains] = await Promise.all([
+    browserAPI.runtime.sendMessage({ action: 'getCustomDomains' }),
+    browserAPI.runtime.sendMessage({ action: 'getDisabledDomains' })
+  ]);
+  const customs = Array.isArray(customDomains) ? customDomains : [];
+  const disabled = Array.isArray(disabledDomains) ? disabledDomains : [];
+  const allDomains = [...DEFAULT_DOMAINS, ...customs];
 
   const domainsList = document.getElementById('domainsList');
   domainsList.textContent = '';
 
-  if (domains.length === 0) {
-    const emptyEl = document.createElement('p');
-    emptyEl.className = 'empty-state';
-    emptyEl.textContent = t('noCustomDomains');
-    domainsList.appendChild(emptyEl);
-    return;
-  }
-
-  domains.forEach(domain => {
+  allDomains.forEach(domain => {
     const div = document.createElement('div');
     div.className = 'domain-item';
+
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox';
+    toggle.className = 'domain-toggle';
+    toggle.dataset.domain = domain;
+    toggle.checked = !disabled.includes(domain);
+    toggle.title = t('domainEnabled', domain);
+    toggle.setAttribute('aria-label', t('domainEnabled', domain));
 
     const span = document.createElement('span');
     span.className = 'domain-item-text';
     span.textContent = domain;
 
-    const btn = document.createElement('button');
-    btn.className = 'danger remove-domain-btn';
-    btn.dataset.domain = domain;
-    btn.textContent = t('remove');
-
+    div.appendChild(toggle);
     div.appendChild(span);
-    div.appendChild(btn);
+
+    // Only custom domains can be removed (defaults are always present)
+    if (customs.includes(domain)) {
+      const btn = document.createElement('button');
+      btn.className = 'danger remove-domain-btn';
+      btn.dataset.domain = domain;
+      btn.textContent = t('remove');
+      div.appendChild(btn);
+    }
+
     domainsList.appendChild(div);
   });
 }
@@ -605,6 +617,20 @@ function setupEventListeners() {
       const domain = e.target.getAttribute('data-domain');
       if (domain) {
         await removeDomain(domain);
+      }
+    }
+  });
+
+  // Toggle per-domain enablement - event delegation for dynamically created checkboxes
+  document.getElementById('domainsList').addEventListener('change', async (e) => {
+    if (e.target.classList.contains('domain-toggle')) {
+      const domain = e.target.getAttribute('data-domain');
+      if (domain) {
+        await browserAPI.runtime.sendMessage({
+          action: 'setDomainEnabled',
+          domain,
+          enabled: e.target.checked
+        });
       }
     }
   });

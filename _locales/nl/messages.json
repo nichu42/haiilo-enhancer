@@ -107,6 +107,21 @@
   "unmute": {
     "message": "Dempen opheffen"
   },
+  "mutedSearchPlaceholder": {
+    "message": "Gedempte gebruikers doorzoeken"
+  },
+  "mutedSearchNoResults": {
+    "message": "Geen gedempte gebruikers gevonden voor je zoekopdracht"
+  },
+  "undo": {
+    "message": "Ongedaan maken"
+  },
+  "unmutedUser": {
+    "message": "Gebruiker niet meer gedempt: $USER$",
+    "placeholders": {
+      "user": { "content": "$1", "example": "Alex" }
+    }
+  },
   "expired": {
     "message": "verlopen"
   },
@@ -401,6 +416,18 @@
   "domainHelp": {
     "message": "Voer alleen de domeinnaam in (bijv. intranet.company.com)"
   },
+  "domainToggleDescription": {
+    "message": "Haiilo Enhancer werkt op elke domein hieronder. Zet een domein uit om die Haiilo-installatie volledig ongemoeid te laten."
+  },
+  "domainToggleHelp": {
+    "message": "Voeg hieronder het aangepaste Haiilo-domein van je organisatie toe om het hier op te nemen."
+  },
+  "domainEnabled": {
+    "message": "Actief op $DOMAIN$",
+    "placeholders": {
+      "domain": { "content": "$1", "example": "haiilo.app" }
+    }
+  },
   "chromePermissionWarning": {
     "message": "Let op: door een beperking van Chrome kunnen domeinrechten na toekenning niet worden ingetrokken. Een domein hier verwijderen voorkomt dat de extensie het gebruikt, maar de toestemming blijft zichtbaar in chrome://extensions totdat je de extensie opnieuw installeert."
   },
@@ -678,6 +705,7 @@
   "homepageHomeSoft": {"message":"Startpagina (soft)"},
   "homepageSection": {"message":"Startpagina ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},
   "homepageLocation": {"message":"$NAME$ [$PATH$]","placeholders":{"name":{"content":"$1","example":"Home"},"path":{"content":"$2","example":"/home/members"}}},
+  "customHomepageSet": { "message": "Aangepaste startpagina ingesteld" },
   "confirmReset": {"message":"Weet je zeker dat je alles wilt terugzetten naar de standaardwaarden? Dit kan niet ongedaan worden gemaakt."},
   "ringSettingsReset": {"message":"Ringinstellingen teruggezet naar de standaardwaarden"},
   "squareSettingsReset": {"message":"Instellingen van de vierkante rand teruggezet naar de standaardwaarden"},

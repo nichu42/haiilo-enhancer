@@ -854,14 +854,25 @@ async function importData(e) {
       throw new Error(t('invalidImport'));
     }
 
-    // Import muted users
+    // Import muted users — run each entry through a checkpoint so garbage from
+    // a malformed/edited backup file (no name, non-numeric dates, expired
+    // temporary mutes, absurdly large lists) never ends up in the list.
     let userCount = 0;
-    if (data.mutedUsers && Array.isArray(data.mutedUsers)) {
-      for (const user of data.mutedUsers) {
+    let skippedMutedUsers = 0;
+    if (data.mutedUsers !== undefined && data.mutedUsers !== null) {
+      if (!Array.isArray(data.mutedUsers)) {
+        throw new Error(t('invalidImport'));
+      }
+      const validated = HaiiloShared.normalizeMutedUsers(data.mutedUsers);
+      skippedMutedUsers = validated.skipped;
+      for (const user of validated.users) {
+        const days = user.permanent
+          ? null
+          : Math.max(1, Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
         await browserAPI.runtime.sendMessage({
           action: 'muteUser',
           userName: user.name,
-          days: user.permanent ? null : Math.ceil((user.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))
+          days
         });
         userCount++;
       }

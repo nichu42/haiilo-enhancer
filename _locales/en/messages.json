@@ -196,6 +196,8 @@
   "importAllSettings": {"message":"all settings"},
   "importDomainsNeedReauth": {"message":"$COUNT$ custom domain(s) need manual re-authorization (see warning above)","placeholders":{"count":{"content":"$1","example":"2"}}},
   "importCustomHomepages": {"message":"$COUNT$ custom homepage(s)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importSkippedMutedUsers": {"message":"$COUNT$ invalid muted user entries skipped","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importNothing": {"message":"nothing to import"},
   "homepageHome": {"message":"Home"},
   "homepageHomeSoft": {"message":"Home (soft)"},
   "homepageSection": {"message":"Home ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},

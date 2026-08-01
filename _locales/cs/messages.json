@@ -672,6 +672,8 @@
   "importAllSettings": {"message":"všechna nastavení"},
   "importDomainsNeedReauth": {"message":"$COUNT$ vlastní doména(y) vyžaduje ruční opětovnou autorizaci (viz upozornění výše)","placeholders":{"count":{"content":"$1","example":"2"}}},
   "importCustomHomepages": {"message":"$COUNT$ vlastní domovská stránka(y)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importSkippedMutedUsers": {"message":"$COUNT$ neplatných ztlumených uživatelů přeskočeno","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importNothing": {"message":"není co importovat"},
   "homepageHome": {"message":"Domů"},
   "homepageHomeSoft": {"message":"Domů (soft)"},
   "homepageSection": {"message":"Domů ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},

@@ -672,6 +672,8 @@
   "importAllSettings": {"message":"alle instellingen"},
   "importDomainsNeedReauth": {"message":"$COUNT$ aangepaste domein(en) moeten handmatig opnieuw worden geautoriseerd (zie waarschuwing hierboven)","placeholders":{"count":{"content":"$1","example":"2"}}},
   "importCustomHomepages": {"message":"$COUNT$ aangepaste startpagina(’s)","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importSkippedMutedUsers": {"message":"$COUNT$ ongeldige gedempte gebruikers overgeslagen","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importNothing": {"message":"niets te importeren"},
   "homepageHome": {"message":"Startpagina"},
   "homepageHomeSoft": {"message":"Startpagina (soft)"},
   "homepageSection": {"message":"Startpagina ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},

@@ -672,6 +672,8 @@
   "importAllSettings": {"message":"minden beállítás"},
   "importDomainsNeedReauth": {"message":"$COUNT$ egyéni domainhez kézi újbóli engedélyezés szükséges (lásd a fenti figyelmeztetést)","placeholders":{"count":{"content":"$1","example":"2"}}},
   "importCustomHomepages": {"message":"$COUNT$ egyéni kezdőlap","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importSkippedMutedUsers": {"message":"$COUNT$ érvénytelen némított felhasználó kihagyva","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importNothing": {"message":"nincs importálandó adat"},
   "homepageHome": {"message":"Kezdőlap"},
   "homepageHomeSoft": {"message":"Kezdőlap (soft)"},
   "homepageSection": {"message":"Kezdőlap ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},

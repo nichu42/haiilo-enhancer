@@ -208,3 +208,80 @@ test('bindSystemThemeChange registers and cleans up a matchMedia change listener
     }
   }
 });
+
+test('normalizeMutedUsers keeps valid entries and normalizes names', () => {
+  const now = Date.now();
+  const { users, skipped } = S.normalizeMutedUsers([
+    { name: '  Alice  ', mutedAt: now, expiresAt: now + 86400000, permanent: false },
+    { name: 'Bob', mutedAt: now, expiresAt: null, permanent: true }
+  ]);
+  assert.strictEqual(skipped, 0);
+  assert.strictEqual(users.length, 2);
+  assert.strictEqual(users[0].name, 'Alice', 'name is trimmed');
+  assert.strictEqual(users[0].permanent, false);
+  assert.strictEqual(users[1].permanent, true);
+});
+
+test('normalizeMutedUsers rejects entries without a usable name', () => {
+  const now = Date.now();
+  const good = { name: 'Alice', mutedAt: now, expiresAt: now + 86400000, permanent: false };
+  const { users, skipped } = S.normalizeMutedUsers([
+    good,
+    null,
+    'not an object',
+    {},
+    { name: '' },
+    { name: '   ' },
+    { name: 42 },
+    { name: 'Bob', mutedAt: 'not a number', expiresAt: now + 86400000, permanent: false }
+  ]);
+  assert.strictEqual(users.length, 1);
+  assert.strictEqual(users[0].name, 'Alice');
+  assert.strictEqual(skipped, 7);
+});
+
+test('normalizeMutedUsers rejects non-numeric dates', () => {
+  const now = Date.now();
+  const { users, skipped } = S.normalizeMutedUsers([
+    { name: 'Bad mutedAt', mutedAt: 'yesterday', expiresAt: now + 86400000, permanent: false },
+    { name: 'Bad expiresAt', mutedAt: now, expiresAt: 'tomorrow', permanent: false },
+    { name: 'Good', mutedAt: now, expiresAt: null, permanent: true }
+  ]);
+  assert.strictEqual(users.length, 1);
+  assert.strictEqual(users[0].name, 'Good');
+  assert.strictEqual(skipped, 2);
+});
+
+test('normalizeMutedUsers rejects already-expired temporary mutes', () => {
+  const now = Date.now();
+  const { users, skipped } = S.normalizeMutedUsers([
+    { name: 'Expired', mutedAt: now - 86400000, expiresAt: now - 1, permanent: false },
+    { name: 'Expired past mute still ok', mutedAt: now - 86400000, expiresAt: now - 1, permanent: true },
+    { name: 'Future', mutedAt: now, expiresAt: now + 86400000, permanent: false }
+  ]);
+  assert.strictEqual(users.length, 2);
+  assert.strictEqual(users[0].name, 'Expired past mute still ok', 'permanent mutes keep a past expiresAt');
+  assert.strictEqual(users[1].name, 'Future');
+  assert.strictEqual(skipped, 1);
+});
+
+test('normalizeMutedUsers caps absurdly large lists', () => {
+  const now = Date.now();
+  const many = Array.from({ length: S.MUTED_USERS_MAX_IMPORT + 50 }, (_, i) => ({
+    name: `User ${i}`,
+    mutedAt: now,
+    expiresAt: null,
+    permanent: true
+  }));
+  const { users, skipped } = S.normalizeMutedUsers(many);
+  assert.strictEqual(users.length, S.MUTED_USERS_MAX_IMPORT);
+  assert.strictEqual(skipped, 50);
+});
+
+test('normalizeMutedUsers treats a non-array input as empty', () => {
+  for (const bad of [undefined, null, 'users', 42, {}]) {
+    const { users, skipped } = S.normalizeMutedUsers(bad);
+    assert.strictEqual(users.length, 0, String(bad));
+    assert.strictEqual(skipped, 0, String(bad));
+  }
+});

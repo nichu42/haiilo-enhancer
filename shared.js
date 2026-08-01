@@ -71,6 +71,48 @@
     return Object.entries(DATE_TIME_PRESETS).map(([value, preset]) => ({ value, ...preset }));
   }
 
+  // Maximum number of muted-user entries accepted from a backup file. Guards
+  // against absurdly large lists in malformed imports.
+  const MUTED_USERS_MAX_IMPORT = 1000;
+
+  // Validate a single muted-user entry from a backup file. Returns a
+  // normalized { name, mutedAt, expiresAt, permanent } object, or null when
+  // the entry is invalid and must be skipped: no name, non-numeric dates, or
+  // an already-expired temporary mute.
+  function normalizeMutedUser(user) {
+    if (!user || typeof user !== 'object' || Array.isArray(user)) return null;
+    const name = typeof user.name === 'string' ? user.name.trim() : '';
+    if (!name) return null;
+    if (user.mutedAt !== undefined && !Number.isFinite(user.mutedAt)) return null;
+    const permanent = !!user.permanent;
+    const expiresAt = user.expiresAt === undefined || user.expiresAt === null
+      ? null
+      : user.expiresAt;
+    if (expiresAt !== null && !Number.isFinite(expiresAt)) return null;
+    if (expiresAt !== null && !permanent && expiresAt <= Date.now()) return null;
+    return { name, mutedAt: user.mutedAt, expiresAt, permanent };
+  }
+
+  // Validate and normalize a list of muted-user entries (e.g. from a backup
+  // file before import). Returns { users, skipped } where `users` holds only
+  // valid entries (bounded by MUTED_USERS_MAX_IMPORT) and `skipped` is the
+  // number of entries that were rejected.
+  function normalizeMutedUsers(users) {
+    const input = Array.isArray(users) ? users : [];
+    const valid = [];
+    let skipped = 0;
+    for (const user of input) {
+      if (valid.length >= MUTED_USERS_MAX_IMPORT) {
+        skipped++;
+        continue;
+      }
+      const normalized = normalizeMutedUser(user);
+      if (normalized) valid.push(normalized);
+      else skipped++;
+    }
+    return { users: valid, skipped };
+  }
+
   // Resolve a stored theme setting ('system' | 'light' | 'dark') to a valid
   // preference. 'system' (the default) follows the OS via prefers-color-scheme;
   // 'light' and 'dark' pin the extension's own pages to a specific mode.
@@ -174,6 +216,8 @@
     normalizeDateFormatValue,
     clampMessengerPanelWidthPercent,
     getDateTimePresetOptions,
+    MUTED_USERS_MAX_IMPORT,
+    normalizeMutedUsers,
     buildGroupBadgeSVG,
     resolveThemeMode,
     getEffectiveThemeMode,

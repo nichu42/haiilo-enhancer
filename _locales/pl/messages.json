@@ -672,6 +672,8 @@
   "importAllSettings": {"message":"wszystkie ustawienia"},
   "importDomainsNeedReauth": {"message":"$COUNT$ niestandardowa domena wymaga ręcznej ponownej autoryzacji (zobacz ostrzeżenie powyżej)","placeholders":{"count":{"content":"$1","example":"2"}}},
   "importCustomHomepages": {"message":"$COUNT$ niestandardowych stron głównych","placeholders":{"count":{"content":"$1","example":"2"}}},
+  "importSkippedMutedUsers": {"message":"$COUNT$ nieprawidłowych wyciszonych użytkowników pominięto","placeholders":{"count":{"content":"$1","example":"3"}}},
+  "importNothing": {"message":"nie ma czego importować"},
   "homepageHome": {"message":"Strona główna"},
   "homepageHomeSoft": {"message":"Strona główna (soft)"},
   "homepageSection": {"message":"Strona główna ($SECTION$)","placeholders":{"section":{"content":"$1","example":"News"}}},

@@ -14,11 +14,6 @@ body {
   min-width: 460px;
   width: 460px;
   line-height: 1.6;
-  /* Cap the popup height so it never gets clipped on small screens.
-   * On a typical 1080p display the browser viewport is ~900-1000px
-   * tall; the OS taskbar + browser chrome leave ~700-800px. We cap at
-   * 640px so the popup fits comfortably on a 720p display too. */
-  max-height: 640px;
   overflow-y: auto;
   overflow-x: hidden;
 }

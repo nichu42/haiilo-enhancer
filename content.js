@@ -102,14 +102,22 @@
   let autoExpandScope = 'both';
   let autoExpandMountObserver = null;
   let calendarActionObserver = null;
+  let messengerReopenPending = false;
 
   // Reaction enhancements
   let sortReactionsByCount = true;
   let showReactionCountTooltip = true;
   let showReactionCountInline = false;
   let reactionTypesCache = null; // { TYPE: { color, unicode } }
+  let reactionTypesPromise = null;
   let reactionSenderIdCache = null; // current user ID needed by the summary API
+  let reactionSenderIdPromise = null;
+  const reactionSummaryCache = new Map();
+  const reactionSummaryPromises = new Map();
+  const reactionDetailsCache = new Map();
+  const reactionDetailsPromises = new Map();
   let reactionEnhancerObserver = null;
+  let reactionSettingsInitialized = false;
 
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = 50;
   const MESSENGER_PANEL_WIDTH_MAX_PERCENT = 125;
@@ -328,7 +336,12 @@
       if (!messengerReopenObserver) {
         messengerReopenObserver = new MutationObserver(() => {
           if (!keepMessengerExpandedActive) return;
-          reopenMessengerIfClosed();
+          if (messengerReopenPending) return;
+          messengerReopenPending = true;
+          setTimeout(() => {
+            messengerReopenPending = false;
+            if (keepMessengerExpandedActive) reopenMessengerIfClosed();
+          }, 50);
         });
 
         // Observe broad enough to catch sidebar class flips and re-renders.
@@ -428,6 +441,7 @@
       if (messengerReopenObserver) {
         messengerReopenObserver.disconnect();
         messengerReopenObserver = null;
+        messengerReopenPending = false;
         debugLog('[Content] Disconnected messenger re-open observer');
       }
 
@@ -483,43 +497,28 @@
     // when the chat panel is active, and we don't need to react to each
     // one individually. Coalesce bursts into one pass.
     let pending = false;
-    messengerOverlayObserver = new MutationObserver(() => {
-      if (pending) return;
+    let pendingNodes = new Set();
+    messengerOverlayObserver = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) pendingNodes.add(node);
+        }
+      }
+      if (pendingNodes.size === 0 || pending) return;
       if (!keepMessengerExpandedActive) return;
       pending = true;
       setTimeout(() => {
         pending = false;
         if (!keepMessengerExpandedActive) return;
 
-        // Only check the messenger panel subtree; the rest of the
-        // page is irrelevant to backdrops.
-        const panel = document.querySelector('coyo-messaging-sidebar, coyo-messaging-panel');
-        if (!panel) return;
-
-        // Quick scan of the panel subtree for known backdrop classes.
-        const backdrops = panel.querySelectorAll(
-          '.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, ' +
-          '.cdk-overlay-transparent-backdrop, .menu-overlay'
-        );
-        backdrops.forEach(b => {
-          if (isMessengerBackdrop(b) && b.parentNode) {
-            b.parentNode.removeChild(b);
-            debugLog('[Content] Removed messenger backdrop');
-          }
-        });
-
-        // Angular-style inline-styled backdrops live at document level
-        // (Haiilo's CDK overlay container is appended to body, not the
-        // panel), so we also check there. Capped by selector specificity
-        // so it stays fast.
-        const angularBackdrops = document.querySelectorAll(
-          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]'
-        );
-        angularBackdrops.forEach(div => {
-          if (isMessengerBackdrop(div) && div.parentNode) {
-            div.parentNode.removeChild(div);
-            debugLog('[Content] Removed Angular messenger backdrop');
-          }
+        const nodes = pendingNodes;
+        pendingNodes = new Set();
+        const selectors = '.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, ' +
+          '.cdk-overlay-transparent-backdrop, .menu-overlay, ' +
+          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]';
+        nodes.forEach(node => {
+          if (node.matches?.(selectors)) checkAndHideBackdrop(node);
+          node.querySelectorAll?.(selectors).forEach(checkAndHideBackdrop);
         });
       }, 100);
     });
@@ -1200,6 +1199,14 @@
   // Fetch and cache the current user's sender ID (required by the summary API).
   async function getSenderId() {
     if (reactionSenderIdCache) return reactionSenderIdCache;
+    if (reactionSenderIdPromise) return reactionSenderIdPromise;
+    reactionSenderIdPromise = getSenderIdUncached().finally(() => {
+      reactionSenderIdPromise = null;
+    });
+    return reactionSenderIdPromise;
+  }
+
+  async function getSenderIdUncached() {
     // 1. Try performance entries — already loaded on the page
     try {
       const entries = performance.getEntriesByType('resource');
@@ -1226,6 +1233,14 @@
   // Fetch and cache the reaction type metadata (unicode emoji per type).
   async function getReactionTypes() {
     if (reactionTypesCache) return reactionTypesCache;
+    if (reactionTypesPromise) return reactionTypesPromise;
+    reactionTypesPromise = getReactionTypesUncached().finally(() => {
+      reactionTypesPromise = null;
+    });
+    return reactionTypesPromise;
+  }
+
+  async function getReactionTypesUncached() {
     try {
       const res = await fetch('/web/reaction-targets/types');
       if (!res.ok) return null;
@@ -1239,6 +1254,42 @@
       debugLog('[Reactions] Failed to fetch reaction types:', e);
       return null;
     }
+  }
+
+  async function getReactionSummary(targetType, targetId, senderId) {
+    const cacheKey = `${targetType}:${targetId}:${senderId || ''}`;
+    if (reactionSummaryCache.has(cacheKey)) {
+      return reactionSummaryCache.get(cacheKey);
+    }
+    if (reactionSummaryPromises.has(cacheKey)) {
+      return reactionSummaryPromises.get(cacheKey);
+    }
+
+    const request = fetch(
+      senderId
+        ? `/web/reaction-targets/${targetType}?senderId=${senderId}&ids=${targetId}`
+        : `/web/reaction-targets/${targetType}?ids=${targetId}`
+    ).then(async response => {
+      if (!response.ok) return null;
+      const json = await response.json();
+      const entry = json[targetId];
+      if (!entry || !Array.isArray(entry.allReactionsByCount)) return null;
+      const apiData = entry.allReactionsByCount;
+      const result = {
+        apiData,
+        sortedData: [...apiData].sort((a, b) => b.count - a.count)
+      };
+      reactionSummaryCache.set(cacheKey, result);
+      return result;
+    }).catch(e => {
+      debugLog('[Reactions] Failed to fetch summary for', targetId, e);
+      return null;
+    }).finally(() => {
+      reactionSummaryPromises.delete(cacheKey);
+    });
+
+    reactionSummaryPromises.set(cacheKey, request);
+    return request;
   }
 
   // Reorder cat-icon elements to match sortedTypes order.
@@ -1301,29 +1352,141 @@
     debugLog('[Reactions] Injected tooltip:', text);
   }
 
+  function enrichReactionNames(reactionsInfo, reactionDetails, typeMap) {
+    const tooltip = reactionsInfo.querySelector('cat-tooltip');
+    if (!tooltip || !Array.isArray(reactionDetails) || reactionDetails.length === 0) return;
+
+    const names = new Map();
+    reactionDetails.forEach(reaction => {
+      const name = reaction.sender?.displayName;
+      const unicode = typeMap?.[reaction.reactionType]?.unicode;
+      if (name && unicode && !names.has(name)) names.set(name, unicode);
+    });
+
+    const enrichedNames = [...names.entries()].slice(0, 5);
+    const nameMap = new Map(enrichedNames);
+    const roots = [tooltip, tooltip.shadowRoot].filter(Boolean);
+    let enrichedCount = 0;
+
+    for (const root of roots) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      let node;
+      while ((node = walker.nextNode())) textNodes.push(node);
+
+      for (const textNode of textNodes) {
+        const lines = textNode.textContent.split('\n');
+        let changed = false;
+        const updatedLines = lines.map(line => {
+          const trimmed = line.replace(/\s+/g, ' ').trim();
+          const unicode = nameMap.get(trimmed);
+          if (unicode && enrichedCount < enrichedNames.length) {
+            enrichedCount++;
+            changed = true;
+            return line.replace(trimmed, `${unicode} ${trimmed}`);
+          }
+          if (trimmed === '...' && enrichedCount < enrichedNames.length) {
+            const [name, emoji] = enrichedNames[enrichedCount];
+            enrichedCount++;
+            changed = true;
+            return line.replace(trimmed, `${emoji} ${name}`);
+          }
+          return line;
+        });
+        if (changed) textNode.textContent = updatedLines.join('\n');
+        if (enrichedCount >= enrichedNames.length) return;
+      }
+    }
+  }
+
+  function setupReactionNameEnrichment(reactionsInfo, targetType, targetId, typeMap) {
+    const trigger = reactionsInfo.querySelector('cat-tooltip > cat-button');
+    if (!trigger || trigger.dataset.haiiloEnhancerNameEnrichment) return;
+    trigger.dataset.haiiloEnhancerNameEnrichment = '1';
+    const enrichWhenOpen = async () => {
+      const reactionDetails = await getReactionDetails(targetType, targetId);
+      setTimeout(() => enrichReactionNames(reactionsInfo, reactionDetails, typeMap), 50);
+      setTimeout(() => enrichReactionNames(reactionsInfo, reactionDetails, typeMap), 250);
+    };
+    trigger.addEventListener('mouseenter', enrichWhenOpen);
+    trigger.addEventListener('focusin', enrichWhenOpen);
+    trigger.addEventListener('click', enrichWhenOpen);
+  }
+
+  async function getReactionDetails(targetType, targetId) {
+    const cacheKey = `${targetType}:${targetId}`;
+    if (reactionDetailsCache.has(cacheKey)) return reactionDetailsCache.get(cacheKey);
+    if (reactionDetailsPromises.has(cacheKey)) {
+      return reactionDetailsPromises.get(cacheKey);
+    }
+    const request = fetch(
+      `/web/reaction-targets/${targetType}/${targetId}/reactions?_page=0&_pageSize=20`
+    ).then(async response => {
+      if (!response.ok) return [];
+      const data = await response.json();
+      const details = Array.isArray(data.content) ? data.content : [];
+      reactionDetailsCache.set(cacheKey, details);
+      return details;
+    }).catch(e => {
+      debugLog('[Reactions] Failed to fetch reaction details:', e);
+      return [];
+    }).finally(() => {
+      reactionDetailsPromises.delete(cacheKey);
+    });
+    reactionDetailsPromises.set(cacheKey, request);
+    return request;
+  }
+
   function clearInlineReactionCounts(reactionsInfo) {
+    reactionsInfo.querySelectorAll('.haiilo-enhancer-inline-reaction-summary').forEach(el => el.remove());
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-group').forEach(group => {
       while (group.firstChild) group.before(group.firstChild);
       group.remove();
     });
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(el => el.remove());
+    reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]').forEach(icon => {
+      icon.style.removeProperty('display');
+    });
+    reactionsInfo.querySelectorAll('.reactions-info-label[data-haiilo-enhancer-hidden-total]')
+      .forEach(label => {
+        label.style.removeProperty('display');
+        delete label.dataset.haiiloEnhancerHiddenTotal;
+      });
   }
 
-  function injectInlineReactionCounts(reactionsInfo, displayedData) {
+  function injectInlineReactionCounts(reactionsInfo, displayedData, typeMap) {
     clearInlineReactionCounts(reactionsInfo);
-    const icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
-    icons.forEach((icon, index) => {
-      const reaction = displayedData[index];
-      if (!reaction) return;
+    const button = reactionsInfo.querySelector('cat-tooltip > cat-button');
+    const flex = button?.querySelector('.cat-flex');
+    if (!flex) return;
+
+    const summary = document.createElement('span');
+    summary.className = 'haiilo-enhancer-inline-reaction-summary';
+    summary.setAttribute('aria-label', 'Reaction counts');
+
+    displayedData.forEach(reaction => {
       const group = document.createElement('span');
       group.className = 'haiilo-enhancer-reaction-group';
+      const emoji = document.createElement('span');
+      emoji.className = 'haiilo-enhancer-reaction-emoji';
+      emoji.textContent = typeMap?.[reaction.reactionType]?.unicode || reaction.reactionType;
       const count = document.createElement('span');
       count.className = 'haiilo-enhancer-reaction-count';
       count.textContent = String(reaction.count);
       count.setAttribute('aria-label', `${reaction.count} reactions`);
-      icon.before(group);
-      group.append(icon, count);
+      group.append(emoji, count);
+      summary.appendChild(group);
     });
+
+    flex.querySelectorAll('cat-icon[data-test="reactions-info-icon"]').forEach(icon => {
+      icon.style.display = 'none';
+    });
+    const label = flex.querySelector('.reactions-info-label');
+    if (label && /^\d+$/.test(label.textContent.trim())) {
+      label.style.display = 'none';
+      label.dataset.haiiloEnhancerHiddenTotal = '1';
+    }
+    flex.insertBefore(summary, label || null);
   }
 
   // Process a single [data-reaction-target-id] anchor element.
@@ -1340,25 +1503,10 @@
 
     const senderId = await getSenderId();
 
-    // Fetch the summary for this target
-    let apiData, sortedData;
-    try {
-      const url = senderId
-        ? `/web/reaction-targets/${targetType}?senderId=${senderId}&ids=${targetId}`
-        : `/web/reaction-targets/${targetType}?ids=${targetId}`;
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const json = await res.json();
-      const entry = json[targetId];
-      if (!entry || !Array.isArray(entry.allReactionsByCount)) return;
-      // apiData preserves the API's original order (matches DOM icon order)
-      apiData = entry.allReactionsByCount;
-      // sortedData is sorted descending by count
-      sortedData = [...apiData].sort((a, b) => b.count - a.count);
-    } catch (e) {
-      debugLog('[Reactions] Failed to fetch summary for', targetId, e);
-      return;
-    }
+    const summary = await getReactionSummary(targetType, targetId, senderId);
+    if (!summary) return;
+    // apiData preserves the API's original order (matches DOM icon order)
+    const { apiData, sortedData } = summary;
 
     // Find the enclosing coyo-reactions-info
     const reactionsInfo = dataEl.closest('coyo-reactions-info') ||
@@ -1383,35 +1531,45 @@
 
     if (showReactionCountTooltip) {
       injectReactionTooltip(reactionsInfo, sortedData, typeMap);
+      setupReactionNameEnrichment(reactionsInfo, targetType, targetId, typeMap);
     }
     if (showReactionCountInline) {
-      injectInlineReactionCounts(reactionsInfo, sortReactionsByCount ? sortedData : apiData);
+      injectInlineReactionCounts(reactionsInfo, sortReactionsByCount ? sortedData : apiData, typeMap);
     }
   }
 
   function setupReactionEnhancerObserver() {
-    if (reactionEnhancerObserver) reactionEnhancerObserver.disconnect();
+    if (reactionEnhancerObserver) return;
 
     // Process any already-present targets on the page
     document.querySelectorAll('[data-reaction-target-id]').forEach(el => {
       processReactionTarget(el).catch(() => {});
     });
 
+    let pendingTargets = new Set();
+    let processScheduled = false;
     reactionEnhancerObserver = new MutationObserver(mutations => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
           // Direct match
           if (node.hasAttribute && node.hasAttribute('data-reaction-target-id')) {
-            processReactionTarget(node).catch(() => {});
+            pendingTargets.add(node);
           }
           // Descendants
           if (node.querySelectorAll) {
-            node.querySelectorAll('[data-reaction-target-id]').forEach(el => {
-              processReactionTarget(el).catch(() => {});
-            });
+            node.querySelectorAll('[data-reaction-target-id]').forEach(el => pendingTargets.add(el));
           }
         }
+      }
+      if (pendingTargets.size > 0 && !processScheduled) {
+        processScheduled = true;
+        setTimeout(() => {
+          processScheduled = false;
+          const targets = pendingTargets;
+          pendingTargets = new Set();
+          targets.forEach(target => processReactionTarget(target).catch(() => {}));
+        }, 50);
       }
     });
 
@@ -1439,6 +1597,9 @@
       });
     if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
       setupReactionEnhancerObserver();
+    } else if (reactionEnhancerObserver) {
+      reactionEnhancerObserver.disconnect();
+      reactionEnhancerObserver = null;
     }
   }
 
@@ -1536,7 +1697,7 @@
 
             if (message.action === 'settingsUpdated') {
               const wasEnabled = extensionEnabled;
-              loadSettings().then(() => {
+              loadSettings().then(reactionSettingsChanged => {
                 if (wasEnabled !== extensionEnabled) {
                   debugLog('Extension enabled state changed from', wasEnabled, 'to', extensionEnabled, '- reloading page');
                   window.location.reload();
@@ -1554,7 +1715,9 @@
                 if (!autoExpandMountObserver) {
                   setupAutoExpandMountObserver();
                 }
-                reapplyReactionEnhancements();
+                if (reactionSettingsChanged) {
+                  reapplyReactionEnhancements();
+                }
                 sendResponse({ success: true });
               });
               return true;
@@ -1613,6 +1776,9 @@
   }
 
   async function loadSettings() {
+    const previousReactionSettings = reactionSettingsInitialized
+      ? [sortReactionsByCount, showReactionCountTooltip, showReactionCountInline]
+      : null;
     try {
       if (isExtensionContextValid()) {
         try {
@@ -1643,9 +1809,9 @@
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
-          if (extensionEnabled && settings.keepMessengerExpanded) {
-            debugLog('[Content] Applying messenger expanded CSS on page load');
-            applyMessengerExpandedCSS(true, messengerPanelWidthPercent);
+          if (extensionEnabled) {
+            debugLog('[Content] Applying messenger expansion setting:', settings.keepMessengerExpanded);
+            applyMessengerExpandedCSS(settings.keepMessengerExpanded === true, messengerPanelWidthPercent);
           }
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
@@ -1718,6 +1884,11 @@
       showReactionCountTooltip = true;
       showReactionCountInline = false;
     }
+    const currentReactionSettings = [sortReactionsByCount, showReactionCountTooltip, showReactionCountInline];
+    const reactionSettingsChanged = !previousReactionSettings ||
+      previousReactionSettings.some((value, index) => value !== currentReactionSettings[index]);
+    reactionSettingsInitialized = true;
+    return reactionSettingsChanged;
   }
 
   async function loadMutedUsers() {
@@ -1749,6 +1920,7 @@
       observer.disconnect();
     }
 
+    let filterPending = false;
     observer = new MutationObserver((mutations) => {
       if (isTyping) return;
 
@@ -1763,8 +1935,10 @@
 
       if (shouldFilter) {
         // Reduce debounce delay for faster response
-        clearTimeout(window.hushFilterTimeout);
+        if (filterPending) return;
+        filterPending = true;
         window.hushFilterTimeout = setTimeout(() => {
+          filterPending = false;
           // Wrap in context check to prevent errors when extension context is invalid
           if (isExtensionContextValid()) {
             debugLog('Mutation detected, re-filtering content');
@@ -2853,6 +3027,7 @@
 
     // Insert before the Download event list item.
     optionsList.insertBefore(newLi, downloadItem);
+    debugLog('[Calendar] Added calendar actions to event options');
   }
 
   function setupCalendarActionObserver() {
@@ -2860,14 +3035,21 @@
       calendarActionObserver.disconnect();
     }
 
+    let pending = false;
     calendarActionObserver = new MutationObserver(() => {
-      injectAddToCalendarAction();
+      if (pending) return;
+      pending = true;
+      setTimeout(() => {
+        pending = false;
+        injectAddToCalendarAction();
+      }, 100);
     });
 
     calendarActionObserver.observe(document.body, {
       childList: true,
       subtree: true
     });
+    debugLog('[Calendar] Observer installed');
   }
 
   injectAddToCalendarAction();

@@ -366,6 +366,9 @@ browserAPI.runtime.onStartup.addListener(async () => {
 // Note: Dynamic content scripts handle automatic injection for custom domains
 // This listener serves as a fallback and handles default domains
 browserAPI.webNavigation.onCompleted.addListener(async (details) => {
+  // Firefox declares the default content script statically; only Chrome
+  // needs this navigation fallback for the default domains.
+  if (typeof browser !== 'undefined') return;
   if (await isHaiiloTab({ url: details.url })) {
     try {
       await browserAPI.scripting.executeScript({
@@ -662,7 +665,7 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'saveSettings') {
     // Merge with existing stored settings so keys not present in the incoming
-    // object (e.g. keepMessengerExpanded, managed by the popup) are preserved.
+    // object are preserved.
     browserAPI.storage.local.get('settings').then(async (data) => {
       const merged = { ...(data.settings || {}), ...message.settings };
       const settings = normalizeSettings(merged);
@@ -838,21 +841,17 @@ async function unmuteUser(userName) {
 
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
-  const tabs = await browserAPI.tabs.query({});
+  const tabs = await getHaiiloTabs();
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
-    }
+    browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
   }
 }
 
 // Broadcast a message to all Haiilo tabs
 async function broadcastMessageToAllHaiiloTabs(message) {
-  const tabs = await browserAPI.tabs.query({});
+  const tabs = await getHaiiloTabs();
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
-    }
+    browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
   }
 }
 
@@ -861,8 +860,9 @@ async function updateAllBadges() {
   if (!badgeAPI || typeof badgeAPI.setBadgeText !== 'function') return;
   const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
   const tabs = await browserAPI.tabs.query({});
+  const haiiloTabs = await getHaiiloTabs(tabs);
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
+    if (haiiloTabs.includes(tab)) {
       if (settings.extensionEnabled === false) {
         badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
         badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
@@ -894,20 +894,27 @@ async function getAllDomains() {
 }
 
 // Check if a tab is a Haiilo tab
-async function isHaiiloTab(tab) {
+async function isHaiiloTab(tab, allDomains = null) {
   if (!tab || !tab.url) return false;
 
   try {
-    const allDomains = await getAllDomains();
+    const domains = allDomains || await getAllDomains();
     const url = new URL(tab.url);
 
-    return allDomains.some(domain => {
+    return domains.some(domain => {
       return url.hostname === domain || url.hostname.endsWith('.' + domain);
     });
   } catch (e) {
     debugLog('Error parsing URL in isHaiiloTab:', tab.url, e);
     return false;
   }
+}
+
+async function getHaiiloTabs(tabs = null) {
+  const allTabs = tabs || await browserAPI.tabs.query({});
+  const allDomains = await getAllDomains();
+  const matches = await Promise.all(allTabs.map(tab => isHaiiloTab(tab, allDomains)));
+  return allTabs.filter((tab, index) => matches[index]);
 }
 
 // Add a custom domain (permission must be granted before calling this)
@@ -1028,25 +1035,24 @@ async function registerDynamicContentScripts() {
 // Inject content scripts into all Haiilo tabs
 async function injectContentScripts() {
   const tabs = await browserAPI.tabs.query({});
+  const haiiloTabs = await getHaiiloTabs(tabs);
 
-  for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      try {
-        await browserAPI.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: ['content.js']
-        });
+  for (const tab of haiiloTabs) {
+    try {
+      await browserAPI.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
 
-        await browserAPI.scripting.insertCSS({
-          target: { tabId: tab.id },
-          files: ['content.css']
-        });
+      await browserAPI.scripting.insertCSS({
+        target: { tabId: tab.id },
+        files: ['content.css']
+      });
 
-        debugLog(`Injected content script into tab ${tab.id}`);
-      } catch (e) {
-        // Tab might not allow script injection (e.g., chrome:// pages)
-        debugLog(`Could not inject into tab ${tab.id}:`, e.message);
-      }
+      debugLog(`Injected content script into tab ${tab.id}`);
+    } catch (e) {
+      // Tab might not allow script injection (e.g., chrome:// pages)
+      debugLog(`Could not inject into tab ${tab.id}:`, e.message);
     }
   }
 }

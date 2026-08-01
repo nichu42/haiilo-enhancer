@@ -2,7 +2,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/nichu42/haiilo-enhancer?sort=semver&label=Latest+Release)](https://github.com/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Firefox Add-on](https://img.shields.io/amo/v/haiilo-enhancer?logo=firefox&logoColor=white&label=Firefox%20Add-on)](https://addons.mozilla.org/firefox/addon/haiilo-enhancer/) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
-A browser extension for a more peaceful Haiilo experience — mute users, expand the sidebar, customize the UI, and more.
+A browser extension for **the full Haiilo experience, enhanced for you** — mute users, expand the sidebar, customize the UI, and more.
 
 Haiilo Enhancer adds small, local quality-of-life improvements directly in your browser. It does not send data to external services.
 
@@ -13,6 +13,7 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 - **📂 Auto-expand sidebar lists** — automatically click Haiilo's "Show more" buttons for Workspaces and Pages on page load.
 - **💬 Messenger controls** — keep the chat panel expanded and adjust its open width.
 - **🕒 Date & time format** — switch from US to European or 24-hour if your Haiilo language is English.
+- **😀 Reaction enhancements** — sort reactions by usage and optionally show reaction-count tooltips or inline counts.
 - **🏠 Custom homepage** — set which page the Haiilo logo opens, per domain.
 - **🛠️ Custom domains** — works on your organization's custom Haiilo URL, not just haiilo.app.
 - **📅 Add to calendar** — adds an "Add to calendar" button to Haiilo events, letting you export to Google Calendar, Outlook.com, Yahoo Calendar, or a standard ICS file.
@@ -25,7 +26,7 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 2. Open Haiilo.
 3. Right-click a username to mute that user temporarily or permanently.
 4. Open the extension popup to review muted users, see a live count of hidden items on the current page, and use quick interface options.
-5. Open **More Options** for custom domains, date/time format, sidebar behavior, avatar customization, backups, and advanced settings.
+5. Click **Settings** in the popup for custom domains, date/time format, sidebar behavior, avatar and reaction customization, backups, and advanced settings.
 
 ## 📥 Installation
 

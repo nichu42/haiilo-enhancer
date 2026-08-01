@@ -19,7 +19,20 @@
       </div>
     </header>
 
-    <section class="extension-toggle-section">
+    <div class="options-layout">
+      <nav class="options-nav" aria-label="Options sections">
+        <p class="options-nav-title">Settings</p>
+        <a href="#general-heading" class="options-nav-link" data-section="general">General</a>
+        <a href="#interface-heading" class="options-nav-link" data-section="interface">Interface</a>
+        <a href="#behavior-heading" class="options-nav-link" data-section="behavior">Behavior</a>
+        <a href="#domains-heading" class="options-nav-link" data-section="domains">Domains</a>
+        <a href="#data-privacy-heading" class="options-nav-link" data-section="data">Data &amp; Privacy</a>
+        <a href="#advanced-heading" class="options-nav-link" data-section="advanced">Advanced</a>
+        <a href="#about-heading" class="options-nav-link" data-section="about">About</a>
+      </nav>
+
+      <main class="options-content">
+    <section id="general" class="extension-toggle-section" data-nav-section="general">
       <div class="extension-toggle-container">
         <div class="extension-toggle-text">
           <h2>Extension Status</h2>
@@ -32,7 +45,27 @@
       </div>
     </section>
 
-    <section>
+    <section id="interface" data-nav-section="interface">
+      <h2>Interface Options</h2>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="keepMessengerExpanded">
+          <span>Keep messenger panel expanded</span>
+        </label>
+      </div>
+      <div class="form-group slider-group">
+        <div class="slider-header">
+          <label for="messengerPanelWidthPercent">Messenger panel width</label>
+          <output id="messengerPanelWidthValue" for="messengerPanelWidthPercent">100%</output>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="messengerPanelWidthPercent" min="50" max="125" step="5" value="100">
+        </div>
+        <p class="slider-help">Saved and applied when changed.</p>
+      </div>
+    </section>
+
+    <section id="general-muting" data-nav-section="general">
       <h2>Muting Options</h2>
       <p class="description">
         <strong>Right-click any username on Haiilo</strong> and choose
@@ -61,7 +94,7 @@
       </div>
     </section>
 
-    <section>
+    <section id="general-date-time" data-nav-section="general">
       <h2>Date & Time Format</h2>
       <p class="description">Override Haiilo's default date and time display. New installs can match the browser locale automatically; existing installs can re-apply the locale preset with the button below.</p>
       <div class="button-group" style="margin-bottom: 20px;">
@@ -101,7 +134,7 @@
       </div>
     </section>
 
-    <section>
+    <section id="interface-avatars" data-nav-section="interface">
       <h2>Channel Avatar Customization</h2>
       <div class="form-group checkbox-group">
         <label>
@@ -199,13 +232,13 @@
       </div>
     </section>
 
-    <section>
+    <section id="behavior-homepage" data-nav-section="behavior">
       <h2>Custom Homepage Settings</h2>
       <p class="description">Set which homepage the logo redirects to for each Haiilo instance. Right-click on a homepage tab (e.g., "Home", "Home (soft)") and select "Set as default homepage" to configure.</p>
       <div id="homepagesList" class="domains-list"></div>
     </section>
 
-    <section>
+    <section id="interface-reactions" data-nav-section="interface">
       <h2>Reactions</h2>
       <p class="description">Improve how emoji reactions are displayed on posts and comments.</p>
       <div class="form-group checkbox-group">
@@ -228,7 +261,7 @@
       </div>
     </section>
 
-    <section>
+    <section id="behavior" data-nav-section="behavior">
       <p class="description">Haiilo's left sidebar shows a limited number of Workspaces and Pages before hiding the rest behind a "Show more" button. Enable this to auto-click that button on page load so all entries are visible at once.</p>
       <div class="form-group checkbox-group">
         <label>
@@ -257,7 +290,7 @@
       </div>
     </section>
 
-    <section>
+    <section id="domains" data-nav-section="domains">
       <h2>Custom Haiilo Domains</h2>
       <p class="description">If your organization uses a custom Haiilo URL (not *.haiilo.app or *.haiilo.com), add it here. The browser will ask you to grant access the first time — that's expected, it just means "yes, run on this site too."</p>
       <div id="domainsList" class="domains-list"></div>
@@ -272,7 +305,7 @@
       </div>
     </section>
 
-    <section>
+    <section id="data" data-nav-section="data">
       <h2>Data Management</h2>
       <div class="form-group checkbox-group">
         <label>
@@ -302,7 +335,7 @@
 
     <div class="save-status" id="saveStatus"></div>
 
-    <section>
+    <section id="advanced" data-nav-section="advanced">
       <h2>Advanced Options</h2>
       <div class="form-group checkbox-group">
         <label>
@@ -312,9 +345,9 @@
       </div>
     </section>
 
-    <footer>
+    <footer id="about" data-nav-section="about">
       <p class="footer-title" id="footerVersion">Haiilo Enhancer</p>
-      <p class="credits">Made for a more peaceful Haiilo experience</p>
+      <p class="credits">The Haiilo experience, enhanced for you</p>
       <p class="footer-spacer"></p>
       <p class="license-text">
         Copyright &copy; 2026 nichu42 and contributors
@@ -353,6 +386,8 @@
         registered trademarks of their respective owners.
       </p>
     </footer>
+      </main>
+    </div>
   </div>
 
   <script src="options.js"></script>

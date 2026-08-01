@@ -3,6 +3,16 @@
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+let saveSettingsTimeout = null;
+const MESSENGER_WIDTH_MIN = 50;
+const MESSENGER_WIDTH_MAX = 125;
+const MESSENGER_WIDTH_DEFAULT = 100;
+
+function clampMessengerPanelWidthPercent(value) {
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) return MESSENGER_WIDTH_DEFAULT;
+  return Math.max(MESSENGER_WIDTH_MIN, Math.min(MESSENGER_WIDTH_MAX, parsed));
+}
 
 const DATE_TIME_PRESETS = {
   northAmerican12h: { dateFormat: 'MM/DD/YYYY', timeFormat: '12h', label: 'MM/DD/YYYY (North American)' },
@@ -98,10 +108,119 @@ async function initOptions() {
     warningElement.style.display = isChrome ? 'block' : 'none';
   }
 
+  organizeOptionSections();
   await loadSettings();
   await loadDomains();
   await loadCustomHomepages();
   setupEventListeners();
+  setupOptionsNavigation();
+}
+
+function organizeOptionSections() {
+  const content = document.querySelector('.options-content');
+  if (!content) return;
+
+  const categories = [
+    {
+      title: 'General',
+      sectionIds: ['general', 'general-muting', 'general-date-time']
+    },
+    {
+      title: 'Interface',
+      sectionIds: ['interface', 'interface-avatars', 'interface-reactions']
+    },
+    {
+      title: 'Behavior',
+      sectionIds: ['behavior-homepage', 'behavior']
+    },
+    {
+      title: 'Domains',
+      sectionIds: ['domains']
+    },
+    {
+      title: 'Data & Privacy',
+      sectionIds: ['data']
+    },
+    {
+      title: 'Advanced',
+      sectionIds: ['advanced']
+    },
+    {
+      title: 'About',
+      sectionIds: [],
+      includeFooter: true
+    }
+  ];
+
+  const saveStatus = document.getElementById('saveStatus');
+  const footer = content.querySelector('footer');
+  const categoryGroups = categories.map(category => {
+    const group = document.createElement('section');
+    group.className = 'options-category';
+    group.setAttribute('aria-labelledby', `${category.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`);
+
+    const heading = document.createElement('h2');
+    heading.className = 'options-category-title';
+    heading.id = `${category.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`;
+    heading.textContent = category.title;
+    const rule = document.createElement('hr');
+    rule.className = 'options-category-rule';
+    group.appendChild(rule);
+    group.appendChild(heading);
+
+    category.sectionIds.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (section) group.appendChild(section);
+    });
+
+    if (category.includeFooter && footer) {
+      group.appendChild(footer);
+    }
+
+    return group;
+  });
+
+  content.textContent = '';
+  categoryGroups.forEach(group => content.appendChild(group));
+  if (saveStatus) content.appendChild(saveStatus);
+}
+
+function setupOptionsNavigation() {
+  const links = Array.from(document.querySelectorAll('.options-nav-link'));
+  const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+  if (links.length === 0 || sections.length === 0) return;
+
+  const setActiveSection = (sectionName) => {
+    links.forEach(link => {
+      const isActive = link.dataset.section === sectionName;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+
+  const initialTarget = window.location.hash.slice(1);
+  const initialLink = links.find(link => link.getAttribute('href') === `#${initialTarget}`);
+  setActiveSection(initialLink ? initialLink.dataset.section : links[0].dataset.section);
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      const visibleSections = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visibleSections.length > 0) {
+        setActiveSection(visibleSections[0].target.dataset.navSection);
+      }
+    }, {
+      rootMargin: '-12% 0px -70% 0px',
+      threshold: [0, 0.1]
+    });
+
+    sections.forEach(section => observer.observe(section));
+  }
 }
 
 async function loadSettings() {
@@ -115,6 +234,17 @@ async function loadSettings() {
   document.getElementById('defaultMuteDays').value = settings.defaultMuteDays || 7;
   document.getElementById('showMutedIndicator').checked = settings.showMutedIndicator !== false;
   document.getElementById('debugMode').checked = settings.debugMode || false;
+  const messengerCheckbox = document.getElementById('keepMessengerExpanded');
+  const widthSlider = document.getElementById('messengerPanelWidthPercent');
+  const widthValue = document.getElementById('messengerPanelWidthValue');
+  if (messengerCheckbox) {
+    messengerCheckbox.checked = settings.keepMessengerExpanded === true;
+  }
+  if (widthSlider) {
+    const width = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
+    widthSlider.value = width;
+    if (widthValue) widthValue.textContent = `${width}%`;
+  }
   const normalizedDateFormat = normalizeDateFormatValue(settings.dateFormat || 'northAmerican12h');
   document.getElementById('dateFormat').value = normalizedDateFormat;
   document.getElementById('timeFormat').value = settings.timeFormat || getPresetForDateFormat(normalizedDateFormat).timeFormat;
@@ -285,6 +415,15 @@ function escapeHtml(text) {
   return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+function scheduleSaveSettings() {
+  clearTimeout(saveSettingsTimeout);
+  saveSettingsTimeout = setTimeout(() => {
+    saveSettings().catch(error => {
+      console.error('Failed to save settings:', error);
+    });
+  }, 250);
+}
+
 function setupEventListeners() {
   // Auto-save on change
   const extensionEnabledInput = document.getElementById('extensionEnabled');
@@ -297,6 +436,13 @@ function setupEventListeners() {
   document.getElementById('defaultMuteDays').addEventListener('change', saveSettings);
   document.getElementById('showMutedIndicator').addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
+  document.getElementById('keepMessengerExpanded').addEventListener('change', saveSettings);
+  document.getElementById('messengerPanelWidthPercent').addEventListener('input', (e) => {
+    document.getElementById('messengerPanelWidthValue').textContent =
+      `${clampMessengerPanelWidthPercent(e.target.value)}%`;
+    scheduleSaveSettings();
+  });
+  document.getElementById('messengerPanelWidthPercent').addEventListener('change', saveSettings);
   document.getElementById('dateFormat').addEventListener('change', () => {
     const dateFormatSelect = document.getElementById('dateFormat');
     const timeFormatSelect = document.getElementById('timeFormat');
@@ -322,49 +468,49 @@ function setupEventListeners() {
   // Ring settings
   document.getElementById('channelAvatarRingColor').addEventListener('input', () => {
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
   document.getElementById('channelAvatarRingWidth').addEventListener('input', () => {
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   // Square settings
   document.getElementById('channelAvatarSquareColor').addEventListener('input', () => {
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
   document.getElementById('channelAvatarSquareWidth').addEventListener('input', () => {
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   // Badge settings
   document.getElementById('channelAvatarBadgeSize').addEventListener('input', (e) => {
     document.getElementById('badgeSizeValue').textContent = e.target.value + '%';
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   document.getElementById('channelAvatarBadgePosition').addEventListener('change', () => {
     updatePreview(false);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   // Color mode settings
   document.getElementById('colorModeRandom').addEventListener('change', () => {
     updatePreview(true);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   document.getElementById('colorModeFixed').addEventListener('change', () => {
     updatePreview(true);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   document.getElementById('channelAvatarFixedColor').addEventListener('input', () => {
     updatePreview(true);
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   // Auto-expand settings
@@ -390,7 +536,7 @@ function setupEventListeners() {
           return;
         }
       }
-      saveSettings();
+      scheduleSaveSettings();
     });
   }
   document.getElementById('autoExpandClicksPerList').addEventListener('change', () => {
@@ -400,7 +546,7 @@ function setupEventListeners() {
     if (isNaN(v)) v = 3;
     v = Math.max(0, Math.min(10, v));
     input.value = v;
-    saveSettings();
+    scheduleSaveSettings();
   });
   document.getElementById('autoExpandDelayMs').addEventListener('change', () => {
     const input = document.getElementById('autoExpandDelayMs');
@@ -408,7 +554,7 @@ function setupEventListeners() {
     if (isNaN(v)) v = 300;
     v = Math.max(100, Math.min(1000, v));
     input.value = v;
-    saveSettings();
+    scheduleSaveSettings();
   });
 
   // Reset buttons
@@ -608,23 +754,13 @@ async function saveSettings() {
     sortReactionsByCount: document.getElementById('sortReactionsByCount').checked,
     showReactionCountTooltip: document.getElementById('showReactionCountTooltip').checked,
     showReactionCountInline: document.getElementById('showReactionCountInline').checked,
+    keepMessengerExpanded: document.getElementById('keepMessengerExpanded').checked,
+    messengerPanelWidthPercent: clampMessengerPanelWidthPercent(document.getElementById('messengerPanelWidthPercent').value),
     cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false
   };
 
   await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings });
-
-  // Broadcast to all Haiilo tabs so the auto-expand runner picks up the
-  // new values without a full page reload.
-  try {
-    const tabs = await browserAPI.tabs.query({});
-    for (const tab of tabs) {
-      if (tab && tab.url && /haiilo\.(app|com)/.test(tab.url)) {
-        browserAPI.tabs.sendMessage(tab.id, { action: 'settingsUpdated' }).catch(() => {});
-      }
-    }
-  } catch (e) {
-    console.error('Failed to broadcast settingsUpdated:', e);
-  }
+  debugLog('[Options] Settings saved');
 
   showStatus('Settings saved', 'success');
 }
@@ -904,7 +1040,7 @@ function resetRingSettings() {
   document.getElementById('channelAvatarRingColor').value = '#502379';
   document.getElementById('channelAvatarRingWidth').value = 2;
   updatePreview(false);
-  saveSettings();
+  scheduleSaveSettings();
   showStatus('Ring settings reset to default', 'success');
 }
 
@@ -912,7 +1048,7 @@ function resetSquareSettings() {
   document.getElementById('channelAvatarSquareColor').value = '#502379';
   document.getElementById('channelAvatarSquareWidth').value = 2;
   updatePreview(false);
-  saveSettings();
+  scheduleSaveSettings();
   showStatus('Square settings reset to default', 'success');
 }
 

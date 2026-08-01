@@ -5,16 +5,6 @@
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 const DEFAULT_DOMAINS = ['haiilo.app', 'haiilo.com'];
-const MESSENGER_WIDTH_MIN = 50;
-const MESSENGER_WIDTH_MAX = 125;
-const MESSENGER_WIDTH_DEFAULT = 100;
-
-function clampMessengerPanelWidthPercent(value) {
-  const parsed = parseInt(value, 10);
-  if (isNaN(parsed)) return MESSENGER_WIDTH_DEFAULT;
-  return Math.max(MESSENGER_WIDTH_MIN, Math.min(MESSENGER_WIDTH_MAX, parsed));
-}
-
 async function getHaiiloDomains() {
   const data = await browserAPI.storage.local.get('customDomains');
   return [...DEFAULT_DOMAINS, ...(data.customDomains || [])];
@@ -29,22 +19,6 @@ async function isHaiiloUrl(url) {
     return domains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
   } catch (e) {
     return false;
-  }
-}
-
-async function notifyMessengerSettingChanged(expanded, messengerPanelWidthPercent) {
-  const tabs = await browserAPI.tabs.query({});
-
-  for (const tab of tabs) {
-    if (await isHaiiloUrl(tab.url)) {
-      browserAPI.tabs.sendMessage(tab.id, {
-        action: 'toggleMessengerExpanded',
-        expanded,
-        messengerPanelWidthPercent
-      }).catch(() => {
-        // Silently ignore tabs where the content script is not available.
-      });
-    }
   }
 }
 
@@ -170,10 +144,15 @@ async function loadHiddenCount() {
 
 function updateHiddenDetailsVisibility(count) {
   const details = document.getElementById('hiddenDetails');
+  const summary = details ? details.querySelector('.hidden-details-summary') : null;
+  const hasHiddenItems = Number(count) > 0;
 
   if (details) {
-    details.hidden = !count;
-    if (!count) {
+    details.hidden = !hasHiddenItems;
+    if (summary) {
+      summary.setAttribute('aria-disabled', String(!hasHiddenItems));
+    }
+    if (!hasHiddenItems) {
       details.open = false;
     }
   }
@@ -184,7 +163,8 @@ function setupHiddenDetailsToggle() {
   if (!details) return;
 
   details.addEventListener('toggle', async () => {
-    if (!details.open) return;
+    const count = Number(document.getElementById('hiddenCount')?.textContent || 0);
+    if (!details.open || count <= 0) return;
     await loadHiddenDetails();
   });
 
@@ -196,6 +176,9 @@ function setupHiddenDetailsToggle() {
 async function loadHiddenDetails() {
   const contentEl = document.getElementById('hiddenDetailsContent');
   if (!contentEl) return;
+
+  const count = Number(document.getElementById('hiddenCount')?.textContent || 0);
+  if (count <= 0) return;
 
   contentEl.textContent = 'Loading hidden content details...';
 
@@ -269,17 +252,6 @@ function createHiddenDetailElement(item, index) {
 
 async function loadSettings() {
   const settings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-  const messengerCheckbox = document.getElementById('keepMessengerExpanded');
-  const widthSlider = document.getElementById('messengerPanelWidthPercent');
-  const widthValue = document.getElementById('messengerPanelWidthValue');
-
-  let messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
-
-  const updateWidthLabel = (value) => {
-    if (widthValue) {
-      widthValue.textContent = `${clampMessengerPanelWidthPercent(value)}%`;
-    }
-  };
 
   const extensionEnabledToggle = document.getElementById('extensionEnabledToggle');
   if (extensionEnabledToggle) {
@@ -297,71 +269,7 @@ async function loadSettings() {
     });
   }
 
-  if (widthSlider) {
-    widthSlider.value = messengerPanelWidthPercent;
-    updateWidthLabel(messengerPanelWidthPercent);
-
-    widthSlider.addEventListener('input', (e) => {
-      updateWidthLabel(e.target.value);
-    });
-
-    widthSlider.addEventListener('change', async (e) => {
-      try {
-        messengerPanelWidthPercent = clampMessengerPanelWidthPercent(e.target.value);
-        widthSlider.value = messengerPanelWidthPercent;
-        updateWidthLabel(messengerPanelWidthPercent);
-
-        const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-        currentSettings.messengerPanelWidthPercent = messengerPanelWidthPercent;
-        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
-        debugLog('[Popup] Settings saved, messengerPanelWidthPercent:', messengerPanelWidthPercent);
-
-        if (messengerCheckbox && messengerCheckbox.checked) {
-          await notifyMessengerSettingChanged(true, messengerPanelWidthPercent);
-        }
-      } catch (error) {
-        console.error('[Popup] Error saving messenger width:', error);
-      }
-    });
-  }
-
-  if (messengerCheckbox) {
-    messengerCheckbox.checked = settings.keepMessengerExpanded || false;
-
-    messengerCheckbox.addEventListener('change', async (e) => {
-      try {
-        debugLog('[Popup] Messenger expanded toggle changed to:', e.target.checked);
-        const currentSettings = await browserAPI.runtime.sendMessage({ action: 'getSettings' });
-        currentSettings.keepMessengerExpanded = e.target.checked;
-        currentSettings.messengerPanelWidthPercent = messengerPanelWidthPercent;
-
-        await browserAPI.runtime.sendMessage({ action: 'saveSettings', settings: currentSettings });
-        debugLog('[Popup] Settings saved, keepMessengerExpanded:', e.target.checked);
-
-        updateWidthControls();
-        await notifyMessengerSettingChanged(e.target.checked, messengerPanelWidthPercent);
-      } catch (error) {
-        console.error('[Popup] Error in messenger expanded toggle:', error);
-      }
-    });
-  }
-
   updatePopupDisabledState();
-}
-
-function updateWidthControls() {
-  const isEnabledToggle = document.getElementById('extensionEnabledToggle');
-  const isEnabled = isEnabledToggle ? isEnabledToggle.checked : true;
-  const messengerCheckbox = document.getElementById('keepMessengerExpanded');
-  const widthSlider = document.getElementById('messengerPanelWidthPercent');
-  const messengerEnabled = messengerCheckbox ? messengerCheckbox.checked : false;
-
-  if (widthSlider) {
-    widthSlider.disabled = !isEnabled || !messengerEnabled;
-    widthSlider.title = !isEnabled 
-      ? 'Extension is disabled'
-      : (messengerEnabled ? 'Adjust the open messenger panel width' : 'Enable keep messenger expanded first');
-  }
 }
 
 function updatePopupDisabledState() {
@@ -379,13 +287,6 @@ function updatePopupDisabledState() {
   addUserInputs.forEach(input => {
     input.disabled = !isEnabled;
   });
-  
-  const keepMessengerExpanded = document.getElementById('keepMessengerExpanded');
-  if (keepMessengerExpanded) {
-    keepMessengerExpanded.disabled = !isEnabled;
-  }
-  
-  updateWidthControls();
 }
 
 function setupEventListeners() {

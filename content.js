@@ -1269,22 +1269,34 @@
 
   // Inject (or update) a count tooltip into the cat-tooltip of a coyo-reactions-info.
   function injectReactionTooltip(reactionsInfo, sortedData, typeMap) {
-    const tooltip = reactionsInfo.querySelector('cat-tooltip');
-    if (!tooltip) return;
-    // Remove any previously injected tooltip content
-    const existing = tooltip.querySelector('.haiilo-enhancer-reaction-tooltip');
-    if (existing) existing.remove();
     const text = sortedData
       .map(({ reactionType, count }) => {
         const unicode = typeMap?.[reactionType]?.unicode || reactionType;
         return `${unicode}${count}`;
       })
       .join(' ');
-    const p = document.createElement('p');
-    p.slot = 'content';
-    p.className = 'haiilo-enhancer-reaction-tooltip';
-    p.textContent = text;
-    tooltip.appendChild(p);
+
+    // Set a native tooltip as a reliable fallback. Haiilo's custom tooltip
+    // component may not refresh its named slot after Angular hydration.
+    reactionsInfo.setAttribute('title', text);
+    reactionsInfo.setAttribute('aria-label', `Reactions: ${text}`);
+    const trigger = reactionsInfo.querySelector('cat-tooltip > cat-button');
+    if (trigger) {
+      trigger.setAttribute('title', text);
+      trigger.setAttribute('aria-label', `Reactions: ${text}`);
+    }
+
+    const tooltip = reactionsInfo.querySelector('cat-tooltip');
+    if (tooltip) {
+      // Remove any previously injected tooltip content
+      const existing = tooltip.querySelector('.haiilo-enhancer-reaction-tooltip');
+      if (existing) existing.remove();
+      const p = document.createElement('p');
+      p.slot = 'content';
+      p.className = 'haiilo-enhancer-reaction-tooltip';
+      p.textContent = text;
+      tooltip.appendChild(p);
+    }
     debugLog('[Reactions] Injected tooltip:', text);
   }
 

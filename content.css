@@ -26,9 +26,11 @@
 }
 
 .haiilo-enhancer-reaction-count {
-  margin-left: 2px;
+  display: inline-block;
+  margin: 0 5px 0 2px;
   font-size: 0.85em;
   line-height: 1;
   color: var(--color-text-secondary);
   vertical-align: middle;
+  white-space: nowrap;
 }

@@ -2133,7 +2133,10 @@
     const undoBtn = toast.querySelector('.haiilo-enhancer-undo-toast-btn');
     messageEl.textContent = message;
     tabUndoToastAction = undoAction || null;
-    undoBtn.hidden = !tabUndoToastAction;
+    if (undoBtn) {
+      undoBtn.hidden = !tabUndoToastAction;
+      undoBtn.style.display = tabUndoToastAction ? 'inline-block' : 'none';
+    }
     toast.classList.add('visible');
     clearTimeout(tabUndoToastTimer);
     tabUndoToastTimer = setTimeout(hideTabUndoToast, 4000);

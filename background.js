@@ -340,7 +340,7 @@ browserAPI.webNavigation.onCompleted.addListener(async (details) => {
       });
       await browserAPI.scripting.insertCSS({
         target: { tabId: details.tabId },
-        files: ['content.css']
+        files: ['colors.css', 'content.css']
       });
       debugLog('Content script injected on navigation to:', details.url);
     } catch (e) {
@@ -1085,7 +1085,7 @@ async function registerDynamicContentScripts() {
             id: `haiilo-enhancer-${domain}`,
             matches: origins,
             js: ['shared.js', 'i18n.js', 'content.js'],
-            css: ['content.css'],
+            css: ['colors.css', 'content.css'],
             runAt: 'document_idle'
           }
         ]);
@@ -1115,7 +1115,7 @@ async function injectContentScripts() {
 
         await browserAPI.scripting.insertCSS({
           target: { tabId: tab.id },
-          files: ['content.css']
+          files: ['colors.css', 'content.css']
         });
 
         debugLog(`Injected content script into tab ${tab.id}`);

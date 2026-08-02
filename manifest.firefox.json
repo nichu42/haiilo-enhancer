@@ -26,7 +26,7 @@
     {
       "matches": ["https://*.haiilo.app/*", "https://*.haiilo.com/*"],
       "js": ["shared.js", "i18n.js", "content.js"],
-      "css": ["content.css"],
+      "css": ["colors.css", "content.css"],
       "run_at": "document_idle"
     }
   ],

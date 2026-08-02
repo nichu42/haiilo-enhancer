@@ -141,8 +141,13 @@
 .haiilo-enhancer-inline-reaction-summary {
   display: inline-flex !important;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   margin-right: 6px;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  line-height: inherit;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
@@ -153,21 +158,36 @@
 .haiilo-enhancer-reaction-group {
   display: inline-flex !important;
   align-items: center;
-  gap: 2px;
-  margin-right: 6px;
+  gap: 3px;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  line-height: inherit;
   white-space: nowrap;
+  vertical-align: middle;
+}
+
+.haiilo-enhancer-reaction-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05em;
+  line-height: 1;
   vertical-align: middle;
 }
 
 .haiilo-enhancer-reaction-count {
   display: inline-block;
   margin: 0;
-  font-size: 0.85em;
-  line-height: 1;
-  color: var(--color-text-secondary);
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
   vertical-align: middle;
   white-space: nowrap;
 }
+
 
 /* In-tab undo toast — a small bubble at the bottom of the page shown after a
  * context-menu mute so the action can be reverted without opening the popup.

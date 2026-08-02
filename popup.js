@@ -161,9 +161,14 @@ function renderMutedUsers() {
 function setupMutedSearch() {
   const searchInput = document.getElementById('mutedSearch');
   if (!searchInput) return;
+  // P10 fix: debounce to avoid rebuilding DOM on every keystroke
+  let searchTimeout = null;
   searchInput.addEventListener('input', () => {
-    mutedSearchQuery = searchInput.value;
-    renderMutedUsers();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      mutedSearchQuery = searchInput.value;
+      renderMutedUsers();
+    }, 150);
   });
 }
 

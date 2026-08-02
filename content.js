@@ -131,7 +131,18 @@
   const reactionSummaryPromises = new Map();
   const reactionDetailsCache = new Map();
   const reactionDetailsPromises = new Map();
+  // P7 fix: LRU eviction for reaction caches to prevent unbounded growth
+  const REACTION_CACHE_MAX = 500;
+  function evictOldestEntries(map) {
+    if (map.size <= REACTION_CACHE_MAX) return;
+    const keysToDelete = [...map.keys()].slice(0, map.size - REACTION_CACHE_MAX);
+    keysToDelete.forEach(k => map.delete(k));
+  }
   let reactionEnhancerObserver = null;
+
+  // P3 fix: hiddenElements persists across hideContent() calls so already-hidden
+  // elements are not re-processed. WeakSet auto-releases GC'd DOM nodes.
+  const hiddenElements = new WeakSet();
 
   // Shared messenger width constants and clamp (single source of truth in shared.js)
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = HaiiloShared.MESSENGER_PANEL_WIDTH_MIN_PERCENT;
@@ -190,6 +201,7 @@
   // different times because they may appear at different moments
   // as Haiilo re-renders the sidebar.
   const autoExpandProcessed = new Set();
+  let autoExpandMountAttempts = 0; // P6 fix: max-attempt counter
   const AUTO_EXPAND_SELECTORS = {
     workspaces: 'button[data-test="show-more-workspace"]',
     pages: 'button[data-test="show-more-page"]'
@@ -1588,7 +1600,24 @@
           // findInShadows cache so the runner sees fresh results.
           clearFindInShadowsCache();
           autoExpandShowMoreLists();
-          maybeStopAutoExpandObserver();
+          // P6 fix: stop observer after too many attempts with no buttons
+          autoExpandMountAttempts++;
+          const allProcessedOrMaxed = getAutoExpandSelectors().every(sel =>
+            autoExpandProcessed.has(getDataTestForSelector(sel))
+          );
+          if (allProcessedOrMaxed) {
+            if (autoExpandMountObserver) {
+              autoExpandMountObserver.disconnect();
+              autoExpandMountObserver = null;
+              debugLog('[AutoExpand] All buttons processed, mount observer stopped');
+            }
+          } else if (autoExpandMountAttempts > 15) {
+            if (autoExpandMountObserver) {
+              autoExpandMountObserver.disconnect();
+              autoExpandMountObserver = null;
+              debugLog('[AutoExpand] Mount observer stopped after', autoExpandMountAttempts, 'attempts without finding buttons');
+            }
+          }
         });
       }, 200);
     });
@@ -1685,6 +1714,7 @@
         sortedData: [...apiData].sort((a, b) => b.count - a.count)
       };
       reactionSummaryCache.set(cacheKey, result);
+      evictOldestEntries(reactionSummaryCache);
       return result;
     }).catch(e => {
       debugLog('[Reactions] Failed to fetch summary for', targetId, e);
@@ -1694,6 +1724,7 @@
     });
 
     reactionSummaryPromises.set(cacheKey, request);
+    evictOldestEntries(reactionSummaryPromises);
     return request;
   }
 
@@ -1824,6 +1855,7 @@
       const data = await response.json();
       const details = Array.isArray(data.content) ? data.content : [];
       reactionDetailsCache.set(cacheKey, details);
+      evictOldestEntries(reactionDetailsCache);
       return details;
     }).catch(e => {
       debugLog('[Reactions] Failed to fetch reaction details:', e);
@@ -1832,6 +1864,7 @@
       reactionDetailsPromises.delete(cacheKey);
     });
     reactionDetailsPromises.set(cacheKey, request);
+    evictOldestEntries(reactionDetailsPromises);
     return request;
   }
 
@@ -2777,7 +2810,6 @@
     hiddenCount = 0;
     hiddenItems = [];
     debugLog('Starting content filtering...');
-    const hiddenElements = new WeakSet();
 
     // Build the muted-name lookup table once, then scan each post once.
     // The old code re-scanned the whole page for every muted user, which got
@@ -2972,6 +3004,16 @@
     return null;
   }
 
+  // S1 fix: validate URL scheme before navigating
+  function isSafeUrl(url) {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Setup logo click interceptor
   function setupLogoClickInterceptor() {
     // Intercept clicks on the logo
@@ -2991,7 +3033,9 @@
           debugLog('Logo click intercepted, redirecting to custom homepage:', customHomepageUrl);
           e.preventDefault();
           e.stopPropagation();
-          window.location.href = customHomepageUrl;
+          if (isSafeUrl(customHomepageUrl)) {
+            window.location.href = customHomepageUrl;
+          }
           return;
         }
 
@@ -3003,7 +3047,9 @@
             debugLog('Logo click intercepted via coyo-main-logo, redirecting to custom homepage:', customHomepageUrl);
             e.preventDefault();
             e.stopPropagation();
-            window.location.href = customHomepageUrl;
+            if (isSafeUrl(customHomepageUrl)) {
+              window.location.href = customHomepageUrl;
+            }
             return;
           }
         }
@@ -3169,6 +3215,8 @@
 
     if (modified) {
       node.textContent = text;
+      // P4 fix: mark parent so TreeWalker skips this node on re-scans
+      if (node.parentElement) node.parentElement.dataset.haiiloDateProcessed = '1';
     }
   }
 
@@ -3193,6 +3241,8 @@
           if (tagName === 'script' || tagName === 'style') {
             return NodeFilter.FILTER_REJECT;
           }
+          // P4 fix: skip already-processed text nodes
+          if (parent.dataset.haiiloDateProcessed) return NodeFilter.FILTER_REJECT;
           return NodeFilter.FILTER_ACCEPT;
         }
       }
@@ -3600,8 +3650,15 @@
       calendarActionObserver.disconnect();
     }
 
+    // P5 fix: debounce to avoid running on every synchronous DOM mutation
+    let calendarPending = false;
     calendarActionObserver = new MutationObserver(() => {
-      injectAddToCalendarAction();
+      if (calendarPending) return;
+      calendarPending = true;
+      setTimeout(() => {
+        calendarPending = false;
+        injectAddToCalendarAction();
+      }, 200);
     });
 
     calendarActionObserver.observe(document.body, {

@@ -27,7 +27,7 @@ build_chrome() {
     rm -f "$CHROME_DIR/icons"/*.html
 
     # Create zip
-    (cd "$CHROME_DIR" && zip -r "../haiilo-enhancer-chrome.zip" .)
+    (cd "$CHROME_DIR" && zip -r "../haiilo-enhancer-chrome.zip" . -x ".*" -x "__MACOSX/*")
 
     echo "Chrome build complete: $DIST_DIR/haiilo-enhancer-chrome.zip"
 }
@@ -49,7 +49,7 @@ build_firefox() {
     rm -f "$FIREFOX_DIR/icons"/*.html
 
     # Create xpi for local development (release builds are signed via web-ext sign)
-    (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.xpi" .)
+    (cd "$FIREFOX_DIR" && zip -r "../haiilo-enhancer-firefox.xpi" . -x ".*" -x "__MACOSX/*")
 
     echo "Firefox build complete: $DIST_DIR/haiilo-enhancer-firefox.xpi"
 }

@@ -116,14 +116,19 @@ function getRequestedLocale(preferredLocale) {
   return normalizeLocale(preferredLocale || (browserAPI.i18n && typeof browserAPI.i18n.getUILanguage === 'function' ? browserAPI.i18n.getUILanguage() : '') || (typeof navigator !== 'undefined' ? navigator.language : '') || 'en-US');
 }
 
-// Debug logging helper
+// Debug logging helper — P1 fix: cache debugMode in memory to avoid
+// hitting storage on every call (60+ call sites in this file alone).
+let _debugMode = false;
+browserAPI.storage.local.get('settings').then(data => {
+  _debugMode = !!(data.settings && data.settings.debugMode);
+}).catch(() => {});
+browserAPI.storage.onChanged.addListener((changes) => {
+  if (changes.settings && changes.settings.newValue) {
+    _debugMode = !!changes.settings.newValue.debugMode;
+  }
+});
 function debugLog(...args) {
-  browserAPI.storage.local.get('settings').then(data => {
-    const settings = data.settings || DEFAULT_SETTINGS;
-    if (settings.debugMode) {
-      console.log(...args);
-    }
-  });
+  if (_debugMode) console.log(...args);
 }
 
 // Default settings
@@ -257,46 +262,14 @@ async function pullFromCloud() {
 browserAPI.runtime.onInstalled.addListener(async () => {
   try {
     // Initialize storage with defaults if not set
+    // A7 fix: only query top-level storage keys (sub-keys like 'language',
+    // 'extensionEnabled' etc. live inside 'settings', not at the root).
     const data = await browserAPI.storage.local.get([
       'mutedUsers',
       'settings',
       'customDomains',
       'customHomepages',
-      'disabledDomains',
-      'language',
-      'extensionEnabled',
-      'defaultMuteDays',
-      'showMutedIndicator',
-      'debugMode',
-      'enhanceChannelAvatars',
-      'channelAvatarStyle',
-      'channelAvatarRingColor',
-      'channelAvatarRingWidth',
-      'channelAvatarSquareColor',
-      'channelAvatarSquareWidth',
-      'channelAvatarBadgeSize',
-      'channelAvatarBadgePosition',
-      'channelAvatarColorMode',
-      'channelAvatarFixedColor',
-      'dateFormat',
-      'timeFormat',
-      'keepMessengerExpanded',
-      'messengerPanelWidthPercent',
-      'centerContentWithMessenger',
-      'autoExpandEnabled',
-      'autoExpandClicksPerList',
-      'autoExpandDelayMs',
-      'autoExpandScope',
-      'cloudSync',
-      'theme',
-      'sortReactionsByCount',
-      'showReactionCountTooltip',
-      'showReactionCountInline',
-      'fixMentionFormatting',
-      'fixMentionPopup',
-      'fixMobileWikiBreadcrumbs',
-      'fixWikiModeToggle',
-      'floatingRichTextToolbar'
+      'disabledDomains'
     ]);
 
     if (!data.mutedUsers) {
@@ -864,23 +837,43 @@ async function unmuteUser(userName) {
   debugLog(`Unmuted user: ${userName}`);
 }
 
+// P2 fix: sync hostname helpers that accept pre-fetched domain lists,
+// avoiding per-tab async storage reads inside loops.
+function isHaiiloHostname(hostname, allDomains) {
+  return allDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+}
+
+function isHostnameDisabled(hostname, disabledDomains) {
+  return disabledDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+}
+
 // Notify all Haiilo tabs to refresh their filter
 async function notifyAllHaiiloTabs() {
+  const allDomains = await getAllDomains();
   const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
-    }
+    if (!tab.url) continue;
+    try {
+      const hostname = new URL(tab.url).hostname;
+      if (isHaiiloHostname(hostname, allDomains)) {
+        browserAPI.tabs.sendMessage(tab.id, { action: 'refreshFilter' }).catch(() => {});
+      }
+    } catch (e) { /* skip malformed URLs */ }
   }
 }
 
 // Broadcast a message to all Haiilo tabs
 async function broadcastMessageToAllHaiiloTabs(message) {
+  const allDomains = await getAllDomains();
   const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
-    }
+    if (!tab.url) continue;
+    try {
+      const hostname = new URL(tab.url).hostname;
+      if (isHaiiloHostname(hostname, allDomains)) {
+        browserAPI.tabs.sendMessage(tab.id, message).catch(() => {});
+      }
+    } catch (e) { /* skip malformed URLs */ }
   }
 }
 
@@ -888,27 +881,36 @@ async function broadcastMessageToAllHaiiloTabs(message) {
 async function updateAllBadges() {
   if (!badgeAPI || typeof badgeAPI.setBadgeText !== 'function') return;
   const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
+  const allDomains = await getAllDomains();
+  const disabledData = await browserAPI.storage.local.get('disabledDomains');
+  const disabledDomains = disabledData.disabledDomains || [];
   const tabs = await browserAPI.tabs.query({});
   for (const tab of tabs) {
-    if (await isHaiiloTab(tab)) {
-      if (settings.extensionEnabled === false || await isTabDomainDisabled(tab)) {
-        badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
-        badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
-      } else {
-        // Query tab for hidden count, if not available, clear badge
-        try {
-          const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' }).catch(() => null);
-          if (response && typeof response.count === 'number' && response.count > 0) {
-            badgeAPI.setBadgeText({ text: response.count.toString(), tabId: tab.id });
-            badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: tab.id });
-          } else {
+    if (!tab.url) { badgeAPI.setBadgeText({ text: '', tabId: tab.id }); continue; }
+    try {
+      const hostname = new URL(tab.url).hostname;
+      if (isHaiiloHostname(hostname, allDomains)) {
+        if (settings.extensionEnabled === false || isHostnameDisabled(hostname, disabledDomains)) {
+          badgeAPI.setBadgeText({ text: 'OFF', tabId: tab.id });
+          badgeAPI.setBadgeBackgroundColor({ color: '#888888', tabId: tab.id });
+        } else {
+          // Query tab for hidden count, if not available, clear badge
+          try {
+            const response = await browserAPI.tabs.sendMessage(tab.id, { action: 'getHiddenCount' }).catch(() => null);
+            if (response && typeof response.count === 'number' && response.count > 0) {
+              badgeAPI.setBadgeText({ text: response.count.toString(), tabId: tab.id });
+              badgeAPI.setBadgeBackgroundColor({ color: '#6366f1', tabId: tab.id });
+            } else {
+              badgeAPI.setBadgeText({ text: '', tabId: tab.id });
+            }
+          } catch (e) {
             badgeAPI.setBadgeText({ text: '', tabId: tab.id });
           }
-        } catch (e) {
-          badgeAPI.setBadgeText({ text: '', tabId: tab.id });
         }
+      } else {
+        badgeAPI.setBadgeText({ text: '', tabId: tab.id });
       }
-    } else {
+    } catch (e) {
       badgeAPI.setBadgeText({ text: '', tabId: tab.id });
     }
   }
@@ -940,6 +942,15 @@ async function isHaiiloTab(tab) {
 
 // Add a custom domain (permission must be granted before calling this)
 async function addCustomDomain(domain) {
+  // S3 fix: validate domain is a proper hostname before storing
+  if (!domain || typeof domain !== 'string') {
+    throw new Error('Invalid domain');
+  }
+  domain = domain.trim().toLowerCase();
+  if (!/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(domain)) {
+    throw new Error('Invalid domain format');
+  }
+
   const data = await browserAPI.storage.local.get('customDomains');
   const customDomains = data.customDomains || [];
 
@@ -1178,6 +1189,23 @@ async function handleSetHomepage(info, tab) {
     }).catch(() => null);
 
     if (response && response.homepageUrl && response.baseUrl) {
+      // S2 fix: validate response matches actual tab origin and uses safe scheme
+      try {
+        const tabOrigin = new URL(tab.url).origin;
+        if (response.baseUrl !== tabOrigin) {
+          debugLog('Homepage response baseUrl mismatch:', response.baseUrl, 'vs', tabOrigin);
+          return;
+        }
+        const parsedHomepage = new URL(response.homepageUrl);
+        if (parsedHomepage.protocol !== 'https:' && parsedHomepage.protocol !== 'http:') {
+          debugLog('Homepage URL has unsafe scheme:', response.homepageUrl);
+          return;
+        }
+      } catch (e) {
+        debugLog('Could not validate homepage response:', e);
+        return;
+      }
+
       await setCustomHomepage(response.baseUrl, response.homepageUrl);
       debugLog(`Custom homepage set for ${response.baseUrl}: ${response.homepageUrl}`);
 
@@ -1190,15 +1218,20 @@ async function handleSetHomepage(info, tab) {
       }
 
       // Notify all tabs of the same instance to update
-      const tabs = await browserAPI.tabs.query({});
-      for (const t of tabs) {
-        if (await isHaiiloTab(t)) {
-          const url = new URL(t.url);
-          const baseUrl = url.protocol + '//' + url.hostname;
-          if (baseUrl === response.baseUrl) {
-            browserAPI.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
+      // A1 fix: wrap new URL() in try-catch; P2 fix: hoist domain fetch
+      const allDomains = await getAllDomains();
+      const allTabs = await browserAPI.tabs.query({});
+      for (const t of allTabs) {
+        if (!t.url) continue;
+        try {
+          const tUrl = new URL(t.url);
+          if (isHaiiloHostname(tUrl.hostname, allDomains)) {
+            const tBase = tUrl.protocol + '//' + tUrl.hostname;
+            if (tBase === response.baseUrl) {
+              browserAPI.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
+            }
           }
-        }
+        } catch (e) { /* skip malformed URLs */ }
       }
     } else {
       debugLog('Could not determine homepage URL from clicked element');

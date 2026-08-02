@@ -455,9 +455,6 @@ async function loadCustomHomepages() {
   });
 }
 
-function escapeHtml(text) {
-  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 function scheduleSaveSettings() {
   clearTimeout(saveSettingsTimeout);
@@ -558,7 +555,23 @@ function setupEventListeners() {
   // Badge settings
   document.getElementById('channelAvatarBadgeSize').addEventListener('input', (e) => {
     document.getElementById('badgeSizeValue').textContent = e.target.value + '%';
-    updatePreview(false);
+    // P9 fix: update existing badge size inline instead of full DOM recreation
+    const previewAvatar = document.getElementById('previewAvatar');
+    const existingBadge = previewAvatar && previewAvatar.querySelector('.preview-badge');
+    if (existingBadge) {
+      const badgeSizePercent = parseInt(e.target.value, 10);
+      const badgeSize = Math.round(17 * (badgeSizePercent / 100));
+      existingBadge.style.width = badgeSize + 'px';
+      existingBadge.style.height = badgeSize + 'px';
+      const svgEl = existingBadge.querySelector('svg');
+      if (svgEl) {
+        const iconSize = Math.floor(badgeSize * 0.6);
+        svgEl.setAttribute('width', iconSize);
+        svgEl.setAttribute('height', iconSize);
+      }
+    } else {
+      updatePreview(false);
+    }
     scheduleSaveSettings();
   });
 

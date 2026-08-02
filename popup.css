@@ -519,7 +519,7 @@ section h2 {
   font-size: 14px;
   color: var(--color-text-primary);
   background: var(--color-bg-light);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .add-user-section input:focus,
@@ -546,7 +546,7 @@ section h2 {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   box-shadow: var(--shadow-primary);
 }
 

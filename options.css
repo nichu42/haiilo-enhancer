@@ -233,7 +233,7 @@ section .description {
   font-size: 14px;
   color: var(--color-text-primary);
   background: var(--color-bg-light);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-group select:focus,
@@ -380,7 +380,7 @@ button {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 button.primary {
@@ -429,7 +429,7 @@ button.danger:hover {
   font-weight: 600;
   opacity: 0;
   transform: translateX(400px);
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 1000;
   box-shadow: var(--shadow-lg);
   min-width: 250px;
@@ -632,7 +632,7 @@ footer .donate-icon {
   border: 2px solid var(--color-border-light);
   border-radius: 8px;
   margin-bottom: 10px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .domain-item:hover {
@@ -747,7 +747,7 @@ footer .donate-icon {
   font-size: 16px;
   font-weight: bold;
   color: white;
-  transition: all 0.3s ease;
+  transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, font-size 0.3s ease;
   position: relative;
 }
 

@@ -23,7 +23,8 @@
       <nav class="options-nav" data-i18n-aria-label="optionsSections" aria-label="Options sections">
         <p class="options-nav-title" data-i18n="settings"></p>
         <a href="#general-heading" class="options-nav-link" data-section="general" data-i18n="general"></a>
-        <a href="#interface-heading" class="options-nav-link" data-section="interface" data-i18n="interface"></a>
+        <a href="#appearance-heading" class="options-nav-link" data-section="appearance" data-i18n="appearance"></a>
+        <a href="#enhancements-heading" class="options-nav-link" data-section="enhancements" data-i18n="enhancements"></a>
         <a href="#behavior-heading" class="options-nav-link" data-section="behavior" data-i18n="behavior"></a>
         <a href="#domains-heading" class="options-nav-link" data-section="domains" data-i18n="domains"></a>
         <a href="#data-privacy-heading" class="options-nav-link" data-section="data" data-i18n="dataPrivacy"></a>
@@ -79,12 +80,30 @@
       </div>
     </section>
 
-    <section id="interface" data-nav-section="interface">
+    <section id="interface-mobile" data-nav-section="enhancements">
+      <h2 data-i18n="mobileFixes"></h2>
+      <p class="description" data-i18n="mobileFixesDescription"></p>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="fixMobileWikiBreadcrumbs">
+          <span data-i18n="fixMobileWikiBreadcrumbs"></span>
+        </label>
+        <small class="help-text" data-i18n="fixMobileWikiBreadcrumbsDescription"></small>
+      </div>
+    </section>
+
+    <section id="interface" data-nav-section="appearance">
       <h2 data-i18n="interfaceOptions"></h2>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="keepMessengerExpanded">
           <span data-i18n="keepMessengerExpanded"></span>
+        </label>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="centerContentWithMessenger">
+          <span data-i18n="centerContentWithMessenger"></span>
         </label>
       </div>
       <div class="form-group slider-group">
@@ -161,7 +180,7 @@
       </div>
     </section>
 
-    <section id="interface-avatars" data-nav-section="interface">
+    <section id="interface-avatars" data-nav-section="appearance">
       <h2 data-i18n="channelAvatarCustomization"></h2>
       <div class="form-group checkbox-group">
         <label>
@@ -265,7 +284,7 @@
       <div id="homepagesList" class="domains-list"></div>
     </section>
 
-    <section id="interface-reactions" data-nav-section="interface">
+    <section id="interface-reactions" data-nav-section="enhancements">
       <h2 data-i18n="reactions"></h2>
       <p class="description" data-i18n="reactionsDescription"></p>
       <div class="form-group checkbox-group">
@@ -285,6 +304,44 @@
           <input type="checkbox" id="showReactionCountInline">
           <span data-i18n="reactionInline"></span>
         </label>
+      </div>
+    </section>
+
+    <section id="interface-mentions" data-nav-section="enhancements">
+      <h2 data-i18n="mentionFixes"></h2>
+      <p class="description" data-i18n="mentionFixesDescription"></p>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="fixMentionFormatting">
+          <span data-i18n="fixMentionFormatting"></span>
+        </label>
+        <small class="help-text" data-i18n="fixMentionFormattingDescription"></small>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="fixMentionPopup">
+          <span data-i18n="fixMentionPopup"></span>
+        </label>
+        <small class="help-text" data-i18n="fixMentionPopupDescription"></small>
+      </div>
+    </section>
+
+    <section id="interface-editor" data-nav-section="enhancements">
+      <h2 data-i18n="editorFixes"></h2>
+      <p class="description" data-i18n="editorFixesDescription"></p>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="fixWikiModeToggle">
+          <span data-i18n="fixWikiModeToggle"></span>
+        </label>
+        <small class="help-text" data-i18n="fixWikiModeToggleDescription"></small>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="floatingRichTextToolbar">
+          <span data-i18n="floatingRichTextToolbar"></span>
+        </label>
+        <small class="help-text" data-i18n="floatingRichTextToolbarDescription"></small>
       </div>
     </section>
 
@@ -335,6 +392,10 @@
 
     <section id="data" data-nav-section="data">
       <h2 data-i18n="dataManagement"></h2>
+      <p class="description" data-i18n="dataLocalFirstIntro"></p>
+      <p class="help-text legal-note">
+        <button type="button" class="secondary legal-link" data-legal-doc="privacy" data-i18n="privacyPolicy"></button>
+      </p>
       <div class="form-group checkbox-group">
         <label>
           <input type="checkbox" id="cloudSync">
@@ -379,7 +440,11 @@
       <p class="footer-spacer"></p>
       <p class="license-text" data-i18n="copyright"></p>
       <p class="license-text" data-i18n="licensePermission"></p>
-      <p class="license-text" data-i18n="licenseWarrantyFull"></p>
+      <p class="license-text warranty-sentence">
+        <span data-i18n="warranty"></span>
+        <button type="button" class="legal-link" data-legal-doc="license" data-i18n="license"></button>
+        <span data-i18n="forMoreDetails"></span>
+      </p>
       <p class="license-text">
         <a href="https://github.com/nichu42/haiilo-enhancer/issues" target="_blank" rel="noopener" data-i18n="reportIssue"></a>
       </p>
@@ -400,8 +465,23 @@
     </div>
   </div>
 
+  <div class="legal-overlay" id="legalModal" hidden>
+    <div class="legal-dialog" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle">
+      <div class="legal-dialog-header">
+        <h2 id="legalModalTitle"></h2>
+        <button type="button" class="legal-close" data-legal-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="legal-dialog-body" id="legalModalBody"></div>
+    </div>
+  </div>
+
   <script src="shared.js"></script>
   <script src="i18n.js"></script>
+  <script src="legal.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

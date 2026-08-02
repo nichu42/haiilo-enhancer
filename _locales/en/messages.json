@@ -78,6 +78,8 @@
   "mutedUser": { "message": "Muted user: $USER$", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
   "general": { "message": "General" },
   "interface": { "message": "Interface" },
+  "appearance": { "message": "Appearance & layout" },
+  "enhancements": { "message": "Enhancements" },
   "behavior": { "message": "Behavior" },
   "domains": { "message": "Domains" },
   "dataPrivacy": { "message": "Data & Privacy" },
@@ -88,6 +90,7 @@
   "extensionStatusDescription": { "message": "Temporarily turn off all extension features (muting, avatar styling, messenger expansion, date overrides) without uninstalling the extension." },
   "interfaceOptions": { "message": "Interface Options" },
   "keepMessengerExpanded": { "message": "Keep messenger panel expanded" },
+  "centerContentWithMessenger": { "message": "Center page content in the remaining space" },
   "messengerPanelWidth": { "message": "Messenger panel width" },
   "savedApplied": { "message": "Saved and applied when changed." },
   "mutingOptions": { "message": "Muting Options" },
@@ -134,6 +137,22 @@
   "sortReactions": { "message": "Sort reaction emojis by count (most used first)" },
   "reactionTooltip": { "message": "Show reaction count breakdown on hover (e.g. 👍22 💡2)" },
   "reactionInline": { "message": "Show reaction counts inline next to the emojis" },
+  "mentionFixes": { "message": "Mention fixes" },
+  "mentionFixesDescription": { "message": "Work around two Haiilo rendering problems affecting member mentions." },
+  "fixMentionFormatting": { "message": "Fix mention formatting" },
+  "fixMentionFormattingDescription": { "message": "Prevent an oversized blank line when a member is mentioned in rich content." },
+  "fixMentionPopup": { "message": "Fix mention profile popup" },
+  "fixMentionPopupDescription": { "message": "Prevent the profile popup from expanding into a large, mostly empty panel." },
+  "mobileFixes": { "message": "Mobile fixes" },
+  "mobileFixesDescription": { "message": "Optional workarounds for Haiilo problems that mainly affect mobile-sized layouts." },
+  "fixMobileWikiBreadcrumbs": { "message": "Fix mobile wiki breadcrumbs" },
+  "fixMobileWikiBreadcrumbsDescription": { "message": "Keep wiki breadcrumbs readable and clickable on narrow mobile screens. Intended for mobile Firefox and compatible browsers." },
+  "editorFixes": { "message": "Editor enhancements" },
+  "editorFixesDescription": { "message": "Optional enhancements and workarounds for the Haiilo editor." },
+  "fixWikiModeToggle": { "message": "Keep the wiki mode toggle in the toolbar" },
+  "fixWikiModeToggleDescription": { "message": "Move the simple/advanced mode switch from the bottom of long wiki articles into the editor toolbar." },
+  "floatingRichTextToolbar": { "message": "Show a floating formatting toolbar for selected text" },
+  "floatingRichTextToolbarDescription": { "message": "Open basic formatting controls next to selected text in Haiilo's rich text editor." },
   "autoExpandDescription": { "message": "Haiilo's left sidebar shows a limited number of Workspaces and Pages before hiding the rest behind a \"Show more\" button. Enable this to auto-click that button on page load so all entries are visible at once." },
   "autoExpand": { "message": "Auto-expand sidebar lists on page load" },
   "whichLists": { "message": "Which lists to expand:" },
@@ -230,5 +249,11 @@
   "themeSystem": {"message":"System (follow browser)"},
   "themeLight": {"message":"Light"},
   "themeDark": {"message":"Dark"},
-  "themeHelp": {"message":"Default follows your browser's light/dark setting."}
+  "themeHelp": {"message":"Default follows your browser's light/dark setting."},
+  "dataLocalFirstIntro": {
+    "message": "All of your data stays on this device. Settings, muted users, and custom domains are stored only in your browser's local extension storage — nothing is collected or sent to any server. The only way data can leave your device is browser sync, which you can opt into below."
+  },
+  "privacyPolicy": {
+    "message": "Privacy Policy"
+  }
 }

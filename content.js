@@ -95,6 +95,7 @@
   let isTyping = false;
   let messengerOverlayObserver = null;
   let keepMessengerExpandedActive = false;
+  let centerContentWithMessengerActive = false;
   let messengerReopenObserver = null;
   let bodyStyleObserver = null;
   let classObserver = null;
@@ -105,6 +106,18 @@
   let autoExpandMountObserver = null;
   let calendarActionObserver = null;
   let messengerReopenPending = false;
+  let mentionFormattingFixEnabled = true;
+  let mentionPopupFixEnabled = true;
+  let mentionFixStyleElement = null;
+  const mentionFormattingShadowStyles = new Map();
+  let mobileWikiBreadcrumbFixEnabled = false;
+  let mobileWikiBreadcrumbStyleElement = null;
+  let wikiModeToggleFixEnabled = false;
+  let floatingRichTextToolbarEnabled = true;
+  let floatingFormatToolbar = null;
+  let floatingFormatSelection = null;
+  let floatingFormatEditor = null;
+  let floatingFormatListenersBound = false;
 
   // Reaction enhancements
   let sortReactionsByCount = true;
@@ -145,6 +158,31 @@
         }
       `;
   }
+
+  function getMessengerContentPositionCSS(widthPercent, centeredInRemainingSpace) {
+    if (!centeredInRemainingSpace) return '';
+
+    const clampedPercent = clampMessengerPanelWidthPercent(widthPercent);
+    const scale = clampedPercent / 100;
+    const scaledWidthPercent = HAIILO_DEFAULT_MESSENGER_WIDTH_PERCENT * scale;
+    const scaledMaxWidthPx = HAIILO_DEFAULT_MESSENGER_MAX_WIDTH_PX * scale;
+
+    // Resize the main layout to the space left beside the open panel. Haiilo
+    // keeps an 88px messenger rail in the normal layout, so the main content
+    // naturally re-centers when its container is reduced. The main navigation
+    // needs the same horizontal correction because Haiilo positions it
+    // independently of the flex container.
+    return `
+        section.container-wrapper > section.container-main {
+          flex: 0 0 calc(100% - min(${scaledWidthPercent}vw, ${scaledMaxWidthPx}px)) !important;
+          width: calc(100% - min(${scaledWidthPercent}vw, ${scaledMaxWidthPx}px)) !important;
+        }
+
+        section.container-wrapper > section.container-main coyo-main-navbar nav.main-navigation {
+          transform: translateX(calc(44px - min(${scaledWidthPercent / 2}vw, ${scaledMaxWidthPx / 2}px))) !important;
+        }
+      `;
+  }
   // Per-button state. Track whether each show-more button has been
   // processed in this page load, keyed by its data-test value
   // ('show-more-workspace' or 'show-more-page'). Each button is
@@ -174,6 +212,372 @@
     if (debugMode) {
       console.log(...args);
     }
+  }
+
+  // Normalize Haiilo's mention trigger so editor whitespace does not create
+  // a large blank line around an otherwise inline mention.
+  function applyMentionFixStyles() {
+    if (!document.head) return;
+
+    if (!mentionFixStyleElement) {
+      mentionFixStyleElement = document.createElement('style');
+      mentionFixStyleElement.id = 'haiilo-enhancer-mention-style';
+      document.head.appendChild(mentionFixStyleElement);
+    }
+
+    mentionFixStyleElement.textContent = [
+      extensionEnabled && mentionFormattingFixEnabled
+        ? `
+          .mention-peek-default > cat-dropdown > cat-button {
+            display: contents !important;
+            vertical-align: baseline !important;
+          }
+        `
+        : '',
+      extensionEnabled && mentionPopupFixEnabled
+        ? `
+          .mention-peek-default {
+            white-space: normal !important;
+          }
+        `
+        : ''
+    ].join('\n');
+
+    if (!extensionEnabled || !mentionFormattingFixEnabled) {
+      mentionFormattingShadowStyles.forEach(style => style.remove());
+      mentionFormattingShadowStyles.clear();
+      return;
+    }
+
+    const mentionButtons = document.querySelectorAll('.mention-peek-default > cat-dropdown > cat-button');
+    mentionButtons.forEach(button => {
+      const shadowRoot = button.shadowRoot;
+      if (!shadowRoot || mentionFormattingShadowStyles.has(shadowRoot)) return;
+
+      const style = document.createElement('style');
+      style.textContent = `
+        .cat-button-content,
+        .cat-button-content-inner {
+          display: inline !important;
+          white-space: normal !important;
+        }
+        ::slotted(div) {
+          display: inline !important;
+          white-space: normal !important;
+        }
+        button {
+          height: auto !important;
+          min-height: 0 !important;
+          padding: 0 !important;
+          line-height: 1.2 !important;
+        }
+      `;
+      shadowRoot.appendChild(style);
+      mentionFormattingShadowStyles.set(shadowRoot, style);
+    });
+  }
+
+  function applyMobileWikiBreadcrumbFixStyles() {
+    if (!document.head) return;
+
+    if (!mobileWikiBreadcrumbStyleElement) {
+      mobileWikiBreadcrumbStyleElement = document.createElement('style');
+      mobileWikiBreadcrumbStyleElement.id = 'haiilo-enhancer-mobile-wiki-breadcrumb-style';
+      document.head.appendChild(mobileWikiBreadcrumbStyleElement);
+    }
+
+    mobileWikiBreadcrumbStyleElement.textContent = extensionEnabled && mobileWikiBreadcrumbFixEnabled
+      ? `
+        @media (max-width: 700px) {
+          cat-card:has(> div > nav.breadcrumbs) {
+            flex-wrap: wrap !important;
+          }
+
+          cat-card:has(> div > nav.breadcrumbs) > div:has(> nav.breadcrumbs) {
+            min-width: 0 !important;
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+          }
+
+          cat-card:has(> div > nav.breadcrumbs) > div.edit-actions {
+            flex: 0 0 100% !important;
+            justify-content: flex-end !important;
+          }
+
+          nav.breadcrumbs {
+            display: grid !important;
+            grid-template-columns: max-content 20px max-content 20px max-content !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+            overflow-x: auto !important;
+          }
+
+          nav.breadcrumbs > cat-button[data-test="parent-wiki-article-btn"] {
+            min-width: max-content !important;
+          }
+
+          nav.breadcrumbs > cat-button[data-test="parent-wiki-article-btn"]::part(button) {
+            width: max-content !important;
+            min-width: 40px !important;
+          }
+        }
+      `
+      : '';
+  }
+
+  function setupAdvancedModeToolbarButton() {
+    if (!extensionEnabled || !wikiModeToggleFixEnabled) {
+      document.querySelectorAll('.haiilo-enhancer-mode-toggle').forEach(button => button.remove());
+      document.querySelectorAll('.haiilo-enhancer-mode-toggle-source').forEach(button => {
+        button.classList.remove('haiilo-enhancer-mode-toggle-source');
+      });
+      return;
+    }
+
+    const sourceButton = document.querySelector('[data-test="wiki-article-advanced-mode-toggle"]');
+    const toolbar = sourceButton && sourceButton.closest('coyo-wiki-edit-v2')?.querySelector('.fr-toolbar');
+    if (!sourceButton || !toolbar) {
+      document.querySelectorAll('.haiilo-enhancer-mode-toggle').forEach(button => button.remove());
+      return;
+    }
+
+    const targetGroup = toolbar.querySelector('.fr-btn-grp.fr-float-right');
+    if (!targetGroup) return;
+    targetGroup.classList.add('haiilo-enhancer-mode-toggle-group');
+
+    let toolbarButton = targetGroup.querySelector('.haiilo-enhancer-mode-toggle');
+    if (!toolbarButton) {
+      toolbarButton = document.createElement('button');
+      toolbarButton.type = 'button';
+      toolbarButton.className = 'fr-btn haiilo-enhancer-mode-toggle';
+      toolbarButton.innerHTML = `
+      <svg class="fr-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M7 5h10.17l-2.58-2.59L16 1l5 5-5 5-1.41-1.41L17.17 7H7V5Zm10 14H6.83l2.58 2.59L8 23l-5-5 5-5 1.41 1.41L6.83 17H17v2Z"/>
+        </svg>
+      `;
+      targetGroup.insertBefore(toolbarButton, targetGroup.firstChild);
+      toolbarButton.addEventListener('click', () => {
+        if (isExtensionContextValid()) {
+          document.querySelector('[data-test="wiki-article-advanced-mode-toggle"]')?.click();
+        }
+      });
+    }
+
+    const label = sourceButton.getAttribute('aria-label') || sourceButton.textContent.trim();
+    toolbarButton.setAttribute('aria-label', label);
+    toolbarButton.title = label;
+    sourceButton.classList.add('haiilo-enhancer-mode-toggle-source');
+  }
+
+  function getSelectedRichTextEditor() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return null;
+
+    const range = selection.getRangeAt(0);
+    let node = range.commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const editor = node?.closest?.('.fr-element[contenteditable="true"]');
+    if (!editor || !editor.isConnected || !editor.contains(range.startContainer) || !editor.contains(range.endContainer)) {
+      return null;
+    }
+    return { editor, range };
+  }
+
+  function saveFloatingFormatSelection() {
+    const selected = getSelectedRichTextEditor();
+    if (!selected) return false;
+    floatingFormatEditor = selected.editor;
+    floatingFormatSelection = selected.range.cloneRange();
+    return true;
+  }
+
+  function restoreFloatingFormatSelection() {
+    if (!floatingFormatSelection || !floatingFormatEditor?.isConnected) return false;
+    try {
+      const selection = window.getSelection();
+      floatingFormatEditor.focus({ preventScroll: true });
+      selection.removeAllRanges();
+      selection.addRange(floatingFormatSelection);
+      return true;
+    } catch (error) {
+      debugLog('[Content] Could not restore floating toolbar selection:', error);
+      return false;
+    }
+  }
+
+  function hideFloatingFormatToolbar() {
+    if (!floatingFormatToolbar) return;
+    floatingFormatToolbar.hidden = true;
+    floatingFormatToolbar.classList.remove('is-below');
+  }
+
+  function positionFloatingFormatToolbar() {
+    if (!floatingFormatToolbar || floatingFormatToolbar.hidden || !floatingFormatSelection) return;
+
+    const rect = floatingFormatSelection.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) {
+      hideFloatingFormatToolbar();
+      return;
+    }
+
+    const gap = 8;
+    const margin = 8;
+    const toolbarWidth = floatingFormatToolbar.offsetWidth;
+    const toolbarHeight = floatingFormatToolbar.offsetHeight;
+    const left = Math.max(margin, Math.min(
+      window.innerWidth - toolbarWidth - margin,
+      rect.left + (rect.width / 2) - (toolbarWidth / 2)
+    ));
+    const hasRoomAbove = rect.top >= toolbarHeight + gap + margin;
+    const top = hasRoomAbove
+      ? rect.top - toolbarHeight - gap
+      : Math.min(window.innerHeight - toolbarHeight - margin, rect.bottom + gap);
+
+    floatingFormatToolbar.classList.toggle('is-below', !hasRoomAbove);
+    floatingFormatToolbar.style.left = `${left}px`;
+    floatingFormatToolbar.style.top = `${Math.max(margin, top)}px`;
+  }
+
+  function updateFloatingFormatToolbar() {
+    if (!floatingRichTextToolbarEnabled || !extensionEnabled) {
+      hideFloatingFormatToolbar();
+      return;
+    }
+
+    const selected = getSelectedRichTextEditor();
+    if (!selected) {
+      hideFloatingFormatToolbar();
+      return;
+    }
+
+    floatingFormatEditor = selected.editor;
+    floatingFormatSelection = selected.range.cloneRange();
+    if (!floatingFormatToolbar) createFloatingFormatToolbar();
+    if (!floatingFormatToolbar) return;
+
+    floatingFormatToolbar.hidden = false;
+    floatingFormatToolbar.style.visibility = 'hidden';
+    positionFloatingFormatToolbar();
+    floatingFormatToolbar.style.visibility = 'visible';
+
+    floatingFormatToolbar.querySelectorAll('button[data-cmd]').forEach(button => {
+      const nativeButton = findNativeFormatButton(button.dataset.cmd, floatingFormatEditor);
+      let isPressed = nativeButton?.getAttribute('aria-pressed') === 'true';
+      if (!isPressed && ['bold', 'italic', 'underline', 'strikeThrough'].includes(button.dataset.cmd)) {
+        try {
+          isPressed = document.queryCommandState(button.dataset.cmd);
+        } catch (error) {
+          debugLog('[Content] Could not read formatting state:', error);
+        }
+      }
+      button.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+    });
+  }
+
+  function findNativeFormatButton(command, editor) {
+    const toolbar = editor?.closest('coyo-wiki-edit-v2')?.querySelector('.fr-toolbar');
+    return toolbar?.querySelector(`button[data-cmd="${command}"]`) ||
+      document.querySelector(`.fr-toolbar button[data-cmd="${command}"]`);
+  }
+
+  function createFloatingFormatToolbar() {
+    if (floatingFormatToolbar || !document.body) return;
+
+    const commands = [
+      ['bold', 'italic', 'underline', 'strikeThrough'],
+      ['formatUL', 'formatOL'],
+      ['clearFormatting']
+    ];
+    const toolbar = document.createElement('div');
+    toolbar.className = 'haiilo-enhancer-floating-format-toolbar';
+    toolbar.hidden = true;
+    toolbar.setAttribute('role', 'toolbar');
+    toolbar.setAttribute('aria-label', t('floatingRichTextToolbar'));
+
+    commands.forEach((group, groupIndex) => {
+      if (groupIndex > 0) {
+        const divider = document.createElement('span');
+        divider.className = 'haiilo-enhancer-floating-format-divider';
+        divider.setAttribute('aria-hidden', 'true');
+        toolbar.appendChild(divider);
+      }
+
+      group.forEach(command => {
+        const nativeButton = findNativeFormatButton(command, floatingFormatEditor);
+        if (!nativeButton) return;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'haiilo-enhancer-floating-format-button';
+        button.dataset.cmd = command;
+        button.setAttribute('aria-label', nativeButton.getAttribute('aria-label') || nativeButton.textContent.trim());
+        button.setAttribute('aria-pressed', 'false');
+        button.title = nativeButton.getAttribute('data-title') || nativeButton.textContent.trim();
+        button.innerHTML = nativeButton.innerHTML;
+
+        button.addEventListener('mousedown', event => {
+          event.preventDefault();
+          if (!floatingFormatSelection) saveFloatingFormatSelection();
+        });
+        button.addEventListener('click', () => {
+          if (!restoreFloatingFormatSelection()) return;
+          const commandMap = {
+            formatUL: 'insertUnorderedList',
+            formatOL: 'insertOrderedList',
+            clearFormatting: 'removeFormat'
+          };
+          const nativeCommand = commandMap[command] || command;
+          let applied = false;
+          try {
+            applied = document.execCommand(nativeCommand, false, null);
+          } catch (error) {
+            debugLog('[Content] Direct formatting command failed:', command, error);
+          }
+
+          if (!applied) {
+            const target = findNativeFormatButton(command, floatingFormatEditor);
+            if (!target) return;
+            target.click();
+          }
+          saveFloatingFormatSelection();
+          updateFloatingFormatToolbar();
+        });
+        toolbar.appendChild(button);
+      });
+    });
+
+    document.body.appendChild(toolbar);
+    floatingFormatToolbar = toolbar;
+  }
+
+  function removeFloatingFormatToolbar() {
+    floatingFormatToolbar?.remove();
+    floatingFormatToolbar = null;
+    floatingFormatSelection = null;
+    floatingFormatEditor = null;
+  }
+
+  function setupFloatingFormatToolbar() {
+    if (!extensionEnabled || !floatingRichTextToolbarEnabled) {
+      removeFloatingFormatToolbar();
+      return;
+    }
+    if (floatingFormatToolbar && !floatingFormatToolbar.querySelector('button[data-cmd]')) {
+      removeFloatingFormatToolbar();
+    }
+    createFloatingFormatToolbar();
+    if (floatingFormatListenersBound) return;
+    floatingFormatListenersBound = true;
+
+    document.addEventListener('selectionchange', updateFloatingFormatToolbar);
+    document.addEventListener('mouseup', () => setTimeout(updateFloatingFormatToolbar, 0));
+    document.addEventListener('keyup', () => setTimeout(updateFloatingFormatToolbar, 0));
+    window.addEventListener('scroll', positionFloatingFormatToolbar, true);
+    window.addEventListener('resize', positionFloatingFormatToolbar);
   }
 
   // Function to remove Haiilo's body locking styles
@@ -273,9 +677,21 @@
   }
 
   // Function to apply CSS for keeping messenger expanded
-  function applyMessengerExpandedCSS(expanded, messengerPanelWidthPercent = MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT) {
+  function applyMessengerExpandedCSS(
+    expanded,
+    messengerPanelWidthPercent = MESSENGER_PANEL_WIDTH_DEFAULT_PERCENT,
+    centerContentWithMessenger = false
+  ) {
     const clampedWidthPercent = clampMessengerPanelWidthPercent(messengerPanelWidthPercent);
-    debugLog('[Content] applyMessengerExpandedCSS called with expanded =', expanded, 'messengerPanelWidthPercent =', clampedWidthPercent);
+    centerContentWithMessengerActive = expanded && centerContentWithMessenger === true;
+    debugLog(
+      '[Content] applyMessengerExpandedCSS called with expanded =',
+      expanded,
+      'messengerPanelWidthPercent =',
+      clampedWidthPercent,
+      'centerContentWithMessenger =',
+      centerContentWithMessengerActive
+    );
     let styleElement = document.getElementById('haiilo-enhancer-messenger-style');
 
     keepMessengerExpandedActive = expanded;
@@ -289,6 +705,10 @@
       }
 
       const messengerPanelWidthCSS = getMessengerPanelWidthCSS(clampedWidthPercent);
+      const messengerContentPositionCSS = getMessengerContentPositionCSS(
+        clampedWidthPercent,
+        centerContentWithMessengerActive
+      );
 
       // Add CSS to ensure page remains interactive
       // CRITICAL: Hide Angular backdrops via CSS (per CLAUDE.md lines 84-91)
@@ -314,7 +734,7 @@
         }
       `;
 
-      styleElement.textContent = messengerCSS + messengerPanelWidthCSS;
+      styleElement.textContent = messengerCSS + messengerPanelWidthCSS + messengerContentPositionCSS;
       debugLog('[Content] Applied messenger CSS with backdrop removal, width scaling, and interactivity fixes');
 
       // Remove any existing body lock styles
@@ -414,6 +834,7 @@
         styleElement.remove();
         debugLog('[Content] Removed messenger expanded CSS');
       }
+      centerContentWithMessengerActive = false;
 
       // No click listeners to remove — the re-open observer handles everything.
 
@@ -1774,8 +2195,15 @@
                 return;
               }
               const widthPercent = clampMessengerPanelWidthPercent(message.messengerPanelWidthPercent);
-              debugLog('Content script received toggleMessengerExpanded:', message.expanded, 'messengerPanelWidthPercent:', widthPercent);
-              applyMessengerExpandedCSS(message.expanded, widthPercent);
+              debugLog(
+                'Content script received toggleMessengerExpanded:',
+                message.expanded,
+                'messengerPanelWidthPercent:',
+                widthPercent,
+                'centerContentWithMessenger:',
+                message.centerContentWithMessenger
+              );
+              applyMessengerExpandedCSS(message.expanded, widthPercent, message.centerContentWithMessenger);
               debugLog('Applied messenger expanded CSS for:', message.expanded, 'with width percent:', widthPercent);
               sendResponse({ success: true });
             }
@@ -1795,6 +2223,8 @@
                   return;
                 }
 
+                setupAdvancedModeToolbarButton();
+                setupFloatingFormatToolbar();
                 autoExpandProcessed.clear();
                 autoExpandShowMoreLists();
                 if (!autoExpandMountObserver) {
@@ -1848,7 +2278,10 @@
 
       await loadMutedUsers();
       await loadCustomHomepage();
+      applyMentionFixStyles();
       setupMutationObserver();
+      setupAdvancedModeToolbarButton();
+      setupFloatingFormatToolbar();
       setupTypingPauseListener();
       setupRightClickListener();
       setupLogoClickInterceptor();
@@ -1928,12 +2361,25 @@
           sortReactionsByCount = settings.sortReactionsByCount !== false;
           showReactionCountTooltip = settings.showReactionCountTooltip === true;
           showReactionCountInline = settings.showReactionCountInline === true;
+          mentionFormattingFixEnabled = settings.fixMentionFormatting !== false;
+          mentionPopupFixEnabled = settings.fixMentionPopup !== false;
+          mobileWikiBreadcrumbFixEnabled = settings.fixMobileWikiBreadcrumbs === true;
+          wikiModeToggleFixEnabled = settings.fixWikiModeToggle === true;
+          floatingRichTextToolbarEnabled = settings.floatingRichTextToolbar !== false;
+          applyMentionFixStyles();
+          applyMobileWikiBreadcrumbFixStyles();
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
+          const centerContentWithMessenger = settings.centerContentWithMessenger === true;
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
+          debugLog('[Content] centerContentWithMessenger setting:', centerContentWithMessenger);
           if (extensionEnabled) {
             debugLog('[Content] Applying messenger expansion setting:', settings.keepMessengerExpanded);
-            applyMessengerExpandedCSS(settings.keepMessengerExpanded === true, messengerPanelWidthPercent);
+            applyMessengerExpandedCSS(
+              settings.keepMessengerExpanded === true,
+              messengerPanelWidthPercent,
+              centerContentWithMessenger
+            );
           }
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
@@ -1963,6 +2409,13 @@
           sortReactionsByCount = true;
           showReactionCountTooltip = true;
           showReactionCountInline = false;
+          mentionFormattingFixEnabled = true;
+          mentionPopupFixEnabled = true;
+          mobileWikiBreadcrumbFixEnabled = false;
+          wikiModeToggleFixEnabled = false;
+          floatingRichTextToolbarEnabled = true;
+          applyMentionFixStyles();
+          applyMobileWikiBreadcrumbFixStyles();
         }
       } else {
         debugLog('Cannot load settings: extension context invalid');
@@ -1986,6 +2439,12 @@
         sortReactionsByCount = true;
         showReactionCountTooltip = true;
         showReactionCountInline = false;
+        mentionFormattingFixEnabled = true;
+        mentionPopupFixEnabled = true;
+        mobileWikiBreadcrumbFixEnabled = false;
+        wikiModeToggleFixEnabled = false;
+        floatingRichTextToolbarEnabled = true;
+        applyMentionFixStyles();
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -2008,6 +2467,13 @@
       sortReactionsByCount = true;
       showReactionCountTooltip = true;
       showReactionCountInline = false;
+      mentionFormattingFixEnabled = true;
+      mentionPopupFixEnabled = true;
+      mobileWikiBreadcrumbFixEnabled = false;
+      wikiModeToggleFixEnabled = false;
+      floatingRichTextToolbarEnabled = true;
+      applyMentionFixStyles();
+      applyMobileWikiBreadcrumbFixStyles();
     }
   }
 
@@ -2070,6 +2536,9 @@
           // Wrap in context check to prevent errors when extension context is invalid
           if (isExtensionContextValid()) {
             debugLog('Mutation detected, re-filtering content');
+            applyMentionFixStyles();
+            setupAdvancedModeToolbarButton();
+            setupFloatingFormatToolbar();
             hideContent();
             replaceChannelAvatars(); // Also check for new channel avatars
             replaceHeaderAvatars(); // Also check for new header avatars

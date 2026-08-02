@@ -293,6 +293,12 @@
   "interface": {
     "message": "Interfejs"
   },
+  "appearance": {
+    "message": "Wygląd i układ"
+  },
+  "enhancements": {
+    "message": "Ulepszenia"
+  },
   "behavior": {
     "message": "Zachowanie"
   },
@@ -322,6 +328,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Pozostaw panel komunikatora rozwinięty"
+  },
+  "centerContentWithMessenger": {
+    "message": "Wyśrodkuj zawartość strony w pozostałej przestrzeni"
   },
   "messengerPanelWidth": {
     "message": "Szerokość panelu komunikatora"
@@ -460,6 +469,54 @@
   },
   "reactionInline": {
     "message": "Pokazuj liczbę reakcji obok emoji"
+  },
+  "mentionFixes": {
+    "message": "Naprawy wzmianek"
+  },
+  "mentionFixesDescription": {
+    "message": "Obejścia dwóch problemów Haiilo z wyświetlaniem wzmianek członków."
+  },
+  "fixMentionFormatting": {
+    "message": "Napraw formatowanie wzmianek"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Zapobiega powstawaniu dużego pustego wiersza po wspomnieniu członka w treści sformatowanej."
+  },
+  "fixMentionPopup": {
+    "message": "Napraw wyskakujące okno profilu wzmianki"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Zapobiega rozwijaniu się okna profilu do dużego, w większości pustego panelu."
+  },
+  "mobileFixes": {
+    "message": "Poprawki mobilne"
+  },
+  "mobileFixesDescription": {
+    "message": "Opcjonalne obejścia problemów Haiilo, które dotyczą głównie układów mobilnych."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Napraw okruszki wiki na urządzeniach mobilnych"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "Zachowuje czytelność i klikalność okruszków wiki na wąskich ekranach mobilnych. Przeznaczone dla mobilnego Firefoksa i zgodnych przeglądarek."
+  },
+  "editorFixes": {
+    "message": "Ulepszenia edytora"
+  },
+  "editorFixesDescription": {
+    "message": "Opcjonalne ulepszenia i obejścia problemów edytora Haiilo."
+  },
+  "fixWikiModeToggle": {
+    "message": "Zachowaj przełącznik trybu wiki na pasku narzędzi"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Przenosi przełącznik trybu prostego/zaawansowanego z końca długich artykułów wiki do paska narzędzi edytora."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Pokaż pływający pasek formatowania zaznaczonego tekstu"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Otwórz podstawowe opcje formatowania obok zaznaczonego tekstu w edytorze tekstu sformatowanego Haiilo."
   },
   "autoExpandDescription": {
     "message": "Lewy pasek boczny Haiilo pokazuje ograniczoną liczbę obszarów roboczych i stron, a resztę ukrywa za przyciskiem „Pokaż więcej”. Włącz tę funkcję, aby automatycznie kliknąć przycisk po załadowaniu strony i od razu wyświetlić wszystkie wpisy."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"System (zgodnie z przegl\u0105dark\u0105)"},
   "themeLight": {"message":"Jasny"},
   "themeDark": {"message":"Ciemny"},
-  "themeHelp": {"message":"Domy\u015blnie pod\u0105\u017ca za jasnym/ciemnym ustawieniem przegl\u0105darki."}
+  "themeHelp": {"message":"Domy\u015blnie pod\u0105\u017ca za jasnym/ciemnym ustawieniem przegl\u0105darki."},
+  "dataLocalFirstIntro": {
+    "message": "Wszystkie Twoje dane pozostają na tym urządzeniu. Ustawienia, wyciszeni użytkownicy i niestandardowe domeny są przechowywane wyłącznie w lokalnej pamięci rozszerzenia w Twojej przeglądarce — nic nie jest zbierane ani wysyłane na żaden serwer. Jedynym sposobem, aby dane opuściły Twoje urządzenie, jest synchronizacja przeglądarki, którą możesz włączyć poniżej."
+  },
+  "privacyPolicy": {
+    "message": "Politykę prywatności"
+  }
 }

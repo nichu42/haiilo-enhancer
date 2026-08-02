@@ -197,6 +197,12 @@
   "interface": {
     "message": "Oberfläche"
   },
+  "appearance": {
+    "message": "Erscheinungsbild & Layout"
+  },
+  "enhancements": {
+    "message": "Erweiterungen"
+  },
   "behavior": {
     "message": "Verhalten"
   },
@@ -226,6 +232,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Messenger-Bereich geöffnet halten"
+  },
+  "centerContentWithMessenger": {
+    "message": "Seiteninhalt im verbleibenden Bereich zentrieren"
   },
   "messengerPanelWidth": {
     "message": "Breite des Messenger-Bereichs"
@@ -364,6 +373,54 @@
   },
   "reactionInline": {
     "message": "Reaktionsanzahlen neben den Emojis anzeigen"
+  },
+  "mentionFixes": {
+    "message": "Reparaturen für Erwähnungen"
+  },
+  "mentionFixesDescription": {
+    "message": "Umgeht zwei Haiilo-Darstellungsfehler bei Mitglieder-Erwähnungen."
+  },
+  "fixMentionFormatting": {
+    "message": "Formatierung von Erwähnungen reparieren"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Verhindert eine übergroße Leerzeile, wenn ein Mitglied in Rich Content erwähnt wird."
+  },
+  "fixMentionPopup": {
+    "message": "Profil-Popup von Erwähnungen reparieren"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Verhindert, dass sich das Profil-Popup zu einem großen, größtenteils leeren Bereich ausdehnt."
+  },
+  "mobileFixes": {
+    "message": "Mobile Reparaturen"
+  },
+  "mobileFixesDescription": {
+    "message": "Optionale Umgehungen für Haiilo-Probleme, die hauptsächlich mobile Layouts betreffen."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Mobile Wiki-Breadcrumbs reparieren"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "Hält Wiki-Breadcrumbs auf schmalen mobilen Bildschirmen lesbar und anklickbar. Für mobiles Firefox und kompatible Browser."
+  },
+  "editorFixes": {
+    "message": "Editor-Erweiterungen"
+  },
+  "editorFixesDescription": {
+    "message": "Optionale Erweiterungen und Umgehungen für den Haiilo-Editor."
+  },
+  "fixWikiModeToggle": {
+    "message": "Wiki-Modus-Umschalter in der Werkzeugleiste behalten"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Verschiebt den Umschalter zwischen einfachem und erweitertem Modus vom Ende langer Wiki-Artikel in die Editor-Werkzeugleiste."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Schwebende Formatierungsleiste für markierten Text anzeigen"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Grundlegende Formatierungsoptionen neben markiertem Text im Haiilo-Rich-Text-Editor öffnen."
   },
   "autoExpandDescription": {
     "message": "Die linke Seitenleiste von Haiilo zeigt nur eine begrenzte Anzahl an Arbeitsbereichen und Seiten, bevor der Rest hinter einer Schaltfläche „Mehr anzeigen“ verborgen wird. Aktiviere diese Option, um die Schaltfläche beim Laden der Seite automatisch anzuklicken und alle Einträge sofort anzuzeigen."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"System (Browser folgen)"},
   "themeLight": {"message":"Hell"},
   "themeDark": {"message":"Dunkel"},
-  "themeHelp": {"message":"Folgt standardm\u00e4\u00dfig der Hell-/Dunkeleinstellung deines Browsers."}
+  "themeHelp": {"message":"Folgt standardm\u00e4\u00dfig der Hell-/Dunkeleinstellung deines Browsers."},
+  "dataLocalFirstIntro": {
+    "message": "Alle deine Daten bleiben auf diesem Gerät. Einstellungen, stummgeschaltete Benutzer und benutzerdefinierte Domains werden nur im lokalen Erweiterungsspeicher deines Browsers gespeichert — es wird nichts gesammelt oder an einen Server gesendet. Der einzige Weg, auf dem Daten dein Gerät verlassen können, ist die Browser-Synchronisierung, die du unten aktivieren kannst."
+  },
+  "privacyPolicy": {
+    "message": "Datenschutzerklärung"
+  }
 }

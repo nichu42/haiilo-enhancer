@@ -37,7 +37,10 @@ function Build-Chrome {
         "options.js",
         "colors.css",
         "i18n.js",
-        "shared.js"
+        "shared.js",
+        "legal.js",
+        "LICENSE",
+        "PRIVACY.md"
     )
 
     foreach ($file in $files) {
@@ -74,6 +77,7 @@ function Build-Firefox {
 
     $files = @(
         "LICENSE",
+        "PRIVACY.md",
         "background.js",
         "content.js",
         "content.css",
@@ -85,7 +89,8 @@ function Build-Firefox {
         "options.js",
         "colors.css",
         "i18n.js",
-        "shared.js"
+        "shared.js",
+        "legal.js"
     )
 
     foreach ($file in $files) {

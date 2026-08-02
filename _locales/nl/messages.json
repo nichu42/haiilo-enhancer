@@ -197,6 +197,12 @@
   "interface": {
     "message": "Interface"
   },
+  "appearance": {
+    "message": "Uiterlijk en indeling"
+  },
+  "enhancements": {
+    "message": "Verbeteringen"
+  },
   "behavior": {
     "message": "Gedrag"
   },
@@ -226,6 +232,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Messengerpaneel open houden"
+  },
+  "centerContentWithMessenger": {
+    "message": "Pagina-inhoud centreren in de resterende ruimte"
   },
   "messengerPanelWidth": {
     "message": "Breedte van het messengerpaneel"
@@ -364,6 +373,54 @@
   },
   "reactionInline": {
     "message": "Reactieaantallen naast de emoji’s tonen"
+  },
+  "mentionFixes": {
+    "message": "Herstelopties voor vermeldingen"
+  },
+  "mentionFixesDescription": {
+    "message": "Omzeilt twee Haiilo-weergaveproblemen met vermeldingen van leden."
+  },
+  "fixMentionFormatting": {
+    "message": "Opmaak van vermeldingen herstellen"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Voorkomt een te grote lege regel wanneer een lid in rijke inhoud wordt vermeld."
+  },
+  "fixMentionPopup": {
+    "message": "Profielpop-up van vermeldingen herstellen"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Voorkomt dat de profielpop-up uitgroeit tot een groot, grotendeels leeg paneel."
+  },
+  "mobileFixes": {
+    "message": "Mobiele oplossingen"
+  },
+  "mobileFixesDescription": {
+    "message": "Optionele oplossingen voor Haiilo-problemen die vooral mobiele lay-outs raken."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Mobiele wiki-breadcrumbs herstellen"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "Houdt wiki-breadcrumbs leesbaar en klikbaar op smalle mobiele schermen. Bedoeld voor mobiele Firefox en compatibele browsers."
+  },
+  "editorFixes": {
+    "message": "Editorverbeteringen"
+  },
+  "editorFixesDescription": {
+    "message": "Optionele verbeteringen en oplossingen voor de Haiilo-editor."
+  },
+  "fixWikiModeToggle": {
+    "message": "De wiki-modusschakelaar in de werkbalk houden"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Verplaatst de schakelaar voor de eenvoudige/geavanceerde modus van het einde van lange wiki-artikelen naar de werkbalk van de editor."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Een zwevende opmaakbalk voor geselecteerde tekst tonen"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Open basisopmaakopties naast geselecteerde tekst in Haiilo's rich-texteditor."
   },
   "autoExpandDescription": {
     "message": "De linkerzijbalk van Haiilo toont een beperkt aantal werkruimten en pagina’s voordat de rest achter een knop „Meer weergeven” wordt verborgen. Schakel dit in om bij het laden van de pagina automatisch op die knop te klikken, zodat alle items meteen zichtbaar zijn."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"Systeem (browser volgen)"},
   "themeLight": {"message":"Licht"},
   "themeDark": {"message":"Donker"},
-  "themeHelp": {"message":"Volgt standaard de licht-/donkerinstelling van de browser."}
+  "themeHelp": {"message":"Volgt standaard de licht-/donkerinstelling van de browser."},
+  "dataLocalFirstIntro": {
+    "message": "Al uw gegevens blijven op dit apparaat. Instellingen, gedempte gebruikers en aangepaste domeinen worden alleen opgeslagen in de lokale opslag van de extensie in uw browser: er wordt niets verzameld of naar een server gestuurd. De enige manier waarop gegevens uw apparaat kunnen verlaten, is browsersynchronisatie, die u hieronder kunt inschakelen."
+  },
+  "privacyPolicy": {
+    "message": "Privacybeleid"
+  }
 }

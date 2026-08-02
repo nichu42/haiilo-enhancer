@@ -293,6 +293,12 @@
   "interface": {
     "message": "Rozhraní"
   },
+  "appearance": {
+    "message": "Vzhled a rozložení"
+  },
+  "enhancements": {
+    "message": "Vylepšení"
+  },
   "behavior": {
     "message": "Chování"
   },
@@ -322,6 +328,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Ponechat panel messengeru rozbalený"
+  },
+  "centerContentWithMessenger": {
+    "message": "Centrovat obsah stránky ve zbývajícím prostoru"
   },
   "messengerPanelWidth": {
     "message": "Šířka panelu messengeru"
@@ -460,6 +469,54 @@
   },
   "reactionInline": {
     "message": "Zobrazit počty reakcí vedle emoji"
+  },
+  "mentionFixes": {
+    "message": "Opravy zmínek"
+  },
+  "mentionFixesDescription": {
+    "message": "Obchází dva problémy Haiilo se zobrazováním zmínek členů."
+  },
+  "fixMentionFormatting": {
+    "message": "Opravit formátování zmínek"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Zabrání příliš velkému prázdnému řádku při zmínce člena v bohatém obsahu."
+  },
+  "fixMentionPopup": {
+    "message": "Opravit vyskakovací okno profilu zmínky"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Zabrání roztažení profilového okna do velkého, převážně prázdného panelu."
+  },
+  "mobileFixes": {
+    "message": "Mobilní opravy"
+  },
+  "mobileFixesDescription": {
+    "message": "Volitelná řešení problémů Haiilo, které se týkají především mobilních rozvržení."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Opravit drobečkovou navigaci mobilní wiki"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "Zachová drobečkovou navigaci wiki čitelnou a kliknutelnou na úzkých mobilních obrazovkách. Určeno pro mobilní Firefox a kompatibilní prohlížeče."
+  },
+  "editorFixes": {
+    "message": "Vylepšení editoru"
+  },
+  "editorFixesDescription": {
+    "message": "Volitelná vylepšení a řešení problémů s editorem Haiilo."
+  },
+  "fixWikiModeToggle": {
+    "message": "Ponechat přepínač režimu wiki v panelu nástrojů"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Přesune přepínač jednoduchého/rozšířeného režimu z konce dlouhých článků wiki do panelu nástrojů editoru."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Zobrazit plovoucí panel formátování pro vybraný text"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Otevřít základní možnosti formátování vedle vybraného textu v editoru formátovaného textu Haiilo."
   },
   "autoExpandDescription": {
     "message": "Levý postranní panel Haiilo zobrazuje omezený počet pracovních prostorů a stránek a zbytek skrývá za tlačítkem „Zobrazit více“. Povolte tuto funkci a tlačítko se po načtení stránky automaticky klikne, aby byly všechny položky ihned viditelné."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"Systém (dle prohlížeče)"},
   "themeLight": {"message":"Světlý"},
   "themeDark": {"message":"Tmavý"},
-  "themeHelp": {"message":"Ve výchozím nastavení se řídí světlým/tmavým režimem prohlížeče."}
+  "themeHelp": {"message":"Ve výchozím nastavení se řídí světlým/tmavým režimem prohlížeče."},
+  "dataLocalFirstIntro": {
+    "message": "Všechna vaše data zůstávají na tomto zařízení. Nastavení, ztlumení uživatelé a vlastní domény se ukládají pouze do lokálního úložiště rozšíření ve vašem prohlížeči — nic se neshromažďuje ani neodesílá na žádný server. Jediný způsob, jakým mohou data opustit vaše zařízení, je synchronizace prohlížeče, kterou můžete povolit níže."
+  },
+  "privacyPolicy": {
+    "message": "Zásady ochrany osobních údajů"
+  }
 }

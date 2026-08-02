@@ -979,3 +979,183 @@ footer .donate-icon {
     border-bottom-color: var(--color-primary-teal);
   }
 }
+
+/* Inline link button used in footers / notes (looks like a normal link) */
+.legal-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  line-height: inherit;
+  color: var(--color-primary-teal);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-medium);
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.legal-link:hover {
+  color: var(--color-primary-teal-dark);
+  text-decoration-color: var(--color-primary-teal);
+}
+
+.legal-link:focus-visible {
+  outline: none;
+  border-radius: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.legal-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: 16px 0 20px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-bg-light);
+  color: var(--color-text-secondary);
+}
+
+.legal-note .legal-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  border: 2px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-bg-lighter);
+  color: var(--color-text-label);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.legal-note .legal-link:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-border-medium);
+  color: var(--color-text-label);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.legal-note .legal-link:focus-visible {
+  border-radius: 6px;
+}
+
+/* Legal document modal (license / privacy policy) */
+.legal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.legal-overlay[hidden] {
+  display: none;
+}
+
+.legal-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  max-height: min(80vh, 560px);
+  background: var(--color-bg-white);
+  color: var(--color-text-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.legal-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-light);
+  flex-shrink: 0;
+}
+
+.legal-dialog-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.legal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.legal-close:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.legal-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.legal-close svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.legal-dialog-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.legal-dialog-body h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.legal-dialog-body h3:first-child {
+  margin-top: 0;
+}
+
+.legal-dialog-body p,
+.legal-dialog-body ul {
+  margin: 0 0 10px;
+  color: var(--color-text-secondary);
+}
+
+.legal-dialog-body ul {
+  padding-left: 20px;
+}
+
+.legal-dialog-body li {
+  margin-bottom: 6px;
+}
+
+.legal-dialog-body li:last-child {
+  margin-bottom: 0;
+}

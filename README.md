@@ -2,25 +2,28 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/nichu42/haiilo-enhancer?sort=semver&label=Latest+Release)](https://github.com/nichu42/haiilo-enhancer/releases) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inaciekpbcbhkboeoopdkoimkmiajfie?logo=google-chrome&logoColor=white&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/haiilo-enhancer/inaciekpbcbhkboeoopdkoimkmiajfie) [![Firefox Add-on](https://img.shields.io/amo/v/haiilo-enhancer?logo=firefox&logoColor=white&label=Firefox%20Add-on)](https://addons.mozilla.org/firefox/addon/haiilo-enhancer/) [![Liberapay Patrons](https://img.shields.io/liberapay/patrons/nichu42.svg?logo=liberapay)](https://liberapay.com/nichu42/donate) [![License](https://img.shields.io/badge/license-AGPL--3.0-red.svg)](LICENSE)
 
-A browser extension for **the full Haiilo experience, enhanced for you** — mute users, expand the sidebar, customize the UI, and more.
+A browser extension for **a calmer, more useful Haiilo experience** — hide unwanted content, improve navigation, and customize the interface.
 
 Haiilo Enhancer adds small, local quality-of-life improvements directly in your browser. It does not send data to external services.
 
 ## ✨ Features
 
-- **🔇 Mute users** — right-click any username to hide their posts and comments, temporarily or permanently. The popup shows a live count and expandable details of hidden items on the current page.
-- **🎨 Customize group chat avatars** — replace generic group icons with channel initials and configurable colors.
-- **📂 Auto-expand sidebar lists** — automatically click Haiilo's "Show more" buttons for Workspaces and Pages on page load.
-- **💬 Messenger controls** — keep the chat panel expanded and adjust its open width.
-- **🕒 Date & time format** — switch from US to European or 24-hour if your Haiilo language is English.
-- **😀 Reaction enhancements** — sort reactions by usage and optionally show reaction-count tooltips or inline counts.
-- **🏠 Custom homepage** — set which page the Haiilo logo opens, per domain.
-- **🛠️ Custom domains** — works on your organization's custom Haiilo URL, not just haiilo.app.
-- **📅 Add to calendar** — adds an "Add to calendar" button to Haiilo events, letting you export to Google Calendar, Outlook.com, Yahoo Calendar, or a standard ICS file.
-- **💾 Import / export / reset** — back up your muted users and all settings to a JSON file.
-- **🌙 Dark mode** — the popup and options pages follow your browser's light/dark setting by default; toggle it on the fly with the sun/moon button in the popup.
-- **🌐 Manual language selection** — choose Browser default, English, German, Czech, Spanish, French, Hungarian, Italian, Dutch, or Polish for the extension UI and Haiilo enhancements.
-- **☁️ Browser sync** — optionally sync your muted users and settings across devices via your browser account (opt-in, up to 50 muted users).
+- 🔇 **Hide unwanted content**  
+  Right-click users to mute their posts and comments temporarily or permanently; the popup shows hidden-item counts and details.
+- 💬 **Make the interface work your way**  
+  Keep the messenger open, resize it, center the page in the remaining space, and automatically expand Workspaces and Pages.
+- 🛠️ **Fix everyday Haiilo friction**  
+  Improve mentions, profile popups, wiki controls, mobile breadcrumbs, and the rich-text toolbar.
+- 🎨 **Improve readability**  
+  Customize group-chat avatars, sort reactions, show reaction counts, and choose date/time formats.
+- 📅 **Export events**  
+  Add calendar actions for Google Calendar, Outlook.com, Yahoo Calendar, and standard ICS files.
+- 🌐 **Fit your organization**  
+  Support custom Haiilo domains and choose a per-domain homepage.
+- 🌙 **Themes and languages**  
+  Use light, dark, or system themes and choose from multiple interface languages.
+- 💾 **Keep control of your data**  
+  Export or import settings and muted users; optionally sync them through your browser account.
 
 ## 🚀 Quick start
 

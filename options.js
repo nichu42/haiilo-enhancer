@@ -38,6 +38,17 @@ function getThemeControlValue() {
   return active ? active.dataset.themeValue : 'system';
 }
 
+function syncMessengerCenterControl() {
+  const keepMessengerExpanded = document.getElementById('keepMessengerExpanded');
+  const centerContent = document.getElementById('centerContentWithMessenger');
+  if (!keepMessengerExpanded || !centerContent) return;
+
+  centerContent.disabled = !keepMessengerExpanded.checked;
+  if (!keepMessengerExpanded.checked) {
+    centerContent.checked = false;
+  }
+}
+
 // Debug logging helper - reads the debugMode flag from settings on each
 // call so live toggles take effect without reload.
 function debugLog(...args) {
@@ -119,9 +130,14 @@ function organizeOptionSections() {
       sectionIds: ['general', 'general-language', 'general-muting', 'general-date-time']
     },
     {
-      title: t('interface'),
-      slug: 'interface',
-      sectionIds: ['interface', 'interface-avatars', 'interface-reactions']
+      title: t('appearance'),
+      slug: 'appearance',
+      sectionIds: ['interface', 'interface-avatars']
+    },
+    {
+      title: t('enhancements'),
+      slug: 'enhancements',
+      sectionIds: ['interface-reactions', 'interface-mentions', 'interface-mobile', 'interface-editor']
     },
     {
       title: t('behavior'),
@@ -244,6 +260,12 @@ async function loadSettings() {
   if (messengerCheckbox) {
     messengerCheckbox.checked = settings.keepMessengerExpanded === true;
   }
+  const centerContentCheckbox = document.getElementById('centerContentWithMessenger');
+  if (centerContentCheckbox) {
+    centerContentCheckbox.checked =
+      settings.keepMessengerExpanded === true && settings.centerContentWithMessenger === true;
+  }
+  syncMessengerCenterControl();
   if (widthSlider) {
     const width = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
     widthSlider.value = width;
@@ -282,6 +304,11 @@ async function loadSettings() {
   document.getElementById('sortReactionsByCount').checked = settings.sortReactionsByCount !== false;
   document.getElementById('showReactionCountTooltip').checked = settings.showReactionCountTooltip === true;
   document.getElementById('showReactionCountInline').checked = settings.showReactionCountInline === true;
+  document.getElementById('fixMentionFormatting').checked = settings.fixMentionFormatting !== false;
+  document.getElementById('fixMentionPopup').checked = settings.fixMentionPopup !== false;
+  document.getElementById('fixMobileWikiBreadcrumbs').checked = settings.fixMobileWikiBreadcrumbs === true;
+  document.getElementById('fixWikiModeToggle').checked = settings.fixWikiModeToggle === true;
+  document.getElementById('floatingRichTextToolbar').checked = settings.floatingRichTextToolbar !== false;
   document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;
@@ -455,7 +482,11 @@ function setupEventListeners() {
   const languageSelect = document.getElementById('language');
   if (languageSelect) languageSelect.addEventListener('change', saveSettings);
   document.getElementById('debugMode').addEventListener('change', saveSettings);
-  document.getElementById('keepMessengerExpanded').addEventListener('change', saveSettings);
+  document.getElementById('keepMessengerExpanded').addEventListener('change', () => {
+    syncMessengerCenterControl();
+    saveSettings();
+  });
+  document.getElementById('centerContentWithMessenger').addEventListener('change', saveSettings);
   const themeGroup = document.getElementById('themeGroup');
   if (themeGroup) {
     themeGroup.addEventListener('click', (e) => {
@@ -558,6 +589,11 @@ function setupEventListeners() {
   document.getElementById('sortReactionsByCount').addEventListener('change', saveSettings);
   document.getElementById('showReactionCountTooltip').addEventListener('change', saveSettings);
   document.getElementById('showReactionCountInline').addEventListener('change', saveSettings);
+  document.getElementById('fixMentionFormatting').addEventListener('change', saveSettings);
+  document.getElementById('fixMentionPopup').addEventListener('change', saveSettings);
+  document.getElementById('fixMobileWikiBreadcrumbs').addEventListener('change', saveSettings);
+  document.getElementById('fixWikiModeToggle').addEventListener('change', saveSettings);
+  document.getElementById('floatingRichTextToolbar').addEventListener('change', saveSettings);
 
   // Cloud sync toggle
   const cloudSyncCheckbox = document.getElementById('cloudSync');
@@ -808,8 +844,16 @@ async function saveSettings() {
     sortReactionsByCount: document.getElementById('sortReactionsByCount').checked,
     showReactionCountTooltip: document.getElementById('showReactionCountTooltip').checked,
     showReactionCountInline: document.getElementById('showReactionCountInline').checked,
+    fixMentionFormatting: document.getElementById('fixMentionFormatting').checked,
+    fixMentionPopup: document.getElementById('fixMentionPopup').checked,
+    fixMobileWikiBreadcrumbs: document.getElementById('fixMobileWikiBreadcrumbs').checked,
+    fixWikiModeToggle: document.getElementById('fixWikiModeToggle').checked,
+    floatingRichTextToolbar: document.getElementById('floatingRichTextToolbar').checked,
     keepMessengerExpanded: document.getElementById('keepMessengerExpanded').checked,
     messengerPanelWidthPercent: clampMessengerPanelWidthPercent(document.getElementById('messengerPanelWidthPercent').value),
+    centerContentWithMessenger:
+      document.getElementById('keepMessengerExpanded').checked &&
+      document.getElementById('centerContentWithMessenger').checked,
     cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false,
     theme: HaiiloShared.resolveThemeMode(getThemeControlValue())
   };
@@ -1114,7 +1158,7 @@ function updatePageDisabledState() {
   const isEnabledCheckbox = document.getElementById('extensionEnabled');
   if (!isEnabledCheckbox) return;
   const isEnabled = isEnabledCheckbox.checked;
-  const sections = document.querySelectorAll('section:not(.extension-toggle-section)');
+  const sections = document.querySelectorAll('section[data-nav-section]:not(.extension-toggle-section)');
   sections.forEach(sec => {
     if (isEnabled) {
       sec.classList.remove('section-disabled');

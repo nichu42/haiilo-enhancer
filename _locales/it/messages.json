@@ -293,6 +293,12 @@
   "interface": {
     "message": "Interfaccia"
   },
+  "appearance": {
+    "message": "Aspetto e layout"
+  },
+  "enhancements": {
+    "message": "Miglioramenti"
+  },
   "behavior": {
     "message": "Comportamento"
   },
@@ -322,6 +328,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Mantieni espanso il pannello del messenger"
+  },
+  "centerContentWithMessenger": {
+    "message": "Centra il contenuto della pagina nello spazio rimanente"
   },
   "messengerPanelWidth": {
     "message": "Larghezza del pannello del messenger"
@@ -460,6 +469,54 @@
   },
   "reactionInline": {
     "message": "Mostra i conteggi delle reazioni accanto alle emoji"
+  },
+  "mentionFixes": {
+    "message": "Correzioni delle menzioni"
+  },
+  "mentionFixesDescription": {
+    "message": "Aggira due problemi di visualizzazione di Haiilo che riguardano le menzioni degli utenti."
+  },
+  "fixMentionFormatting": {
+    "message": "Correggi la formattazione delle menzioni"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Impedisce una riga vuota eccessiva quando si menziona un utente nel contenuto avanzato."
+  },
+  "fixMentionPopup": {
+    "message": "Correggi il popup del profilo nelle menzioni"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Impedisce al popup del profilo di espandersi in un pannello grande e quasi vuoto."
+  },
+  "mobileFixes": {
+    "message": "Correzioni per dispositivi mobili"
+  },
+  "mobileFixesDescription": {
+    "message": "Soluzioni opzionali per problemi di Haiilo che interessano soprattutto i layout mobili."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Correggi i breadcrumb del wiki mobile"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "Mantiene i breadcrumb del wiki leggibili e selezionabili sugli schermi mobili stretti. Pensato per Firefox mobile e browser compatibili."
+  },
+  "editorFixes": {
+    "message": "Miglioramenti dell'editor"
+  },
+  "editorFixesDescription": {
+    "message": "Miglioramenti e soluzioni opzionali per l'editor Haiilo."
+  },
+  "fixWikiModeToggle": {
+    "message": "Mantieni il selettore della modalità wiki nella barra degli strumenti"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Sposta il selettore della modalità semplice/avanzata dal fondo degli articoli wiki lunghi alla barra degli strumenti dell'editor."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Mostra una barra di formattazione mobile per il testo selezionato"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Apri i controlli di formattazione di base accanto al testo selezionato nell'editor di testo avanzato Haiilo."
   },
   "autoExpandDescription": {
     "message": "La barra laterale sinistra di Haiilo mostra un numero limitato di spazi di lavoro e pagine e nasconde il resto dietro un pulsante «Mostra altro». Abilita questa opzione per fare clic automaticamente sul pulsante al caricamento della pagina, così tutte le voci saranno subito visibili."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"Sistema (segui il browser)"},
   "themeLight": {"message":"Chiaro"},
   "themeDark": {"message":"Scuro"},
-  "themeHelp": {"message":"Per impostazione predefinita segue l'impostazione chiara/scura del browser."}
+  "themeHelp": {"message":"Per impostazione predefinita segue l'impostazione chiara/scura del browser."},
+  "dataLocalFirstIntro": {
+    "message": "Tutti i tuoi dati restano su questo dispositivo. Impostazioni, utenti silenziati e domini personalizzati vengono salvati solo nell'archiviazione locale dell'estensione del tuo browser: non viene raccolto né inviato nulla a nessun server. L'unico modo in cui i dati possono lasciare il tuo dispositivo è la sincronizzazione del browser, che puoi attivare qui sotto."
+  },
+  "privacyPolicy": {
+    "message": "Informativa sulla privacy"
+  }
 }

@@ -84,7 +84,11 @@
       <p class="footer-license">
         <span class="copyright" data-i18n="copyright"></span>
       </p>
-      <p class="footer-license" data-i18n="warrantyFull"></p>
+      <p class="footer-license warranty-sentence">
+        <span data-i18n="warranty"></span>
+        <button type="button" class="legal-link" data-legal-doc="license" data-i18n="license"></button>
+        <span data-i18n="forMoreDetails"></span>
+      </p>
       <p class="footer-license">
         <a href="https://github.com/nichu42/haiilo-enhancer/issues" target="_blank" rel="noopener" data-i18n="reportIssue"></a>
       </p>
@@ -107,8 +111,23 @@
     <button type="button" id="undoButton" class="undo-toast-btn" data-i18n="undo"></button>
   </div>
 
+  <div class="legal-overlay" id="legalModal" hidden>
+    <div class="legal-dialog" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle">
+      <div class="legal-dialog-header">
+        <h2 id="legalModalTitle"></h2>
+        <button type="button" class="legal-close" data-legal-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="legal-dialog-body" id="legalModalBody"></div>
+    </div>
+  </div>
+
   <script src="shared.js"></script>
   <script src="i18n.js"></script>
+  <script src="legal.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

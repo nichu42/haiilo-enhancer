@@ -147,6 +147,7 @@ const DEFAULT_SETTINGS = {
   timeFormat: '12h', // '12h' or '24h'
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
   messengerPanelWidthPercent: 100, // Messenger width scale (50-125, 100 = Haiilo default)
+  centerContentWithMessenger: false, // Center page content in the space left beside the messenger
   autoExpandEnabled: false, // Auto-click "Show more" buttons in sidebar lists
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
@@ -155,7 +156,12 @@ const DEFAULT_SETTINGS = {
   theme: 'system', // 'system' (follow browser), 'light', or 'dark'
   sortReactionsByCount: true, // Sort reaction emojis by count (most used first)
   showReactionCountTooltip: true, // Show reaction count breakdown on hover
-  showReactionCountInline: false // Show counts next to reaction emojis
+  showReactionCountInline: false, // Show counts next to reaction emojis
+  fixMentionFormatting: true, // Fix oversized whitespace around inline mentions
+  fixMentionPopup: true, // Fix oversized profile popups opened from rich content
+  fixMobileWikiBreadcrumbs: false, // Fix collapsed wiki breadcrumbs on narrow screens
+  fixWikiModeToggle: false, // Keep the wiki simple/advanced mode toggle in the toolbar
+  floatingRichTextToolbar: true // Show formatting controls next to selected editor text
 };
 
 function normalizeSettings(settings = {}) {
@@ -166,6 +172,9 @@ function normalizeSettings(settings = {}) {
     }
   });
   normalized.messengerPanelWidthPercent = clampMessengerPanelWidthPercent(normalized.messengerPanelWidthPercent);
+  if (normalized.keepMessengerExpanded !== true) {
+    normalized.centerContentWithMessenger = false;
+  }
   normalized.language = ['browser', 'en', 'de', 'cs', 'es', 'fr', 'hu', 'it', 'nl', 'pl'].includes(normalized.language)
     ? normalized.language
     : DEFAULT_SETTINGS.language;
@@ -273,6 +282,7 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'timeFormat',
       'keepMessengerExpanded',
       'messengerPanelWidthPercent',
+      'centerContentWithMessenger',
       'autoExpandEnabled',
       'autoExpandClicksPerList',
       'autoExpandDelayMs',
@@ -281,7 +291,12 @@ browserAPI.runtime.onInstalled.addListener(async () => {
       'theme',
       'sortReactionsByCount',
       'showReactionCountTooltip',
-      'showReactionCountInline'
+      'showReactionCountInline',
+      'fixMentionFormatting',
+      'fixMentionPopup',
+      'fixMobileWikiBreadcrumbs',
+      'fixWikiModeToggle',
+      'floatingRichTextToolbar'
     ]);
 
     if (!data.mutedUsers) {
@@ -349,6 +364,10 @@ browserAPI.webNavigation.onCompleted.addListener(async (details) => {
       await browserAPI.scripting.executeScript({
         target: { tabId: details.tabId },
         files: ['shared.js', 'i18n.js', 'content.js']
+      });
+      await browserAPI.scripting.insertCSS({
+        target: { tabId: details.tabId },
+        files: ['content.css']
       });
       debugLog('Content script injected on navigation to:', details.url);
     } catch (e) {

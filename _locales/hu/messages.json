@@ -293,6 +293,12 @@
   "interface": {
     "message": "Felület"
   },
+  "appearance": {
+    "message": "Megjelenés és elrendezés"
+  },
+  "enhancements": {
+    "message": "Fejlesztések"
+  },
   "behavior": {
     "message": "Viselkedés"
   },
@@ -322,6 +328,9 @@
   },
   "keepMessengerExpanded": {
     "message": "Messenger panel kibontva tartása"
+  },
+  "centerContentWithMessenger": {
+    "message": "Az oldal tartalmának középre igazítása a fennmaradó területen"
   },
   "messengerPanelWidth": {
     "message": "Messenger panel szélessége"
@@ -460,6 +469,54 @@
   },
   "reactionInline": {
     "message": "Reakciószámok megjelenítése az emojik mellett"
+  },
+  "mentionFixes": {
+    "message": "Említések javításai"
+  },
+  "mentionFixesDescription": {
+    "message": "Két, a tagok említését érintő Haiilo-megjelenítési hibát kerül meg."
+  },
+  "fixMentionFormatting": {
+    "message": "Említések formázásának javítása"
+  },
+  "fixMentionFormattingDescription": {
+    "message": "Megakadályozza a túl nagy üres sort, amikor egy tagot formázott tartalomban említenek."
+  },
+  "fixMentionPopup": {
+    "message": "Említések profil-előugró ablakának javítása"
+  },
+  "fixMentionPopupDescription": {
+    "message": "Megakadályozza, hogy a profil-előugró ablak nagy, többnyire üres panelre nyíljon."
+  },
+  "mobileFixes": {
+    "message": "Mobil javítások"
+  },
+  "mobileFixesDescription": {
+    "message": "Opcionális megoldások a Haiilo főként mobil elrendezéseket érintő problémáira."
+  },
+  "fixMobileWikiBreadcrumbs": {
+    "message": "Mobil wiki-morzsanavigáció javítása"
+  },
+  "fixMobileWikiBreadcrumbsDescription": {
+    "message": "A wiki morzsanavigációját olvashatóvá és kattinthatóvá teszi keskeny mobilképernyőkön. Mobil Firefoxhoz és kompatibilis böngészőkhöz."
+  },
+  "editorFixes": {
+    "message": "Szerkesztő fejlesztései"
+  },
+  "editorFixesDescription": {
+    "message": "Választható fejlesztések és megoldások a Haiilo szerkesztőjéhez."
+  },
+  "fixWikiModeToggle": {
+    "message": "A wiki módváltójának megtartása az eszköztáron"
+  },
+  "fixWikiModeToggleDescription": {
+    "message": "Az egyszerű/haladó mód váltóját a hosszú wiki-cikkek aljáról a szerkesztő eszköztárára helyezi."
+  },
+  "floatingRichTextToolbar": {
+    "message": "Lebegő formázási eszköztár megjelenítése a kijelölt szöveghez"
+  },
+  "floatingRichTextToolbarDescription": {
+    "message": "Alapvető formázási lehetőségek megnyitása a kijelölt szöveg mellett a Haiilo rich text szerkesztőjében."
   },
   "autoExpandDescription": {
     "message": "A Haiilo bal oldalsávja korlátozott számú munkaterületet és oldalt jelenít meg, a többit pedig a „Továbbiak megjelenítése” gomb mögé rejti. Engedélyezd ezt az automatikus kattintást az oldal betöltésekor, így minden bejegyzés azonnal látható lesz."
@@ -726,5 +783,11 @@
   "themeSystem": {"message":"Rendszer (b\u00f6ng\u00e9sz\u0151 be\u00e1ll\u00edt\u00e1sa)"},
   "themeLight": {"message":"Vil\u00e1gos"},
   "themeDark": {"message":"S\u00f6t\u00e9t"},
-  "themeHelp": {"message":"Alap\u00e9rtelmez\u00e9s szerint a b\u00f6ng\u00e9sz\u0151 vil\u00e1gos/s\u00f6t\u00e9t be\u00e1ll\u00edt\u00e1s\u00e1t k\u00f6veti."}
+  "themeHelp": {"message":"Alap\u00e9rtelmez\u00e9s szerint a b\u00f6ng\u00e9sz\u0151 vil\u00e1gos/s\u00f6t\u00e9t be\u00e1ll\u00edt\u00e1s\u00e1t k\u00f6veti."},
+  "dataLocalFirstIntro": {
+    "message": "Minden adata ezen az eszközön marad. A beállítások, a némított felhasználók és az egyéni domainek csak a böngészője bővítményének helyi tárolójában kerülnek mentésre — semmi sem kerül összegyűjtésre vagy elküldésre egyetlen szerverre sem. Az egyetlen módja annak, hogy az adatok elhagyják az eszközét, a böngésző szinkronizálása, amelyet alább engedélyezhet."
+  },
+  "privacyPolicy": {
+    "message": "Adatvédelmi nyilatkozatot"
+  }
 }

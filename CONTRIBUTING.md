@@ -107,7 +107,8 @@ When targeting Angular backdrops or overlay dialogs:
   ```css
   div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]
   ```
-- Avoid registering capture-phase click listeners on the `document` level to keep the messenger expanded, as it blocks normal page interaction. Use MutationObservers to monitor classes and state instead.
+- Avoid registering capture-phase click listeners on the `document` level to keep the messenger expanded, as it blocks normal page interaction. Use observers to monitor classes and state instead.
+- For new features that react to added DOM nodes, register a handler on the shared `domMutation` dispatcher in `content.js` rather than creating your own document-wide `MutationObserver` (the messenger feature is the exception: it keeps dedicated `class`/`style` attribute observers).
 
 ### 6. Themes & Colors
 - All colors are configured in [colors.css](file:///C:/bin/haiilo-enhancer/colors.css) using CSS Custom Properties (variables).

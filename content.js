@@ -112,6 +112,12 @@
   let endlessScrollRetryTimer = null;
   let endlessScrollMountObserver = null;
   let endlessScrollScrollBound = false;
+  let autoLoadUpdatesEnabled = false;
+  let autoLoadUpdatesIdleSec = 5;
+  let autoLoadUpdatesLastActivity = Date.now();
+  let autoLoadUpdatesCooldownUntil = 0;
+  let autoLoadUpdatesTickTimer = null;
+  let autoLoadUpdatesActivityBound = false;
   let calendarActionObserver = null;
   let messengerReopenPending = false;
   let mentionFormattingFixEnabled = true;
@@ -151,6 +157,18 @@
   // P3 fix: hiddenElements persists across hideContent() calls so already-hidden
   // elements are not re-processed. WeakSet auto-releases GC'd DOM nodes.
   const hiddenElements = new WeakSet();
+
+  // P8 fix: remember (element, selector-group) pairs that were scanned, had a
+  // fully-rendered author element, and were not muted, so a mutation burst does
+  // not re-walk every unchanged post. Angular re-renders replace DOM nodes
+  // (clearing their WeakMap entry), so a changed post is scanned again. Items
+  // whose author has not rendered yet are deliberately NOT cached so they keep
+  // being re-checked until the author appears. Keyed by selector-group so one
+  // group's cache never shadows another group's scan (e.g. a timeline item that
+  // also matches [class*="feed-item"]). Cleared in loadMutedUsers() whenever
+  // the mute list changes, otherwise a newly-muted user's already-scanned posts
+  // would never be hidden.
+  let scannedContentItems = new WeakMap();
 
   // Shared messenger width constants and clamp (single source of truth in shared.js)
   const MESSENGER_PANEL_WIDTH_MIN_PERCENT = HaiiloShared.MESSENGER_PANEL_WIDTH_MIN_PERCENT;
@@ -233,6 +251,71 @@
       console.log(...args);
     }
   }
+
+  // ── Shared DOM mutation dispatcher ──────────────────────────────────────
+  // One document-wide MutationObserver replaces the many per-feature
+  // observers that each used to subscribe to the whole subtree for added
+  // nodes (content filter, reaction enhancer, messenger backdrop cleanup,
+  // auto-expand, endless scroll, calendar actions). Every Haiilo DOM change
+  // used to be delivered to up to 8 separate observers; now one callback
+  // receives the records once and forwards them only to handlers that are
+  // currently active. Each handler keeps its own debounce, so behavior is
+  // unchanged — the browser just maintains a single mutation queue instead of
+  // one per feature.
+  //
+  // The dispatcher only watches childList changes. Features that need
+  // attribute records (the messenger keep-expanded fix) keep their own tiny,
+  // dedicated observers that only exist while that feature is active, so
+  // class/style attribute records are NOT generated on pages where the
+  // feature is disabled.
+  //
+  // register(handler) → handle
+  //   handler = {
+  //     active(): boolean,        // optional; handler is skipped when falsy
+  //     onRecords(records): void, // required
+  //     teardown(): void          // optional; clears timers on stop()
+  //   }
+  //   handle.stop() unregisters the handler and runs its teardown.
+  const domMutation = {
+    observer: null,
+    handlers: [],
+    register(handler) {
+      this.handlers.push(handler);
+      this.ensureStarted();
+      let stopped = false;
+      return {
+        stop: () => {
+          if (stopped) return;
+          stopped = true;
+          try {
+            if (handler.teardown) handler.teardown();
+          } catch (e) {
+            console.error('[DomObserver] teardown error:', e);
+          }
+          const idx = this.handlers.indexOf(handler);
+          if (idx !== -1) this.handlers.splice(idx, 1);
+        }
+      };
+    },
+    ensureStarted() {
+      if (this.observer) return;
+      this.observer = new MutationObserver((records) => {
+        const handlers = this.handlers.slice();
+        for (const handler of handlers) {
+          try {
+            if (handler.active && !handler.active()) continue;
+            handler.onRecords(records);
+          } catch (e) {
+            console.error('[DomObserver] handler error:', e);
+          }
+        }
+      });
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  };
 
   // Normalize Haiilo's mention trigger so editor whitespace does not create
   // a large blank line around an otherwise inline mention.
@@ -768,10 +851,10 @@
 
       // Watch for the messenger collapsing (e.g. after an outside click)
       // and re-open it. This keeps the messenger visible without blocking
-      // any page-content clicks. We observe the messenger's sidebar host
-      // for childList + the aside for class changes, then re-resolve the
-      // aside on each fire. This is much cheaper than observing the
-      // entire document for class changes.
+      // any page-content clicks. This observer only exists while the feature
+      // is active, so class attribute records are not generated otherwise.
+      // We observe the messenger's sidebar host for childList + the aside for
+      // class changes, then re-resolve the aside on each fire.
       if (!messengerReopenObserver) {
         messengerReopenObserver = new MutationObserver(() => {
           if (!keepMessengerExpandedActive) return;
@@ -873,7 +956,7 @@
       }
 
       if (messengerOverlayObserver) {
-        messengerOverlayObserver.disconnect();
+        messengerOverlayObserver.stop();
         messengerOverlayObserver = null;
         debugLog('[Content] Disconnected messenger overlay observer');
       }
@@ -899,7 +982,7 @@
   // the callback to avoid running on every mutation in a burst.
   function setupBackdropObserver() {
     if (messengerOverlayObserver) {
-      messengerOverlayObserver.disconnect();
+      return;
     }
 
     // Function to check and remove/hide backdrop
@@ -937,45 +1020,51 @@
     // when the chat panel is active, and we don't need to react to each
     // one individually. Coalesce bursts into one pass.
     let pending = false;
+    let pendingTimer = null;
     let pendingNodes = new Set();
-    messengerOverlayObserver = new MutationObserver(mutations => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) pendingNodes.add(node);
-        }
-      }
-      if (pendingNodes.size === 0 || pending) return;
-      if (!keepMessengerExpandedActive) return;
-      pending = true;
-      setTimeout(() => {
+    messengerOverlayObserver = domMutation.register({
+      active: () => keepMessengerExpandedActive,
+      teardown: () => {
+        if (pendingTimer) clearTimeout(pendingTimer);
+        pendingTimer = null;
         pending = false;
-        if (!keepMessengerExpandedActive) return;
-
-        const nodes = pendingNodes;
-        pendingNodes = new Set();
-        const selectors = '.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, ' +
-          '.cdk-overlay-transparent-backdrop, .menu-overlay, ' +
-          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]';
-        nodes.forEach(node => {
-          if (node.matches?.(selectors)) checkAndHideBackdrop(node);
-          node.querySelectorAll?.(selectors).forEach(checkAndHideBackdrop);
-        });
-
-        const angularBackdrops = document.querySelectorAll(
-          'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]'
-        );
-        angularBackdrops.forEach(div => {
-          if (isMessengerBackdrop(div) && div.parentNode) {
-            div.parentNode.removeChild(div);
-            debugLog('[Content] Removed Angular messenger backdrop');
+        pendingNodes.clear();
+      },
+      onRecords(mutations) {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) pendingNodes.add(node);
           }
-        });
-      }, 100);
-    });
+        }
+        if (pendingNodes.size === 0 || pending) return;
+        if (!keepMessengerExpandedActive) return;
+        pending = true;
+        pendingTimer = setTimeout(() => {
+          pendingTimer = null;
+          pending = false;
+          if (!keepMessengerExpandedActive) return;
 
-    messengerOverlayObserver.observe(document.body, {
-      childList: true,
-      subtree: true
+          const nodes = pendingNodes;
+          pendingNodes = new Set();
+          const selectors = '.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, ' +
+            '.cdk-overlay-transparent-backdrop, .menu-overlay, ' +
+            'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]';
+          nodes.forEach(node => {
+            if (node.matches?.(selectors)) checkAndHideBackdrop(node);
+            node.querySelectorAll?.(selectors).forEach(checkAndHideBackdrop);
+          });
+
+          const angularBackdrops = document.querySelectorAll(
+            'div[style*="position: fixed"][style*="background: rgba"][style*="width: 100%"]'
+          );
+          angularBackdrops.forEach(div => {
+            if (isMessengerBackdrop(div) && div.parentNode) {
+              div.parentNode.removeChild(div);
+              debugLog('[Content] Removed Angular messenger backdrop');
+            }
+          });
+        }, 100);
+      }
     });
 
     debugLog('[Content] Backdrop observer set up (debounced 100ms)');
@@ -1576,7 +1665,7 @@
       autoExpandProcessed.has(getDataTestForSelector(sel))
     );
     if (allProcessed) {
-      autoExpandMountObserver.disconnect();
+      autoExpandMountObserver.stop();
       autoExpandMountObserver = null;
       debugLog('[AutoExpand] All buttons processed, mount observer stopped');
     }
@@ -1591,49 +1680,55 @@
   //
   // Performance: Haiilo triggers hundreds of DOM mutations per second
   // even when idle (chat updates, online-status pings, etc.). Without
-  // throttling, our observer would call findInShadows (a full-tree walk)
+  // throttling, our handler would call findInShadows (a full-tree walk)
   // hundreds of times per second. We debounce to 200ms, then schedule the
   // full shadow-DOM scan for idle time so the timer callback itself stays
   // cheap and avoids Chrome long-task warnings.
   function setupAutoExpandMountObserver() {
     if (autoExpandMountObserver) return;
     let pending = false;
-    autoExpandMountObserver = new MutationObserver(() => {
-      if (pending) return;
-      if (!autoExpandEnabled) return;
-      pending = true;
-      setTimeout(() => {
-        runWhenIdle(() => {
-          pending = false;
-          if (!autoExpandEnabled) return;
-          // The DOM has likely changed since the last walk; clear the
-          // findInShadows cache so the runner sees fresh results.
-          clearFindInShadowsCache();
-          autoExpandShowMoreLists();
-          // P6 fix: stop observer after too many attempts with no buttons
-          autoExpandMountAttempts++;
-          const allProcessedOrMaxed = getAutoExpandSelectors().every(sel =>
-            autoExpandProcessed.has(getDataTestForSelector(sel))
-          );
-          if (allProcessedOrMaxed) {
-            if (autoExpandMountObserver) {
-              autoExpandMountObserver.disconnect();
-              autoExpandMountObserver = null;
-              debugLog('[AutoExpand] All buttons processed, mount observer stopped');
+    let autoExpandTimer = null;
+    autoExpandMountObserver = domMutation.register({
+      active: () => autoExpandEnabled,
+      teardown: () => {
+        if (autoExpandTimer) clearTimeout(autoExpandTimer);
+        autoExpandTimer = null;
+        pending = false;
+      },
+      onRecords() {
+        if (pending) return;
+        if (!autoExpandEnabled) return;
+        pending = true;
+        autoExpandTimer = setTimeout(() => {
+          autoExpandTimer = null;
+          runWhenIdle(() => {
+            pending = false;
+            if (!autoExpandEnabled) return;
+            // The DOM has likely changed since the last walk; clear the
+            // findInShadows cache so the runner sees fresh results.
+            clearFindInShadowsCache();
+            autoExpandShowMoreLists();
+            // P6 fix: stop observer after too many attempts with no buttons
+            autoExpandMountAttempts++;
+            const allProcessedOrMaxed = getAutoExpandSelectors().every(sel =>
+              autoExpandProcessed.has(getDataTestForSelector(sel))
+            );
+            if (allProcessedOrMaxed) {
+              if (autoExpandMountObserver) {
+                autoExpandMountObserver.stop();
+                autoExpandMountObserver = null;
+                debugLog('[AutoExpand] All buttons processed, mount observer stopped');
+              }
+            } else if (autoExpandMountAttempts > 15) {
+              if (autoExpandMountObserver) {
+                autoExpandMountObserver.stop();
+                autoExpandMountObserver = null;
+                debugLog('[AutoExpand] Mount observer stopped after', autoExpandMountAttempts, 'attempts without finding buttons');
+              }
             }
-          } else if (autoExpandMountAttempts > 15) {
-            if (autoExpandMountObserver) {
-              autoExpandMountObserver.disconnect();
-              autoExpandMountObserver = null;
-              debugLog('[AutoExpand] Mount observer stopped after', autoExpandMountAttempts, 'attempts without finding buttons');
-            }
-          }
-        });
-      }, 200);
-    });
-    autoExpandMountObserver.observe(document.body, {
-      childList: true,
-      subtree: true
+          });
+        }, 200);
+      }
     });
     debugLog('[AutoExpand] Mount observer installed (debounced 200ms)');
   }
@@ -1661,7 +1756,7 @@
 
   function teardownEndlessScroll() {
     if (endlessScrollMountObserver) {
-      endlessScrollMountObserver.disconnect();
+      endlessScrollMountObserver.stop();
       endlessScrollMountObserver = null;
       debugLog('[EndlessScroll] Mount observer disconnected');
     }
@@ -1777,23 +1872,107 @@
     // DOM and re-prime the moment the button appears.
     if (endlessScrollMountObserver) return;
     let pending = false;
-    endlessScrollMountObserver = new MutationObserver(() => {
-      if (pending) return;
-      if (!endlessScrollEnabled || !extensionEnabled) return;
-      pending = true;
-      setTimeout(() => {
+    let endlessScrollTimer = null;
+    endlessScrollMountObserver = domMutation.register({
+      active: () => endlessScrollEnabled && extensionEnabled,
+      teardown: () => {
+        if (endlessScrollTimer) clearTimeout(endlessScrollTimer);
+        endlessScrollTimer = null;
         pending = false;
+      },
+      onRecords() {
+        if (pending) return;
         if (!endlessScrollEnabled || !extensionEnabled) return;
-        if (findEndlessScrollButton()) {
-          evaluateEndlessScroll();
-        }
-      }, 300);
-    });
-    endlessScrollMountObserver.observe(document.body, {
-      childList: true,
-      subtree: true
+        pending = true;
+        endlessScrollTimer = setTimeout(() => {
+          endlessScrollTimer = null;
+          pending = false;
+          if (!endlessScrollEnabled || !extensionEnabled) return;
+          if (findEndlessScrollButton()) {
+            evaluateEndlessScroll();
+          }
+        }, 300);
+      }
     });
     debugLog('[EndlessScroll] Listening for the timeline Load more button');
+  }
+
+  // ── Auto-load new updates when idle ────────────────────────────────────────
+
+  // Haiilo shows a "Load X new updates" button on top of the timeline when new
+  // posts arrive while the page is open. When the user hasn't interacted with
+  // the page for a while, we click that button automatically so the stream
+  // stays fresh without interrupting anything. User activity (mouse, keyboard,
+  // scroll, touch, typing) keeps the page "busy" and postpones the click.
+  // The button lives in a shadow-DOM cat-button custom element, so a plain
+  // element.click() on the host works (verified against the live site).
+  const AUTO_LOAD_UPDATES_TICK_MS = 1000;
+  const AUTO_LOAD_UPDATES_COOLDOWN_MS = 2000;
+
+  function teardownAutoLoadUpdates() {
+    if (autoLoadUpdatesTickTimer) {
+      clearInterval(autoLoadUpdatesTickTimer);
+      autoLoadUpdatesTickTimer = null;
+    }
+    autoLoadUpdatesCooldownUntil = 0;
+  }
+
+  // The timeline "Load new updates" button. Attribute-based and stable.
+  function findAutoLoadUpdatesButton() {
+    const button = document.querySelector('cat-button[data-test="show-new-timeline-items"]');
+    return button && button.isConnected ? button : null;
+  }
+
+  // Runs once per second. Only acts when the feature is enabled, the user has
+  // been idle long enough, the cooldown has passed, and the button is present.
+  function autoLoadUpdatesTick() {
+    if (!autoLoadUpdatesEnabled || !extensionEnabled) return;
+    if (Date.now() < autoLoadUpdatesCooldownUntil) return;
+
+    const idleFor = Date.now() - autoLoadUpdatesLastActivity;
+    if (idleFor < autoLoadUpdatesIdleSec * 1000) return;
+
+    const button = findAutoLoadUpdatesButton();
+    if (!button) return;
+
+    // Only click a button that is actually visible (the element can linger in
+    // the DOM while Haiilo hides it). Mirrors the endless-scroll geometry check.
+    const rect = button.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    debugLog('[AutoLoadUpdates] User idle for', idleFor, 'ms — clicking new-updates button');
+    autoLoadUpdatesCooldownUntil = Date.now() + AUTO_LOAD_UPDATES_COOLDOWN_MS;
+    button.click();
+  }
+
+  // Bound once on setup; a no-op write keeps the page busy whenever the user
+  // interacts. The listeners only touch DOM/timestamps, so they stay safe after
+  // extension-context invalidation (mirrors the endless-scroll pattern).
+  function markAutoLoadUpdatesActivity() {
+    autoLoadUpdatesLastActivity = Date.now();
+  }
+
+  function setupAutoLoadUpdates() {
+    if (!autoLoadUpdatesEnabled || !extensionEnabled) {
+      teardownAutoLoadUpdates();
+      return;
+    }
+
+    // Reset stale cooldown before (re)starting.
+    teardownAutoLoadUpdates();
+    autoLoadUpdatesLastActivity = Date.now();
+
+    if (!autoLoadUpdatesActivityBound) {
+      autoLoadUpdatesActivityBound = true;
+      const events = ['mousemove', 'mousedown', 'keydown', 'wheel', 'scroll', 'touchstart', 'touchmove'];
+      for (const event of events) {
+        window.addEventListener(event, markAutoLoadUpdatesActivity, { capture: true, passive: true });
+      }
+      document.addEventListener('input', markAutoLoadUpdatesActivity, { capture: true, passive: true });
+    }
+
+    autoLoadUpdatesTickTimer = setInterval(autoLoadUpdatesTick, AUTO_LOAD_UPDATES_TICK_MS);
+    debugLog('[AutoLoadUpdates] Listening for idle periods (threshold:', autoLoadUpdatesIdleSec, 's)');
   }
 
   // ── Reaction enhancements ──────────────────────────────────────────────────
@@ -2186,32 +2365,41 @@
 
     let pendingTargets = new Set();
     let processScheduled = false;
-    reactionEnhancerObserver = new MutationObserver(mutations => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue;
-          // Direct match
-          if (node.hasAttribute && node.hasAttribute('data-reaction-target-id')) {
-            pendingTargets.add(node);
-          }
-          // Descendants
-          if (node.querySelectorAll) {
-            node.querySelectorAll('[data-reaction-target-id]').forEach(el => pendingTargets.add(el));
+    let reactionTimer = null;
+    reactionEnhancerObserver = domMutation.register({
+      active: () => sortReactionsByCount || showReactionCountTooltip || showReactionCountInline,
+      teardown: () => {
+        if (reactionTimer) clearTimeout(reactionTimer);
+        reactionTimer = null;
+        processScheduled = false;
+        pendingTargets.clear();
+      },
+      onRecords(mutations) {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+            // Direct match
+            if (node.hasAttribute && node.hasAttribute('data-reaction-target-id')) {
+              pendingTargets.add(node);
+            }
+            // Descendants
+            if (node.querySelectorAll) {
+              node.querySelectorAll('[data-reaction-target-id]').forEach(el => pendingTargets.add(el));
+            }
           }
         }
-      }
-      if (pendingTargets.size > 0 && !processScheduled) {
-        processScheduled = true;
-        setTimeout(() => {
-          processScheduled = false;
-          const targets = pendingTargets;
-          pendingTargets = new Set();
-          targets.forEach(target => processReactionTarget(target).catch(() => {}));
-        }, 50);
+        if (pendingTargets.size > 0 && !processScheduled) {
+          processScheduled = true;
+          reactionTimer = setTimeout(() => {
+            reactionTimer = null;
+            processScheduled = false;
+            const targets = pendingTargets;
+            pendingTargets = new Set();
+            targets.forEach(target => processReactionTarget(target).catch(() => {}));
+          }, 50);
+        }
       }
     });
-
-    reactionEnhancerObserver.observe(document.body, { childList: true, subtree: true });
     debugLog('[Reactions] Observer installed');
   }
 
@@ -2236,7 +2424,7 @@
     if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
       setupReactionEnhancerObserver();
     } else if (reactionEnhancerObserver) {
-      reactionEnhancerObserver.disconnect();
+      reactionEnhancerObserver.stop();
       reactionEnhancerObserver = null;
     }
   }
@@ -2435,6 +2623,7 @@
                   setupAutoExpandMountObserver();
                 }
                 setupEndlessScroll();
+                setupAutoLoadUpdates();
                 reapplyReactionEnhancements();
                 sendResponse({ success: true });
               });
@@ -2506,6 +2695,10 @@
       // user scrolls to the bottom (only acts when endlessScrollEnabled).
       setupEndlessScroll();
 
+      // Auto-load new updates: click the timeline "Load new updates" button
+      // when the user has been idle for a while (opt-in setting).
+      setupAutoLoadUpdates();
+
       // Reaction enhancements (sort by count, hover tooltip)
       if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
         setupReactionEnhancerObserver();
@@ -2568,6 +2761,10 @@
           autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
           endlessScrollEnabled = settings.endlessScrollEnabled === true;
+          autoLoadUpdatesEnabled = settings.autoLoadUpdatesEnabled === true;
+          const rawIdleSec = parseInt(settings.autoLoadUpdatesIdleSec, 10);
+          // 0 = no idle requirement: load new updates as soon as they appear.
+          autoLoadUpdatesIdleSec = isNaN(rawIdleSec) ? 5 : Math.max(0, Math.min(600, rawIdleSec));
           sortReactionsByCount = settings.sortReactionsByCount !== false;
           showReactionCountTooltip = settings.showReactionCountTooltip === true;
           showReactionCountInline = settings.showReactionCountInline === true;
@@ -2592,6 +2789,7 @@
             );
           }
           setupEndlessScroll();
+          setupAutoLoadUpdates();
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
           debugLog('Avatar style:', avatarStyle, 'Ring:', ringColor, ringWidth, 'Square:', squareColor, squareWidth, 'Badge:', badgeSize, badgePosition);
@@ -2618,6 +2816,7 @@
           autoExpandDelayMs = 300;
           autoExpandScope = 'both';
           endlessScrollEnabled = false;
+          autoLoadUpdatesEnabled = false;
           sortReactionsByCount = true;
           showReactionCountTooltip = true;
           showReactionCountInline = false;
@@ -2649,6 +2848,7 @@
         autoExpandDelayMs = 300;
         autoExpandScope = 'both';
         endlessScrollEnabled = false;
+        autoLoadUpdatesEnabled = false;
         sortReactionsByCount = true;
         showReactionCountTooltip = true;
         showReactionCountInline = false;
@@ -2694,6 +2894,9 @@
   async function loadMutedUsers() {
     try {
       debugLog('Loading muted users...');
+      // The mute list changed — forget which posts were already scanned so
+      // hideContent() re-evaluates everything (e.g. to hide a newly-muted user).
+      scannedContentItems = new WeakMap();
       // Check if chrome.runtime is available
       if (isExtensionContextValid()) {
         try {
@@ -2716,27 +2919,28 @@
   }
 
   function setupMutationObserver() {
-    if (observer) {
-      observer.disconnect();
-    }
+    // Only one shared filter handler is needed; domMutation keeps it running.
+    if (observer) return;
 
     let filterPending = false;
     let filterBurstStartedAt = 0;
     const filterDelayMs = 50;
     const filterMaxDelayMs = 500;
-    observer = new MutationObserver((mutations) => {
-      if (isTyping) return;
+    observer = domMutation.register({
+      onRecords(mutations) {
+        if (isTyping) return;
 
-      let shouldFilter = false;
+        let shouldFilter = false;
 
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0) {
-          shouldFilter = true;
-          break;
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0) {
+            shouldFilter = true;
+            break;
+          }
         }
-      }
 
-      if (shouldFilter) {
+        if (!shouldFilter) return;
+
         const now = Date.now();
         if (!filterPending) {
           filterPending = true;
@@ -2764,14 +2968,6 @@
       }
     });
 
-    // Observe document.body with subtree for all changes
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: false,
-      characterData: false
-    });
-    
     debugLog('Mutation observer set up');
   }
 
@@ -3003,9 +3199,29 @@
 
     // Return the muted name found inside `item` (via the author selectors),
     // or null. The matched name is used for the hidden-item details.
+    // Items that already expose an author element are remembered (per
+    // selector-group) so later mutation bursts don't re-walk unchanged posts
+    // (see scannedContentItems).
+    const selectorsKey = (selectors) => selectors.join('|');
+    const isScanned = (item, key) => {
+      const keys = scannedContentItems.get(item);
+      return keys ? keys.has(key) : false;
+    };
     const findMutedAuthor = (item, selectors) => {
       if (!item || !selectors || selectors.length === 0) return null;
-      return collectMatchedTexts(item, selectors).find(text => mutedNames.has(text)) || null;
+      const matched = collectMatchedTexts(item, selectors);
+      // Only cache items that already rendered an author; items still loading
+      // their author keep being re-checked until it appears.
+      if (matched.length > 0) {
+        const key = selectorsKey(selectors);
+        let keys = scannedContentItems.get(item);
+        if (!keys) {
+          keys = new Set();
+          scannedContentItems.set(item, keys);
+        }
+        keys.add(key);
+      }
+      return matched.find(text => mutedNames.has(text)) || null;
     };
 
     // Hide posts by muted users (simple selector like original)
@@ -3021,8 +3237,9 @@
       '[role="sectionheader"] button',
       '[role="sectionheader"] a'
     ];
+    const timelineSelectorsKey = selectorsKey(timelineAuthorSelectors);
     document.querySelectorAll('coyo-timeline-item').forEach(item => {
-      if (hiddenElements.has(item)) return;
+      if (hiddenElements.has(item) || isScanned(item, timelineSelectorsKey)) return;
       const userName = findMutedAuthor(item, timelineAuthorSelectors);
       if (userName) {
         hiddenElements.add(item);
@@ -3032,12 +3249,14 @@
     });
 
     // Hide comments by muted users (simple selector like original)
+    const commentAuthorSelectors = ['[data-test="comment-author"]'];
+    const commentSelectorsKey = selectorsKey(commentAuthorSelectors);
     document.querySelectorAll('coyo-comment').forEach(comment => {
-      if (hiddenElements.has(comment)) return;
-      const userName = findMutedAuthor(comment, ['[data-test="comment-author"]']);
+      if (hiddenElements.has(comment) || isScanned(comment, commentSelectorsKey)) return;
+      const userName = findMutedAuthor(comment, commentAuthorSelectors);
       if (userName) {
         hiddenElements.add(comment);
-        hideMatchedElement(comment, buildHiddenItemDetails(comment, userName, 'comment', ['[data-test="comment-author"]'], 'comment-author'));
+        hideMatchedElement(comment, buildHiddenItemDetails(comment, userName, 'comment', commentAuthorSelectors, 'comment-author'));
         debugLog('Hidden comment by:', userName);
       }
     });
@@ -3068,9 +3287,11 @@
       'a[href*="/profile/"]'
     ];
 
+    const additionalSelectorsKey = selectorsKey(additionalAuthorSelectors);
+
     additionalSelectors.forEach(selector => {
       document.querySelectorAll(selector).forEach(item => {
-        if (hiddenElements.has(item)) return;
+        if (hiddenElements.has(item) || isScanned(item, additionalSelectorsKey)) return;
         const userName = findMutedAuthor(item, additionalAuthorSelectors);
         if (userName) {
           hiddenElements.add(item);
@@ -3827,24 +4048,29 @@
   }
 
   function setupCalendarActionObserver() {
-    if (calendarActionObserver) {
-      calendarActionObserver.disconnect();
-    }
+    if (calendarActionObserver) return;
 
-    // P5 fix: debounce to avoid running on every synchronous DOM mutation
+    // P5 fix: debounce to avoid running on every synchronous DOM mutation.
+    // The handler is only active on event information pages, so on every
+    // other page this costs nothing (it is skipped by the dispatcher).
     let calendarPending = false;
-    calendarActionObserver = new MutationObserver(() => {
-      if (calendarPending) return;
-      calendarPending = true;
-      setTimeout(() => {
+    let calendarTimer = null;
+    calendarActionObserver = domMutation.register({
+      active: () => isEventInformationPage(),
+      teardown: () => {
+        if (calendarTimer) clearTimeout(calendarTimer);
+        calendarTimer = null;
         calendarPending = false;
-        injectAddToCalendarAction();
-      }, 200);
-    });
-
-    calendarActionObserver.observe(document.body, {
-      childList: true,
-      subtree: true
+      },
+      onRecords() {
+        if (calendarPending) return;
+        calendarPending = true;
+        calendarTimer = setTimeout(() => {
+          calendarTimer = null;
+          calendarPending = false;
+          injectAddToCalendarAction();
+        }, 200);
+      }
     });
   }
 

@@ -557,6 +557,18 @@
   "endlessScrollDescription": {
     "message": "Clicca automaticamente su «Carica altri» quando scorri fino in fondo a una timeline, così i post successivi vengono caricati in continuazione senza dover cliccare."
   },
+  "autoLoadUpdates": {
+    "message": "Carica automaticamente i nuovi aggiornamenti quando sei inattivo"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Quando Haiilo mostra il pulsante «Carica nuovi aggiornamenti» in una timeline, fai clic automaticamente una volta che la pagina è inattiva da un po', così lo stream resta aggiornato senza dover cliccare."
+  },
+  "autoLoadIdleSec": {
+    "message": "Tempo di inattività prima del caricamento (s, 0 = immediatamente):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Per quanto tempo la pagina deve rimanere libera da attività di mouse, tastiera e scorrimento prima che i nuovi aggiornamenti vengano caricati automaticamente. Imposta 0 per caricare i nuovi aggiornamenti appena compaiono, indipendentemente da quello che stai facendo. Intervallo: 0-600 secondi."
+  },
   "customDomains": {
     "message": "Domini Haiilo personalizzati"
   },

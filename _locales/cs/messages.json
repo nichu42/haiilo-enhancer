@@ -557,6 +557,18 @@
   "endlessScrollDescription": {
     "message": "Automaticky klikne na „Načíst více“, když se dostanete na konec časové osy, takže se další příspěvky načítají nepřetržitě bez klikání."
   },
+  "autoLoadUpdates": {
+    "message": "Automaticky načítat nové aktualizace při nečinnosti"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Když Haiilo zobrazí tlačítko „Načíst nové aktualizace“ na časové ose, klikněte na něj automaticky, jakmile je stránka chvíli nečinná, aby zůstala aktuální bez klikání."
+  },
+  "autoLoadIdleSec": {
+    "message": "Doba nečinnosti před načtením (s, 0 = okamžitě):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Jak dlouho musí být stránka bez aktivity myši, klávesnice a posouvání, než se nové aktualizace načtou automaticky. Nastavte 0 pro okamžité načtení nových aktualizací, jakmile se objeví, bez ohledu na to, co právě děláte. Rozsah: 0–600 sekund."
+  },
   "customDomains": {
     "message": "Vlastní domény Haiilo"
   },

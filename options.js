@@ -49,6 +49,14 @@ function syncMessengerCenterControl() {
   }
 }
 
+function syncAutoLoadIdleControl() {
+  const autoLoadCheckbox = document.getElementById('autoLoadUpdatesEnabled');
+  const idleSlider = document.getElementById('autoLoadUpdatesIdleSec');
+  if (!autoLoadCheckbox || !idleSlider) return;
+
+  idleSlider.disabled = !autoLoadCheckbox.checked;
+}
+
 // Debug logging helper - reads the debugMode flag from settings on each
 // call so live toggles take effect without reload.
 function debugLog(...args) {
@@ -302,6 +310,13 @@ async function loadSettings() {
   // Auto-expand sidebar lists
   document.getElementById('autoExpandEnabled').checked = settings.autoExpandEnabled === true;
   document.getElementById('endlessScrollEnabled').checked = settings.endlessScrollEnabled === true;
+  document.getElementById('autoLoadUpdatesEnabled').checked = settings.autoLoadUpdatesEnabled === true;
+  const idleSlider = document.getElementById('autoLoadUpdatesIdleSec');
+  const idleValue = document.getElementById('autoLoadUpdatesIdleValue');
+  const idleSec = settings.autoLoadUpdatesIdleSec !== undefined ? settings.autoLoadUpdatesIdleSec : 5;
+  if (idleSlider) idleSlider.value = idleSec;
+  if (idleValue) idleValue.textContent = `${idleSec} s`;
+  syncAutoLoadIdleControl();
   document.getElementById('sortReactionsByCount').checked = settings.sortReactionsByCount !== false;
   document.getElementById('showReactionCountTooltip').checked = settings.showReactionCountTooltip === true;
   document.getElementById('showReactionCountInline').checked = settings.showReactionCountInline === true;
@@ -600,6 +615,15 @@ function setupEventListeners() {
   // Auto-expand settings
   document.getElementById('autoExpandEnabled').addEventListener('change', saveSettings);
   document.getElementById('endlessScrollEnabled').addEventListener('change', saveSettings);
+  document.getElementById('autoLoadUpdatesEnabled').addEventListener('change', () => {
+    syncAutoLoadIdleControl();
+    saveSettings();
+  });
+  document.getElementById('autoLoadUpdatesIdleSec').addEventListener('input', (e) => {
+    document.getElementById('autoLoadUpdatesIdleValue').textContent = `${e.target.value} s`;
+    scheduleSaveSettings();
+  });
+  document.getElementById('autoLoadUpdatesIdleSec').addEventListener('change', saveSettings);
   document.getElementById('autoExpandScope').addEventListener('change', saveSettings);
   document.getElementById('sortReactionsByCount').addEventListener('change', saveSettings);
   document.getElementById('showReactionCountTooltip').addEventListener('change', saveSettings);
@@ -857,6 +881,11 @@ async function saveSettings() {
     autoExpandDelayMs: parseInt(document.getElementById('autoExpandDelayMs').value, 10) || 300,
     autoExpandScope: document.getElementById('autoExpandScope').value,
     endlessScrollEnabled: document.getElementById('endlessScrollEnabled').checked,
+    autoLoadUpdatesEnabled: document.getElementById('autoLoadUpdatesEnabled').checked,
+    autoLoadUpdatesIdleSec: (() => {
+      const raw = parseInt(document.getElementById('autoLoadUpdatesIdleSec').value, 10);
+      return Number.isNaN(raw) ? 5 : raw;
+    })(),
     sortReactionsByCount: document.getElementById('sortReactionsByCount').checked,
     showReactionCountTooltip: document.getElementById('showReactionCountTooltip').checked,
     showReactionCountInline: document.getElementById('showReactionCountInline').checked,

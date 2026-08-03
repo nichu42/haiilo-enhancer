@@ -557,6 +557,18 @@
   "endlessScrollDescription": {
     "message": "Automatycznie klika przycisk „Załaduj więcej”, gdy przewiniesz na dół osi czasu, dzięki czemu kolejne posty wczytują się bez klikania."
   },
+  "autoLoadUpdates": {
+    "message": "Automatycznie wczytuj nowe aktualizacje przy bezczynności"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Gdy Haiilo pokaże przycisk „Wczytaj nowe aktualizacje” na osi czasu, klikaj go automatycznie, gdy strona jest bezczynna przez chwilę, aby strumień pozostawał aktualny bez klikania."
+  },
+  "autoLoadIdleSec": {
+    "message": "Czas bezczynności przed wczytaniem (s, 0 = natychmiast):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Jak długo strona musi być wolna od aktywności myszy, klawiatury i przewijania, zanim nowe aktualizacje zostaną wczytane automatycznie. Ustaw 0, aby wczytywać nowe aktualizacje natychmiast, gdy się pojawią, niezależnie od tego, co robisz. Zakres: 0-600 sekund."
+  },
   "customDomains": {
     "message": "Niestandardowe domeny Haiilo"
   },

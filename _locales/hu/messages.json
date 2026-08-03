@@ -557,6 +557,18 @@
   "endlessScrollDescription": {
     "message": "Automatikusan rákattint a „Továbbiak betöltése” gombra, amikor egy idővonal aljára görget, így a következő bejegyzések folyamatosan töltődnek be kattintás nélkül."
   },
+  "autoLoadUpdates": {
+    "message": "Új frissítések automatikus betöltése tétlenség esetén"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Amikor a Haiilo egy „Új frissítések betöltése” gombot mutat az idővonalon, kattintson rá automatikusan, ha az oldal már egy ideje inaktív, hogy a hírfolyam friss maradjon kattintás nélkül."
+  },
+  "autoLoadIdleSec": {
+    "message": "Tétlenségi idő a betöltés előtt (s, 0 = azonnal):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Mennyi ideig kell az oldalnak egér-, billentyűzet- és görgetésaktivitás nélkül lennie, mielőtt az új frissítések automatikusan betöltődnek. A 0 értéknél az új frissítések azonnal betöltődnek, amint megjelennek, függetlenül attól, mit csinál. Tartomány: 0–600 másodperc."
+  },
   "customDomains": {
     "message": "Egyéni Haiilo-tartományok"
   },

@@ -461,6 +461,18 @@
   "endlessScrollDescription": {
     "message": "Klikt automatisch op „Meer laden” wanneer je onderaan een tijdlijn komt, zodat de volgende berichten doorlopend worden geladen zonder dat je hoeft te klikken."
   },
+  "autoLoadUpdates": {
+    "message": "Nieuwe updates automatisch laden bij inactiviteit"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Wanneer Haiilo een knop „Nieuwe updates laden” op een tijdlijn toont, klik er dan automatisch op zodra de pagina een tijdje inactief is, zodat de stream up-to-date blijft zonder dat je hoeft te klikken."
+  },
+  "autoLoadIdleSec": {
+    "message": "Inactieve tijd vóór het laden (s, 0 = onmiddellijk):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Hoe lang de pagina vrij van muis-, toetsenbord- en scrollactiviteit moet zijn voordat nieuwe updates automatisch worden geladen. Zet dit op 0 om nieuwe updates onmiddellijk te laden zodra ze verschijnen, ongeacht wat je doet. Bereik: 0-600 seconden."
+  },
   "customDomains": {
     "message": "Aangepaste Haiilo-domeinen"
   },

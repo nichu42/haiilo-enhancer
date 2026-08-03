@@ -461,6 +461,18 @@
   "endlessScrollDescription": {
     "message": "Hace clic automáticamente en «Cargar más» cuando llegas al final de una línea de tiempo, para que la siguiente página de publicaciones se cargue sin necesidad de hacer clic."
   },
+  "autoLoadUpdates": {
+    "message": "Cargar nuevas actualizaciones al estar inactivo"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Cuando Haiilo muestre el botón «Cargar nuevas actualizaciones» en una línea de tiempo, haz clic en él automáticamente una vez que la página esté inactiva durante un tiempo, para que el flujo se mantenga actualizado sin que tengas que hacer clic."
+  },
+  "autoLoadIdleSec": {
+    "message": "Tiempo de inactividad antes de cargar (s, 0 = inmediatamente):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Cuánto tiempo debe estar la página sin actividad de ratón, teclado o desplazamiento antes de cargar las actualizaciones automáticamente. Pon 0 para cargar las nuevas actualizaciones en cuanto aparezcan, sin importar lo que estés haciendo. Rango: 0-600 segundos."
+  },
   "customDomains": {
     "message": "Dominios Haiilo personalizados"
   },

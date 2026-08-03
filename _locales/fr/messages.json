@@ -461,6 +461,18 @@
   "endlessScrollDescription": {
     "message": "Clique automatiquement sur le bouton « Afficher plus » lorsque vous atteignez le bas d'un fil, afin que les publications suivantes se chargent en continu, sans clic."
   },
+  "autoLoadUpdates": {
+    "message": "Charger automatiquement les nouvelles mises à jour en cas d'inactivité"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Lorsque Haiilo affiche le bouton « Charger les nouvelles mises à jour » sur un fil, cliquez automatiquement dessus dès que la page est inactive depuis un moment, afin que le fil reste à jour sans que vous ayez à cliquer."
+  },
+  "autoLoadIdleSec": {
+    "message": "Durée d'inactivité avant chargement (s, 0 = immédiatement) :"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Combien de temps la page doit être libre de toute activité souris, clavier ou défilement avant que les mises à jour soient chargées automatiquement. Mettez 0 pour charger les nouvelles mises à jour dès qu'elles apparaissent, quelle que soit votre activité. Plage : 0-600 secondes."
+  },
   "customDomains": {
     "message": "Domaines Haiilo personnalisés"
   },

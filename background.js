@@ -158,6 +158,8 @@ const DEFAULT_SETTINGS = {
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
   autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
   endlessScrollEnabled: false, // Auto-click the timeline "Load more" button when scrolled to the bottom
+  autoLoadUpdatesEnabled: false, // Auto-click the timeline "Load new updates" button when the page is idle
+  autoLoadUpdatesIdleSec: 5, // Idle time in seconds (0-600) without user activity before new updates are loaded automatically
   cloudSync: false, // Sync settings and muted users via browser account (opt-in)
   theme: 'system', // 'system' (follow browser), 'light', or 'dark'
   sortReactionsByCount: true, // Sort reaction emojis by count (most used first)

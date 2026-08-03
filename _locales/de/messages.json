@@ -461,6 +461,18 @@
   "endlessScrollDescription": {
     "message": "Klickt automatisch auf „Mehr laden“, wenn du am Ende einer Timeline angekommen bist, sodass die nächsten Beiträge ohne weiteres Klicken geladen werden."
   },
+  "autoLoadUpdates": {
+    "message": "Neue Updates bei Inaktivität automatisch laden"
+  },
+  "autoLoadUpdatesDescription": {
+    "message": "Wenn Haiilo auf einer Timeline einen „X neue Updates laden“-Button anzeigt, klickt ihn automatisch, sobald die Seite eine Weile inaktiv war, damit der Stream ohne Klicken aktuell bleibt."
+  },
+  "autoLoadIdleSec": {
+    "message": "Inaktivitätsdauer vor dem Laden (s, 0 = sofort):"
+  },
+  "autoLoadIdleSecHelp": {
+    "message": "Wie lange die Seite frei von Maus-, Tastatur- und Scroll-Aktivität sein muss, bevor neue Updates automatisch geladen werden. Auf 0 setzen, um neue Updates sofort zu laden, sobald sie erscheinen – unabhängig davon, was du gerade tust. Bereich: 0–600 Sekunden."
+  },
   "customDomains": {
     "message": "Benutzerdefinierte Haiilo-Domains"
   },

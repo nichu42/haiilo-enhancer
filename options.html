@@ -379,6 +379,23 @@
         </label>
         <small class="help-text" data-i18n="endlessScrollDescription"></small>
       </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="autoLoadUpdatesEnabled">
+          <span data-i18n="autoLoadUpdates"></span>
+        </label>
+        <small class="help-text" data-i18n="autoLoadUpdatesDescription"></small>
+      </div>
+      <div class="form-group slider-group">
+        <div class="slider-header">
+          <label for="autoLoadUpdatesIdleSec" data-i18n="autoLoadIdleSec"></label>
+          <output id="autoLoadUpdatesIdleValue" for="autoLoadUpdatesIdleSec">5 s</output>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="autoLoadUpdatesIdleSec" min="0" max="600" step="5" value="5" disabled>
+        </div>
+        <p class="slider-help" data-i18n="autoLoadIdleSecHelp"></p>
+      </div>
     </section>
 
     <section id="domains" data-nav-section="domains">

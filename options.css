@@ -271,6 +271,10 @@ section .description {
   cursor: not-allowed;
 }
 
+.form-group:has(input:disabled) {
+  opacity: 0.6;
+}
+
 /* Theme picker: segmented System / Light / Dark control */
 .theme-form-group {
   margin-top: 20px;

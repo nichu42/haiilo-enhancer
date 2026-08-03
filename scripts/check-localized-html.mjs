@@ -10,7 +10,14 @@ for (const fileName of files) {
   const elements = source.matchAll(/<([a-z0-9-]+)\b[^>]*data-i18n="[^"]+"[^>]*>([\s\S]*?)<\/\1>/gi);
 
   for (const match of elements) {
-    const content = match[2].replace(/<!--[\s\S]*?-->/g, '').trim();
+    let content = match[2];
+    let previous;
+    do {
+      previous = content;
+      content = content.replace(/<!--[\s\S]*?-->/g, '');
+    } while (content !== previous);
+    content = content.trim();
+
     if (content) {
       errors.push(`${fileName}: localized <${match[1]}> contains hard-coded content`);
     }

@@ -529,7 +529,9 @@
         button.setAttribute('aria-label', nativeButton.getAttribute('aria-label') || nativeButton.textContent.trim());
         button.setAttribute('aria-pressed', 'false');
         button.title = nativeButton.getAttribute('data-title') || nativeButton.textContent.trim();
-        button.innerHTML = nativeButton.innerHTML;
+        nativeButton.childNodes.forEach(node => {
+          button.appendChild(node.cloneNode(true));
+        });
 
         button.addEventListener('mousedown', event => {
           event.preventDefault();

@@ -301,6 +301,7 @@ async function loadSettings() {
 
   // Auto-expand sidebar lists
   document.getElementById('autoExpandEnabled').checked = settings.autoExpandEnabled === true;
+  document.getElementById('endlessScrollEnabled').checked = settings.endlessScrollEnabled === true;
   document.getElementById('sortReactionsByCount').checked = settings.sortReactionsByCount !== false;
   document.getElementById('showReactionCountTooltip').checked = settings.showReactionCountTooltip === true;
   document.getElementById('showReactionCountInline').checked = settings.showReactionCountInline === true;
@@ -598,6 +599,7 @@ function setupEventListeners() {
 
   // Auto-expand settings
   document.getElementById('autoExpandEnabled').addEventListener('change', saveSettings);
+  document.getElementById('endlessScrollEnabled').addEventListener('change', saveSettings);
   document.getElementById('autoExpandScope').addEventListener('change', saveSettings);
   document.getElementById('sortReactionsByCount').addEventListener('change', saveSettings);
   document.getElementById('showReactionCountTooltip').addEventListener('change', saveSettings);
@@ -854,6 +856,7 @@ async function saveSettings() {
     autoExpandClicksPerList: parseInt(document.getElementById('autoExpandClicksPerList').value, 10) || 3,
     autoExpandDelayMs: parseInt(document.getElementById('autoExpandDelayMs').value, 10) || 300,
     autoExpandScope: document.getElementById('autoExpandScope').value,
+    endlessScrollEnabled: document.getElementById('endlessScrollEnabled').checked,
     sortReactionsByCount: document.getElementById('sortReactionsByCount').checked,
     showReactionCountTooltip: document.getElementById('showReactionCountTooltip').checked,
     showReactionCountInline: document.getElementById('showReactionCountInline').checked,

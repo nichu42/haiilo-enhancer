@@ -551,6 +551,12 @@
   "delayHelp": {
     "message": "Jak dlouho čekat mezi po sobě jdoucími kliknutími na „Zobrazit více“. Nižší hodnoty působí svižněji, vyšší jsou šetrnější k serveru. Rozsah: 100–1000 ms."
   },
+  "endlessScroll": {
+    "message": "Nekonečné rolování pro časové osy"
+  },
+  "endlessScrollDescription": {
+    "message": "Automaticky klikne na „Načíst více“, když se dostanete na konec časové osy, takže se další příspěvky načítají nepřetržitě bez klikání."
+  },
   "customDomains": {
     "message": "Vlastní domény Haiilo"
   },

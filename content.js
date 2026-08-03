@@ -104,6 +104,14 @@
   let autoExpandDelayMs = 300;
   let autoExpandScope = 'both';
   let autoExpandMountObserver = null;
+  let endlessScrollEnabled = false;
+  let endlessScrollArmed = false;
+  let endlessScrollExhausted = false;
+  let endlessScrollCooldownUntil = 0;
+  let endlessScrollLoadTimeout = null;
+  let endlessScrollRetryTimer = null;
+  let endlessScrollMountObserver = null;
+  let endlessScrollScrollBound = false;
   let calendarActionObserver = null;
   let messengerReopenPending = false;
   let mentionFormattingFixEnabled = true;
@@ -1630,6 +1638,164 @@
     debugLog('[AutoExpand] Mount observer installed (debounced 200ms)');
   }
 
+  // ── Endless scroll (auto-click timeline "Load more") ───────────────────────
+
+  // Haiilo's timeline shows a fixed batch of posts and a "Load more" button at
+  // the bottom of the stream. When enabled, we watch that button and click it
+  // as soon as the user scrolls it near the viewport bottom, so the next page
+  // of posts loads continuously without manual clicking.
+  //
+  // Trigger: a capture-phase scroll listener on window plus an armed-state flag.
+  // The listener catches scroll events from the window *and* from any nested
+  // scroll container (scroll events do not bubble, but they do propagate in the
+  // capture phase). The zone check itself is viewport-relative
+  // (getBoundingClientRect vs. window.innerHeight), so it is correct no matter
+  // which element actually scrolls. Armed-state tracking gives exactly one
+  // click per entry into the trigger zone — the button is disarmed after a
+  // click and re-armed only once it leaves the zone — so batches load one at a
+  // time without hammering the server. If short posts keep the button inside
+  // the zone after a load, a retry timer re-arms it so scrolling keeps going.
+  const ENDLESS_SCROLL_TRIGGER_MARGIN_PX = 600;
+  const ENDLESS_SCROLL_COOLDOWN_MS = 1500;
+  const ENDLESS_SCROLL_TIMEOUT_MS = 3000;
+
+  function teardownEndlessScroll() {
+    if (endlessScrollMountObserver) {
+      endlessScrollMountObserver.disconnect();
+      endlessScrollMountObserver = null;
+      debugLog('[EndlessScroll] Mount observer disconnected');
+    }
+    if (endlessScrollLoadTimeout) {
+      clearTimeout(endlessScrollLoadTimeout);
+      endlessScrollLoadTimeout = null;
+    }
+    if (endlessScrollRetryTimer) {
+      clearTimeout(endlessScrollRetryTimer);
+      endlessScrollRetryTimer = null;
+    }
+    endlessScrollExhausted = false;
+    endlessScrollArmed = false;
+    endlessScrollCooldownUntil = 0;
+  }
+
+  // True when the button sits inside the bottom trigger band of the viewport
+  // (the 600px zone just below the fold). Mirrors an IntersectionObserver with
+  // rootMargin '0px 0px 600px 0px', but is evaluated from a scroll handler.
+  function endlessScrollInTriggerZone(button) {
+    const rect = button.getBoundingClientRect();
+    const triggerBottom = window.innerHeight + ENDLESS_SCROLL_TRIGGER_MARGIN_PX;
+    return rect.bottom >= 0 && rect.top <= triggerBottom;
+  }
+
+  // The timeline "Load more" button(s). Stays stable across Haiilo versions.
+  function findEndlessScrollButton() {
+    const buttons = document.querySelectorAll('button[data-test="load-more-timeline-items"]');
+    for (const button of buttons) {
+      if (button.isConnected) return button;
+    }
+    return null;
+  }
+
+  // Click the "Load more" button once and verify the stream grew. If no new
+  // items appeared, the feed is exhausted and we stop auto-clicking until the
+  // page reloads or settings change (avoids wasted requests).
+  function endlessScrollLoadMore(stream, button) {
+    if (button.disabled || button.getAttribute('aria-disabled') === 'true') {
+      debugLog('[EndlessScroll] Load more button is disabled, skipping');
+      return;
+    }
+
+    const beforeCount = stream && document.contains(stream) ? stream.children.length : -1;
+    button.click();
+    debugLog('[EndlessScroll] Clicked Load more button');
+
+    clearTimeout(endlessScrollLoadTimeout);
+    endlessScrollLoadTimeout = setTimeout(() => {
+      endlessScrollLoadTimeout = null;
+      if (!endlessScrollEnabled) return;
+      const afterCount = stream && document.contains(stream) ? stream.children.length : -1;
+      if (afterCount <= beforeCount) {
+        endlessScrollExhausted = true;
+        debugLog('[EndlessScroll] No new items after click — feed exhausted, stopping');
+        return;
+      }
+      debugLog('[EndlessScroll] Loaded', afterCount - beforeCount, 'new item(s)');
+      // If the button is still in the trigger zone after loading (e.g. short
+      // posts), re-arm after a short cooldown so loading continues without
+      // requiring an extra scroll tick. Otherwise the next scroll crossing
+      // re-arms it naturally.
+      if (endlessScrollInTriggerZone(button) && !endlessScrollExhausted) {
+        endlessScrollCooldownUntil = Date.now() + ENDLESS_SCROLL_COOLDOWN_MS;
+        clearTimeout(endlessScrollRetryTimer);
+        endlessScrollRetryTimer = setTimeout(() => {
+          endlessScrollRetryTimer = null;
+          evaluateEndlessScroll();
+        }, ENDLESS_SCROLL_COOLDOWN_MS + 100);
+      }
+    }, ENDLESS_SCROLL_TIMEOUT_MS);
+  }
+
+  // Called on scroll, after the button is (re)found, and from the retry timer.
+  function evaluateEndlessScroll() {
+    if (!endlessScrollEnabled || !extensionEnabled) return;
+    if (endlessScrollExhausted) return;
+    if (Date.now() < endlessScrollCooldownUntil) return;
+
+    const button = findEndlessScrollButton();
+    if (!button) return;
+
+    if (!endlessScrollInTriggerZone(button)) {
+      endlessScrollArmed = true;
+      return;
+    }
+    if (!endlessScrollArmed) return;
+    endlessScrollArmed = false;
+    endlessScrollLoadMore(button.closest('[data-test="timeline-stream"]'), button);
+  }
+
+  function setupEndlessScroll() {
+    if (!endlessScrollEnabled || !extensionEnabled) {
+      teardownEndlessScroll();
+      return;
+    }
+
+    // Reset stale state (cooldown / exhausted / armed flags) before (re)starting.
+    teardownEndlessScroll();
+    endlessScrollArmed = true;
+
+    // One global capture-phase listener catches scroll events from the window
+    // and from any nested scroll container. Bound once; a no-op when disabled.
+    if (!endlessScrollScrollBound) {
+      endlessScrollScrollBound = true;
+      window.addEventListener('scroll', evaluateEndlessScroll, { capture: true, passive: true });
+    }
+
+    // Prime immediately in case the user is already near the bottom.
+    evaluateEndlessScroll();
+
+    // The stream may not be mounted yet (Haiilo renders it lazily). Watch the
+    // DOM and re-prime the moment the button appears.
+    if (endlessScrollMountObserver) return;
+    let pending = false;
+    endlessScrollMountObserver = new MutationObserver(() => {
+      if (pending) return;
+      if (!endlessScrollEnabled || !extensionEnabled) return;
+      pending = true;
+      setTimeout(() => {
+        pending = false;
+        if (!endlessScrollEnabled || !extensionEnabled) return;
+        if (findEndlessScrollButton()) {
+          evaluateEndlessScroll();
+        }
+      }, 300);
+    });
+    endlessScrollMountObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    debugLog('[EndlessScroll] Listening for the timeline Load more button');
+  }
+
   // ── Reaction enhancements ──────────────────────────────────────────────────
 
   // Fetch and cache the current user's sender ID (required by the summary API).
@@ -2268,6 +2434,7 @@
                 if (!autoExpandMountObserver) {
                   setupAutoExpandMountObserver();
                 }
+                setupEndlessScroll();
                 reapplyReactionEnhancements();
                 sendResponse({ success: true });
               });
@@ -2335,6 +2502,10 @@
       autoExpandShowMoreLists();
       setupAutoExpandMountObserver();
 
+      // Endless scroll: auto-click the timeline "Load more" button when the
+      // user scrolls to the bottom (only acts when endlessScrollEnabled).
+      setupEndlessScroll();
+
       // Reaction enhancements (sort by count, hover tooltip)
       if (sortReactionsByCount || showReactionCountTooltip || showReactionCountInline) {
         setupReactionEnhancerObserver();
@@ -2396,6 +2567,7 @@
           const rawDelay = parseInt(settings.autoExpandDelayMs, 10);
           autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
+          endlessScrollEnabled = settings.endlessScrollEnabled === true;
           sortReactionsByCount = settings.sortReactionsByCount !== false;
           showReactionCountTooltip = settings.showReactionCountTooltip === true;
           showReactionCountInline = settings.showReactionCountInline === true;
@@ -2419,6 +2591,7 @@
               centerContentWithMessenger
             );
           }
+          setupEndlessScroll();
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
           debugLog('Avatar style:', avatarStyle, 'Ring:', ringColor, ringWidth, 'Square:', squareColor, squareWidth, 'Badge:', badgeSize, badgePosition);
@@ -2444,6 +2617,7 @@
           autoExpandClicksPerList = 3;
           autoExpandDelayMs = 300;
           autoExpandScope = 'both';
+          endlessScrollEnabled = false;
           sortReactionsByCount = true;
           showReactionCountTooltip = true;
           showReactionCountInline = false;
@@ -2474,6 +2648,7 @@
         autoExpandClicksPerList = 3;
         autoExpandDelayMs = 300;
         autoExpandScope = 'both';
+        endlessScrollEnabled = false;
         sortReactionsByCount = true;
         showReactionCountTooltip = true;
         showReactionCountInline = false;
@@ -2502,6 +2677,7 @@
       autoExpandClicksPerList = 3;
       autoExpandDelayMs = 300;
       autoExpandScope = 'both';
+      endlessScrollEnabled = false;
       sortReactionsByCount = true;
       showReactionCountTooltip = true;
       showReactionCountInline = false;

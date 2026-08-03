@@ -455,6 +455,12 @@
   "delayHelp": {
     "message": "Wie lange zwischen aufeinanderfolgenden Klicks auf „Mehr anzeigen“ gewartet werden soll. Niedrigere Werte wirken schneller, höhere Werte sind schonender für den Server. Bereich: 100–1000 ms."
   },
+  "endlessScroll": {
+    "message": "Endloses Scrollen für Timelines"
+  },
+  "endlessScrollDescription": {
+    "message": "Klickt automatisch auf „Mehr laden“, wenn du am Ende einer Timeline angekommen bist, sodass die nächsten Beiträge ohne weiteres Klicken geladen werden."
+  },
   "customDomains": {
     "message": "Benutzerdefinierte Haiilo-Domains"
   },

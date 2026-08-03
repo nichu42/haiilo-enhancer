@@ -551,6 +551,12 @@
   "delayHelp": {
     "message": "Mennyi ideig várjon a „Továbbiak megjelenítése” egymást követő kattintásai között. Az alacsonyabb értékek gyorsabbnak, a magasabbak kíméletesebbnek érződnek a szerverrel. Tartomány: 100–1000 ms."
   },
+  "endlessScroll": {
+    "message": "Végtelen görgetés az idővonalakhoz"
+  },
+  "endlessScrollDescription": {
+    "message": "Automatikusan rákattint a „Továbbiak betöltése” gombra, amikor egy idővonal aljára görget, így a következő bejegyzések folyamatosan töltődnek be kattintás nélkül."
+  },
   "customDomains": {
     "message": "Egyéni Haiilo-tartományok"
   },

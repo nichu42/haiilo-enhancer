@@ -455,6 +455,12 @@
   "delayHelp": {
     "message": "Durée d’attente entre deux clics consécutifs sur « Afficher plus ». Les valeurs faibles sont plus rapides, les valeurs élevées ménagent davantage le serveur. Plage : 100-1000 ms."
   },
+  "endlessScroll": {
+    "message": "Défilement infini pour les fils d'actualité"
+  },
+  "endlessScrollDescription": {
+    "message": "Clique automatiquement sur le bouton « Afficher plus » lorsque vous atteignez le bas d'un fil, afin que les publications suivantes se chargent en continu, sans clic."
+  },
   "customDomains": {
     "message": "Domaines Haiilo personnalisés"
   },

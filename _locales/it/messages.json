@@ -551,6 +551,12 @@
   "delayHelp": {
     "message": "Quanto attendere tra clic consecutivi su «Mostra altro». Valori più bassi sono più rapidi, quelli più alti più delicati con il server. Intervallo: 100-1000 ms."
   },
+  "endlessScroll": {
+    "message": "Scorrimento infinito per le timeline"
+  },
+  "endlessScrollDescription": {
+    "message": "Clicca automaticamente su «Carica altri» quando scorri fino in fondo a una timeline, così i post successivi vengono caricati in continuazione senza dover cliccare."
+  },
   "customDomains": {
     "message": "Domini Haiilo personalizzati"
   },

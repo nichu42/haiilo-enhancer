@@ -455,6 +455,12 @@
   "delayHelp": {
     "message": "Cuánto esperar entre clics consecutivos en «Mostrar más». Los valores bajos son más ágiles y los altos son más suaves para el servidor. Intervalo: 100-1000 ms."
   },
+  "endlessScroll": {
+    "message": "Desplazamiento infinito en las líneas de tiempo"
+  },
+  "endlessScrollDescription": {
+    "message": "Hace clic automáticamente en «Cargar más» cuando llegas al final de una línea de tiempo, para que la siguiente página de publicaciones se cargue sin necesidad de hacer clic."
+  },
   "customDomains": {
     "message": "Dominios Haiilo personalizados"
   },

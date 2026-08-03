@@ -551,6 +551,12 @@
   "delayHelp": {
     "message": "Jak długo czekać między kolejnymi kliknięciami „Pokaż więcej”. Mniejsze wartości są szybsze, większe łagodniejsze dla serwera. Zakres: 100–1000 ms."
   },
+  "endlessScroll": {
+    "message": "Nieskończone przewijanie osi czasu"
+  },
+  "endlessScrollDescription": {
+    "message": "Automatycznie klika przycisk „Załaduj więcej”, gdy przewiniesz na dół osi czasu, dzięki czemu kolejne posty wczytują się bez klikania."
+  },
   "customDomains": {
     "message": "Niestandardowe domeny Haiilo"
   },

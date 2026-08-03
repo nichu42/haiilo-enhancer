@@ -164,6 +164,8 @@
   "clicksHelp": { "message": "How many times to click \"Show more\" for each list (Workspaces and Pages are expanded independently). 0 disables clicking for that list. Max 10." },
   "delayBetweenClicks": { "message": "Delay between clicks (ms):" },
   "delayHelp": { "message": "How long to wait between consecutive \"Show more\" clicks. Lower values feel snappier, higher values are gentler on the server. Range: 100-1000 ms." },
+  "endlessScroll": { "message": "Endless scrolling for timelines" },
+  "endlessScrollDescription": { "message": "Automatically click the \"Load more\" button when you scroll to the bottom of a timeline, so the next page of posts loads continuously without clicking." },
   "customDomains": { "message": "Custom Haiilo Domains" },
   "customDomainsDescription": { "message": "If your organization uses a custom Haiilo URL (not *.haiilo.app or *.haiilo.com), add it here. The browser will ask you to grant access the first time — that's expected, it just means \"yes, run on this site too.\"" },
   "addCustomDomain": { "message": "Add custom domain:" },

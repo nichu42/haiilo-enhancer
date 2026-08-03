@@ -157,6 +157,7 @@ const DEFAULT_SETTINGS = {
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)
   autoExpandScope: 'both', // Which lists to expand: 'both', 'workspaces', or 'pages'
+  endlessScrollEnabled: false, // Auto-click the timeline "Load more" button when scrolled to the bottom
   cloudSync: false, // Sync settings and muted users via browser account (opt-in)
   theme: 'system', // 'system' (follow browser), 'light', or 'dark'
   sortReactionsByCount: true, // Sort reaction emojis by count (most used first)

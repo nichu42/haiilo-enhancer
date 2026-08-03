@@ -455,6 +455,12 @@
   "delayHelp": {
     "message": "Hoe lang te wachten tussen opeenvolgende klikken op „Meer weergeven”. Lagere waarden voelen sneller aan, hogere waarden zijn vriendelijker voor de server. Bereik: 100-1000 ms."
   },
+  "endlessScroll": {
+    "message": "Oneindig scrollen voor tijdlijnen"
+  },
+  "endlessScrollDescription": {
+    "message": "Klikt automatisch op „Meer laden” wanneer je onderaan een tijdlijn komt, zodat de volgende berichten doorlopend worden geladen zonder dat je hoeft te klikken."
+  },
   "customDomains": {
     "message": "Aangepaste Haiilo-domeinen"
   },

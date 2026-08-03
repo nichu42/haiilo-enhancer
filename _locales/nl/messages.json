@@ -422,6 +422,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Open basisopmaakopties naast geselecteerde tekst in Haiilo's rich-texteditor."
   },
+  "markdownToolbar": {
+    "message": "Een Markdown-werkbalk tonen bij het selecteren van tekst in editors"
+  },
+  "markdownToolbarDescription": {
+    "message": "Als je tekst selecteert in de editors van de chat of de tijdlijn, toont een kleine werkbalk met Markdown-snelkoppelingen (vet, cursief, doorgehaald, inline-code, codeblokken en citaten)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Het Haiilo Enhancer-merk tonen in de werkbalk"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Voegt een klein Haiilo Enhancer-merk toe aan het einde van de Markdown-werkbalk dat linkt naar de GitHub-pagina van het project."
+  },
+  "markdownBold": { "message": "Vet" },
+  "markdownItalic": { "message": "Cursief" },
+  "markdownStrike": { "message": "Doorgehaald" },
+  "markdownCode": { "message": "Inline-code" },
+  "markdownCodeBlock": { "message": "Codeblok" },
+  "markdownQuote": { "message": "Citaat" },
+  "markdownBrand": { "message": "Haiilo Enhancer op GitHub" },
+  "chatReplyMenu": {
+    "message": "Een actie 'Antwoorden' toevoegen aan de menu's van chatberichten"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Voegt een item 'Antwoorden' toe aan het vervolgkeuzemenu van berichten van andere gebruikers. Het citeert het bericht in de chat-editor zodat je er direct onder kunt antwoorden."
+  },
+  "chatReply": { "message": "Antwoorden" },
   "autoExpandDescription": {
     "message": "De linkerzijbalk van Haiilo toont een beperkt aantal werkruimten en pagina’s voordat de rest achter een knop „Meer weergeven” wordt verborgen. Schakel dit in om bij het laden van de pagina automatisch op die knop te klikken, zodat alle items meteen zichtbaar zijn."
   },

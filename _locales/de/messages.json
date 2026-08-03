@@ -422,6 +422,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Grundlegende Formatierungsoptionen neben markiertem Text im Haiilo-Rich-Text-Editor öffnen."
   },
+  "markdownToolbar": {
+    "message": "Markdown-Symbolleiste beim Auswählen von Text in Editoren anzeigen"
+  },
+  "markdownToolbarDescription": {
+    "message": "Wenn du Text im Chat- oder Timeline-Editor auswählst, wird eine kleine Symbolleiste mit Markdown-Verknüpfungen angezeigt (fett, kursiv, durchgestrichen, Inline-Code, Codeblöcke und Zitate)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Haiilo-Enhancer-Zeichen in der Symbolleiste anzeigen"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Fügt am Ende der Markdown-Symbolleiste ein kleines Haiilo-Enhancer-Zeichen hinzu, das auf die GitHub-Seite des Projekts verlinkt."
+  },
+  "markdownBold": { "message": "Fett" },
+  "markdownItalic": { "message": "Kursiv" },
+  "markdownStrike": { "message": "Durchgestrichen" },
+  "markdownCode": { "message": "Inline-Code" },
+  "markdownCodeBlock": { "message": "Codeblock" },
+  "markdownQuote": { "message": "Zitat" },
+  "markdownBrand": { "message": "Haiilo Enhancer auf GitHub" },
+  "chatReplyMenu": {
+    "message": "Eine Aktion „Antworten“ zu Chat-Nachrichtenmenüs hinzufügen"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Fügt einen Eintrag „Antworten“ zum Dropdown-Menü von Nachrichten anderer Benutzer hinzu. Er zitiert die Nachricht in den Chat-Editor, sodass du direkt darunter antworten kannst."
+  },
+  "chatReply": { "message": "Antworten" },
   "autoExpandDescription": {
     "message": "Die linke Seitenleiste von Haiilo zeigt nur eine begrenzte Anzahl an Arbeitsbereichen und Seiten, bevor der Rest hinter einer Schaltfläche „Mehr anzeigen“ verborgen wird. Aktiviere diese Option, um die Schaltfläche beim Laden der Seite automatisch anzuklicken und alle Einträge sofort anzuzeigen."
   },

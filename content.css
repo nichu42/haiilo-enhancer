@@ -116,6 +116,121 @@
   background: #d1d5db;
 }
 
+/* Markdown shortcut toolbar for the chat message editor (content.js). It
+ * shares the floating format toolbar's visual language but keeps its own
+ * class so the two features can be enabled/disabled independently. */
+.haiilo-enhancer-markdown-toolbar {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: #ffffff !important;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.12);
+  z-index: 2147483647;
+  pointer-events: auto !important;
+  user-select: none;
+  isolation: isolate;
+}
+
+.haiilo-enhancer-markdown-toolbar::after {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-right: 1px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
+  transform: translateX(-50%) rotate(45deg);
+  content: '';
+}
+
+.haiilo-enhancer-markdown-toolbar.is-below::after {
+  top: -5px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+.haiilo-enhancer-markdown-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto !important;
+}
+
+.haiilo-enhancer-markdown-button:hover {
+  background: #f3f4f6;
+}
+
+.haiilo-enhancer-markdown-button:focus-visible {
+  outline: 2px solid #0f939d;
+  outline-offset: -2px;
+}
+
+.haiilo-enhancer-markdown-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.haiilo-enhancer-markdown-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: #d1d5db;
+}
+
+/* Brand mark at the end of the Markdown toolbar linking to the project's
+ * GitHub page. Uses the extension's teal/purple mark as a subtle attribution
+ * and donation entry point. */
+.haiilo-enhancer-markdown-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.haiilo-enhancer-markdown-brand:hover {
+  background: #f3f4f6;
+}
+
+.haiilo-enhancer-markdown-brand:focus-visible {
+  outline: 2px solid #0f939d;
+  outline-offset: -2px;
+}
+
+.haiilo-enhancer-markdown-brand svg {
+  width: 19px;
+  height: 19px;
+  border-radius: 4px;
+}
+
+/* Inline reply icon rendered inside the chat message context menu item. The
+ * native cat-icon set has no reply icon, so it is drawn inline in the item's
+ * light DOM and slotted next to the label. */
+.haiilo-enhancer-reply-item .haiilo-enhancer-reply-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  vertical-align: -3px;
+}
+
 /* Haiilo's mention dropdown trigger renders as a block inside rich content,
  * so the editor's preserved whitespace becomes a large unwanted line break. */
 /* Optional: Show a subtle indicator where content was hidden */

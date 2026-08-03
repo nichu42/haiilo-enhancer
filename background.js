@@ -169,7 +169,10 @@ const DEFAULT_SETTINGS = {
   fixMentionPopup: true, // Fix oversized profile popups opened from rich content
   fixMobileWikiBreadcrumbs: false, // Fix collapsed wiki breadcrumbs on narrow screens
   fixWikiModeToggle: false, // Keep the wiki simple/advanced mode toggle in the toolbar
-  floatingRichTextToolbar: true // Show formatting controls next to selected editor text
+  floatingRichTextToolbar: true, // Show formatting controls next to selected editor text
+  markdownToolbar: true, // Show a Markdown shortcut toolbar when selecting text in the chat message editor
+  markdownToolbarBrand: true, // Show the Haiilo Enhancer mark at the end of the Markdown toolbar
+  chatReplyMenu: true // Add a "Reply" action to chat message context menus that quotes the message
 };
 
 function normalizeSettings(settings = {}) {

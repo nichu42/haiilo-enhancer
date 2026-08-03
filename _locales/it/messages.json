@@ -518,6 +518,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Apri i controlli di formattazione di base accanto al testo selezionato nell'editor di testo avanzato Haiilo."
   },
+  "markdownToolbar": {
+    "message": "Mostra una barra degli strumenti Markdown quando selezioni testo negli editor"
+  },
+  "markdownToolbarDescription": {
+    "message": "Quando selezioni testo negli editor della chat o della timeline, mostra una piccola barra degli strumenti con scorciatoie Markdown (grassetto, corsivo, barrato, codice in linea, blocchi di codice e citazioni)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Mostra il marchio Haiilo Enhancer nella barra degli strumenti"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Aggiunge un piccolo marchio Haiilo Enhancer alla fine della barra degli strumenti Markdown che collega alla pagina GitHub del progetto."
+  },
+  "markdownBold": { "message": "Grassetto" },
+  "markdownItalic": { "message": "Corsivo" },
+  "markdownStrike": { "message": "Barrato" },
+  "markdownCode": { "message": "Codice in linea" },
+  "markdownCodeBlock": { "message": "Blocco di codice" },
+  "markdownQuote": { "message": "Citazione" },
+  "markdownBrand": { "message": "Haiilo Enhancer su GitHub" },
+  "chatReplyMenu": {
+    "message": "Aggiungi un'azione «Rispondi» ai menu dei messaggi della chat"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Aggiunge una voce «Rispondi» al menu a discesa dei messaggi di altri utenti. Cita il messaggio nell'editor della chat così puoi rispondere subito sotto."
+  },
+  "chatReply": { "message": "Rispondi" },
   "autoExpandDescription": {
     "message": "La barra laterale sinistra di Haiilo mostra un numero limitato di spazi di lavoro e pagine e nasconde il resto dietro un pulsante «Mostra altro». Abilita questa opzione per fare clic automaticamente sul pulsante al caricamento della pagina, così tutte le voci saranno subito visibili."
   },

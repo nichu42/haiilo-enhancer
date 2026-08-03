@@ -133,6 +133,18 @@
   let floatingFormatEditor = null;
   let floatingFormatListenersBound = false;
 
+  // Markdown shortcut toolbar for the chat message editor (opt-in)
+  let markdownToolbarEnabled = true;
+  let markdownToolbarBrandEnabled = true;
+  let markdownToolbarEl = null;
+  let markdownToolbarEditor = null;
+  let markdownToolbarListenersBound = false;
+
+  // "Reply" action added to chat message context menus (opt-in)
+  let chatReplyMenuEnabled = true;
+  let chatReplyMenuHandle = null;
+  let chatReplyMenuTimer = null;
+
   // Reaction enhancements
   let sortReactionsByCount = true;
   let showReactionCountTooltip = true;
@@ -683,6 +695,391 @@
     document.addEventListener('keyup', () => setTimeout(updateFloatingFormatToolbar, 0));
     window.addEventListener('scroll', positionFloatingFormatToolbar, true);
     window.addEventListener('resize', positionFloatingFormatToolbar);
+  }
+
+  // ── Markdown shortcut toolbar for the chat message editor ───────────────
+  // Haiilo chats and timelines support basic Markdown but the editors are
+  // plain <textarea>s. When the user selects text inside one, show a small
+  // toolbar next to the selection that wraps/prefixes the selection with
+  // Markdown syntax. The command table and all DOM work are local to this
+  // feature; it is a no-op when disabled and safe after extension-context
+  // invalidation (it never touches extension APIs in its callbacks).
+  //
+  // The timeline post editor is a <textarea data-test="textarea-timeline-post">
+  // living inside a <cat-textarea> web component's shadow root, so focus
+  // detection must descend into shadow roots (see getDeepActiveElement).
+
+  // Editors where the toolbar is offered (chat message editor, timeline post
+  // composer, timeline comment editors).
+  const MARKDOWN_EDITOR_SELECTOR = [
+    'textarea[data-test="textarea-message-form"]',
+    'textarea[data-test="textarea-timeline-post"]',
+    'textarea[data-test="timeline-comment-message-edit-mode"]'
+  ].join(', ');
+
+  const MARKDOWN_ICON_BOLD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>';
+  const MARKDOWN_ICON_ITALIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 4h-9"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 20H5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 4L9 20"/></svg>';
+  const MARKDOWN_ICON_STRIKE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 4H9a3 3 0 0 0-2.83 4"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 12a4 4 0 0 1 0 8H6"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 12h16"/></svg>';
+  const MARKDOWN_ICON_CODE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 7l-5 5 5 5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 7l5 5-5 5"/></svg>';
+  const MARKDOWN_ICON_CODE_BLOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 3a2 2 0 0 1 2 2v2.5a2 2 0 0 0 2 2 2 2 0 0 0-2 2V14a2 2 0 0 1-2 2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 3a2 2 0 0 0-2 2v2.5a2 2 0 0 1-2 2 2 2 0 0 1 2 2V14a2 2 0 0 0 2 2"/></svg>';
+  const MARKDOWN_ICON_QUOTE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.17 6A4.17 4.17 0 0 0 3 10.17v5.58A2.25 2.25 0 0 0 5.25 18h3A2.25 2.25 0 0 0 10.5 15.75v-3A2.25 2.25 0 0 0 8.25 10.5H5.83A4.17 4.17 0 0 1 10 6.33 1 1 0 0 0 7.17 6zM17.17 6A4.17 4.17 0 0 0 13 10.17v5.58A2.25 2.25 0 0 0 15.25 18h3A2.25 2.25 0 0 0 20.5 15.75v-3A2.25 2.25 0 0 0 18.25 10.5h-2.42A4.17 4.17 0 0 1 20 6.33 1 1 0 0 0 17.17 6z"/></svg>';
+
+  const MARKDOWN_COMMANDS = {
+    bold: { prefix: '**', suffix: '**' },
+    italic: { prefix: '*', suffix: '*' },
+    strike: { prefix: '~~', suffix: '~~' },
+    code: { prefix: '`', suffix: '`' },
+    codeBlock: { prefix: '\n```\n', suffix: '\n```\n', lineWise: true },
+    quote: { prefix: '> ', lineWise: true }
+  };
+  const MARKDOWN_ICONS = {
+    bold: MARKDOWN_ICON_BOLD,
+    italic: MARKDOWN_ICON_ITALIC,
+    strike: MARKDOWN_ICON_STRIKE,
+    code: MARKDOWN_ICON_CODE,
+    codeBlock: MARKDOWN_ICON_CODE_BLOCK,
+    quote: MARKDOWN_ICON_QUOTE
+  };
+  const MARKDOWN_GROUPS = [
+    ['bold', 'italic', 'strike'],
+    ['code', 'codeBlock'],
+    ['quote']
+  ];
+
+  // Resolve the element that actually has focus, descending into shadow roots
+  // (document.activeElement only reports the shadow host, e.g. cat-textarea).
+  function getDeepActiveElement() {
+    let el = document.activeElement;
+    try {
+      while (el && el.shadowRoot && el.shadowRoot.activeElement) {
+        el = el.shadowRoot.activeElement;
+      }
+    } catch (e) {
+      // ignore malformed shadow roots
+    }
+    return el;
+  }
+
+  function getActiveChatEditor() {
+    const active = getDeepActiveElement();
+    if (active && active.matches && active.matches(MARKDOWN_EDITOR_SELECTOR)) {
+      return active;
+    }
+    return null;
+  }
+
+  // Measure the viewport position of the caret at `position` inside a
+  // <textarea> by mirroring its text into an offscreen div with identical
+  // fonts/padding/borders. Returns { left, top } or null when it cannot.
+  function getTextareaCaretPosition(ta, position) {
+    const taRect = ta.getBoundingClientRect();
+    if (!taRect.width || !taRect.height) return null;
+    const styles = getComputedStyle(ta);
+
+    const div = document.createElement('div');
+    const copyProps = [
+      'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant',
+      'fontStretch', 'letterSpacing', 'lineHeight', 'textTransform',
+      'wordSpacing', 'textIndent', 'tabSize', 'paddingTop', 'paddingRight',
+      'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth',
+      'borderBottomWidth', 'borderLeftWidth'
+    ];
+    copyProps.forEach(prop => {
+      div.style[prop] = styles[prop];
+    });
+    // Mirror the textarea's border-box width so its content box matches the
+    // textarea's content box (identical borders/padding/font metrics).
+    div.style.boxSizing = 'border-box';
+    div.style.width = taRect.width + 'px';
+    div.style.whiteSpace = ta.wrap === 'off' ? 'pre' : 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.style.overflowWrap = 'break-word';
+    div.style.position = 'fixed';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.style.visibility = 'hidden';
+    div.textContent = ta.value.substring(0, position);
+    const marker = document.createElement('span');
+    marker.textContent = '\u200b';
+    div.appendChild(marker);
+    document.body.appendChild(div);
+
+    const markerRect = marker.getBoundingClientRect();
+    document.body.removeChild(div);
+
+    return {
+      left: taRect.left + markerRect.left - ta.scrollLeft,
+      top: taRect.top + markerRect.top - ta.scrollTop
+    };
+  }
+
+  function hideMarkdownToolbar() {
+    if (!markdownToolbarEl) return;
+    markdownToolbarEl.hidden = true;
+    markdownToolbarEl.classList.remove('is-below');
+  }
+
+  function positionMarkdownToolbar(caret) {
+    if (!markdownToolbarEl || markdownToolbarEl.hidden || !caret) return;
+
+    const gap = 8;
+    const margin = 8;
+    const toolbarWidth = markdownToolbarEl.offsetWidth;
+    const toolbarHeight = markdownToolbarEl.offsetHeight;
+    const left = Math.max(margin, Math.min(
+      window.innerWidth - toolbarWidth - margin,
+      caret.left - (toolbarWidth / 2)
+    ));
+    const hasRoomAbove = caret.top >= toolbarHeight + gap + margin;
+    const top = hasRoomAbove
+      ? caret.top - toolbarHeight - gap
+      : Math.min(window.innerHeight - toolbarHeight - margin, caret.top + gap);
+
+    markdownToolbarEl.classList.toggle('is-below', !hasRoomAbove);
+    markdownToolbarEl.style.left = `${left}px`;
+    markdownToolbarEl.style.top = `${Math.max(margin, top)}px`;
+  }
+
+  function updateMarkdownToolbar() {
+    if (!markdownToolbarEnabled || !extensionEnabled) {
+      hideMarkdownToolbar();
+      return;
+    }
+    const editor = getActiveChatEditor();
+    if (!editor) {
+      hideMarkdownToolbar();
+      return;
+    }
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    if (start == null || end == null || start === end) {
+      hideMarkdownToolbar();
+      return;
+    }
+    markdownToolbarEditor = editor;
+    if (!markdownToolbarEl) createMarkdownToolbar();
+    if (!markdownToolbarEl) return;
+    const caret = getTextareaCaretPosition(editor, start);
+    if (!caret) {
+      hideMarkdownToolbar();
+      return;
+    }
+    markdownToolbarEl.hidden = false;
+    markdownToolbarEl.style.visibility = 'hidden';
+    positionMarkdownToolbar(caret);
+    markdownToolbarEl.style.visibility = 'visible';
+  }
+
+  function createMarkdownButton(cmd) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'haiilo-enhancer-markdown-button';
+    button.dataset.cmd = cmd;
+    const label = t('markdown' + cmd.charAt(0).toUpperCase() + cmd.slice(1));
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    button.innerHTML = MARKDOWN_ICONS[cmd] || '';
+    button.addEventListener('mousedown', event => event.preventDefault());
+    button.addEventListener('click', () => {
+      if (isExtensionContextValid()) applyMarkdownCommand(cmd);
+    });
+    return button;
+  }
+
+  function createMarkdownToolbar() {
+    if (markdownToolbarEl || !document.body) return;
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'haiilo-enhancer-markdown-toolbar';
+    toolbar.hidden = true;
+    toolbar.setAttribute('role', 'toolbar');
+    toolbar.setAttribute('aria-label', t('markdownToolbar'));
+
+    MARKDOWN_GROUPS.forEach((group, groupIndex) => {
+      if (groupIndex > 0) {
+        const divider = document.createElement('span');
+        divider.className = 'haiilo-enhancer-markdown-divider';
+        divider.setAttribute('aria-hidden', 'true');
+        toolbar.appendChild(divider);
+      }
+      group.forEach(cmd => toolbar.appendChild(createMarkdownButton(cmd)));
+    });
+
+    // Small brand mark linking to the project's GitHub page. Subtle
+    // attribution/donation entry point that only shows while the toolbar is
+    // visible (i.e. while the user selects text in the editor). Can be
+    // switched off via the markdownToolbarBrand setting.
+    if (markdownToolbarBrandEnabled) {
+      const divider = document.createElement('span');
+      divider.className = 'haiilo-enhancer-markdown-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      toolbar.appendChild(divider);
+
+      const brand = document.createElement('a');
+      brand.className = 'haiilo-enhancer-markdown-brand';
+      brand.href = 'https://github.com/nichu42/haiilo-enhancer';
+      brand.target = '_blank';
+      brand.rel = 'noopener noreferrer';
+      const label = t('markdownBrand');
+      brand.title = label;
+      brand.setAttribute('aria-label', label);
+      brand.innerHTML =
+        '<svg viewBox="0 0 500 500" aria-hidden="true">' +
+        '<rect x="0" y="0" width="500" height="500" rx="100" fill="#0f939d"/>' +
+        '<path d="M110 90 H390 V150 H190 V218 H350 V282 H190 V350 H390 V410 H110 Z" fill="#502379"/>' +
+        '</svg>';
+      toolbar.appendChild(brand);
+    }
+
+    document.body.appendChild(toolbar);
+    markdownToolbarEl = toolbar;
+  }
+
+  function removeMarkdownToolbar() {
+    markdownToolbarEl?.remove();
+    markdownToolbarEl = null;
+    markdownToolbarEditor = null;
+  }
+
+  function applyMarkdownCommand(cmd) {
+    const editor = markdownToolbarEditor;
+    if (!editor || !editor.isConnected) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    if (start == null || end == null || start > end) return;
+
+    const selected = editor.value.substring(start, end);
+    const config = MARKDOWN_COMMANDS[cmd];
+    let replacement = '';
+    let newStart = start;
+    let newEnd = end;
+
+    if (config.lineWise) {
+      const lines = selected.split('\n');
+      replacement = lines.map(line => config.prefix + line).join('\n');
+      newEnd = start + replacement.length;
+    } else {
+      replacement = config.prefix + selected + config.suffix;
+      newStart = start + config.prefix.length;
+      newEnd = newStart + selected.length;
+    }
+
+    editor.focus({ preventScroll: true });
+    editor.setRangeText(replacement, start, end, 'end');
+    editor.setSelectionRange(newStart, newEnd);
+    editor.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    updateMarkdownToolbar();
+  }
+
+  function setupMarkdownToolbar() {
+    if (!extensionEnabled || !markdownToolbarEnabled) {
+      removeMarkdownToolbar();
+      return;
+    }
+    if (markdownToolbarEl && !markdownToolbarEl.querySelector('button')) {
+      removeMarkdownToolbar();
+    }
+    createMarkdownToolbar();
+    if (markdownToolbarListenersBound) return;
+    markdownToolbarListenersBound = true;
+
+    document.addEventListener('selectionchange', () => setTimeout(updateMarkdownToolbar, 0));
+    document.addEventListener('mouseup', () => setTimeout(updateMarkdownToolbar, 0));
+    document.addEventListener('keyup', () => setTimeout(updateMarkdownToolbar, 0));
+    document.addEventListener('focusout', event => {
+      if (markdownToolbarEl && !markdownToolbarEl.contains(event.relatedTarget)) {
+        hideMarkdownToolbar();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      if (!markdownToolbarEl || markdownToolbarEl.hidden || !markdownToolbarEditor) return;
+      const caret = getTextareaCaretPosition(
+        markdownToolbarEditor,
+        markdownToolbarEditor.selectionStart
+      );
+      if (caret) positionMarkdownToolbar(caret);
+    }, true);
+    window.addEventListener('resize', () => setTimeout(updateMarkdownToolbar, 0));
+  }
+
+  // ── "Reply" action in chat message context menus ────────────────────────
+  // Haiilo's per-message dropdown (hover a chat message → "Copy text")
+  // renders its items into a <cat-menu> light-DOM slot. Appending a
+  // <cat-menu-item> works and clicking it closes the menu. This feature adds
+  // a "Reply" item to messages from other users that quotes the message text
+  // into the chat editor (a leading "> " per line, a blank line, then the
+  // caret ready for typing).
+
+  function applyChatReplyMenuItems() {
+    if (!extensionEnabled || !chatReplyMenuEnabled) return;
+    const messages = document.querySelectorAll('coyo-messaging-message');
+    for (const message of messages) {
+      const wrap = message.querySelector('.message-wrapper');
+      if (!wrap || wrap.classList.contains('current-user-is-an-author')) continue;
+      const menu = message.querySelector('cat-menu');
+      if (!menu || menu.querySelector('.haiilo-enhancer-reply-item')) continue;
+      const item = document.createElement('cat-menu-item');
+      item.className = 'haiilo-enhancer-reply-item';
+      // The native cat-icon set has no reply icon, so render the icon inline
+      // in the item's light DOM (it is slotted next to the label).
+      item.innerHTML =
+        '<svg class="haiilo-enhancer-reply-icon" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 14l-4-4 4-4"/>' +
+        '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 20v-7a4 4 0 0 0-4-4H4"/>' +
+        '</svg>' +
+        '<span>' + t('chatReply') + '</span>';
+      item.addEventListener('click', event => {
+        event.stopPropagation();
+        if (isExtensionContextValid()) quoteChatMessage(message);
+      });
+      menu.appendChild(item);
+    }
+  }
+
+  function quoteChatMessage(message) {
+    const textElement = message.querySelector('coyo-messaging-safe-html[data-test="message-text"]');
+    const text = (textElement ? textElement.textContent : '').trim();
+    const editor = document.querySelector('textarea[data-test="textarea-message-form"]');
+    if (!editor || !text) return;
+
+    const quoted = '> ' + text.split('\n').join('\n> ') + '\n\n';
+    editor.focus({ preventScroll: true });
+    editor.value = quoted;
+    editor.setSelectionRange(quoted.length, quoted.length);
+    editor.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    editor.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function setupChatReplyMenu() {
+    if (!extensionEnabled || !chatReplyMenuEnabled) {
+      if (chatReplyMenuHandle) {
+        chatReplyMenuHandle.stop();
+        chatReplyMenuHandle = null;
+      }
+      document.querySelectorAll('cat-menu .haiilo-enhancer-reply-item').forEach(item => item.remove());
+      return;
+    }
+    if (chatReplyMenuHandle) {
+      applyChatReplyMenuItems();
+      return;
+    }
+    chatReplyMenuHandle = domMutation.register({
+      active: () => extensionEnabled && chatReplyMenuEnabled,
+      onRecords() {
+        if (chatReplyMenuTimer) return;
+        chatReplyMenuTimer = setTimeout(() => {
+          chatReplyMenuTimer = null;
+          applyChatReplyMenuItems();
+        }, 100);
+      },
+      teardown() {
+        if (chatReplyMenuTimer) {
+          clearTimeout(chatReplyMenuTimer);
+          chatReplyMenuTimer = null;
+        }
+      }
+    });
+    applyChatReplyMenuItems();
   }
 
   // Function to remove Haiilo's body locking styles
@@ -2617,6 +3014,8 @@
 
                 setupAdvancedModeToolbarButton();
                 setupFloatingFormatToolbar();
+                setupMarkdownToolbar();
+                setupChatReplyMenu();
                 autoExpandProcessed.clear();
                 autoExpandShowMoreLists();
                 if (!autoExpandMountObserver) {
@@ -2676,6 +3075,8 @@
       setupMutationObserver();
       setupAdvancedModeToolbarButton();
       setupFloatingFormatToolbar();
+      setupMarkdownToolbar();
+      setupChatReplyMenu();
       setupTypingPauseListener();
       setupRightClickListener();
       setupLogoClickInterceptor();
@@ -2773,6 +3174,9 @@
           mobileWikiBreadcrumbFixEnabled = settings.fixMobileWikiBreadcrumbs === true;
           wikiModeToggleFixEnabled = settings.fixWikiModeToggle === true;
           floatingRichTextToolbarEnabled = settings.floatingRichTextToolbar !== false;
+          markdownToolbarEnabled = settings.markdownToolbar === true;
+          markdownToolbarBrandEnabled = settings.markdownToolbarBrand !== false;
+          chatReplyMenuEnabled = settings.chatReplyMenu === true;
           applyMentionFixStyles();
           applyMobileWikiBreadcrumbFixStyles();
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
@@ -2790,6 +3194,8 @@
           }
           setupEndlessScroll();
           setupAutoLoadUpdates();
+          setupMarkdownToolbar();
+          setupChatReplyMenu();
           debugLog('Debug mode:', debugMode);
           debugLog('Enhance channel avatars:', enhanceChannelAvatars);
           debugLog('Avatar style:', avatarStyle, 'Ring:', ringColor, ringWidth, 'Square:', squareColor, squareWidth, 'Badge:', badgeSize, badgePosition);
@@ -2825,6 +3231,9 @@
           mobileWikiBreadcrumbFixEnabled = false;
           wikiModeToggleFixEnabled = false;
           floatingRichTextToolbarEnabled = true;
+          markdownToolbarEnabled = true;
+          markdownToolbarBrandEnabled = true;
+          chatReplyMenuEnabled = true;
           applyMentionFixStyles();
           applyMobileWikiBreadcrumbFixStyles();
         }
@@ -2857,6 +3266,9 @@
         mobileWikiBreadcrumbFixEnabled = false;
         wikiModeToggleFixEnabled = false;
         floatingRichTextToolbarEnabled = true;
+        markdownToolbarEnabled = true;
+        markdownToolbarBrandEnabled = true;
+        chatReplyMenuEnabled = true;
         applyMentionFixStyles();
       }
     } catch (e) {
@@ -2886,6 +3298,9 @@
       mobileWikiBreadcrumbFixEnabled = false;
       wikiModeToggleFixEnabled = false;
       floatingRichTextToolbarEnabled = true;
+      markdownToolbarEnabled = true;
+      markdownToolbarBrandEnabled = true;
+      chatReplyMenuEnabled = true;
       applyMentionFixStyles();
       applyMobileWikiBreadcrumbFixStyles();
     }

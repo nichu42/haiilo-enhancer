@@ -518,6 +518,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Otevřít základní možnosti formátování vedle vybraného textu v editoru formátovaného textu Haiilo."
   },
+  "markdownToolbar": {
+    "message": "Zobrazit panel nástrojů Markdown při výběru textu v editorech"
+  },
+  "markdownToolbarDescription": {
+    "message": "Po označení textu v editoru chatu nebo časové osy zobrazí malý panel nástrojů se zkratkami Markdown (tučné, kurzíva, přeškrtnutí, řádkový kód, bloky kódu a citace)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Zobrazit značku Haiilo Enhancer na panelu nástrojů"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Přidá na konec panelu nástrojů Markdown malou značku Haiilo Enhancer, která odkazuje na GitHub stránku projektu."
+  },
+  "markdownBold": { "message": "Tučné" },
+  "markdownItalic": { "message": "Kurzíva" },
+  "markdownStrike": { "message": "Přeškrtnuté" },
+  "markdownCode": { "message": "Řádkový kód" },
+  "markdownCodeBlock": { "message": "Blok kódu" },
+  "markdownQuote": { "message": "Citace" },
+  "markdownBrand": { "message": "Haiilo Enhancer na GitHubu" },
+  "chatReplyMenu": {
+    "message": "Přidat akci „Odpovědět“ do nabídek zpráv chatu"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Přidá položku „Odpovědět“ do rozevírací nabídky u zpráv jiných uživatelů. Cituje zprávu do editoru chatu, takže můžeš odpovědět přímo pod ní."
+  },
+  "chatReply": { "message": "Odpovědět" },
   "autoExpandDescription": {
     "message": "Levý postranní panel Haiilo zobrazuje omezený počet pracovních prostorů a stránek a zbytek skrývá za tlačítkem „Zobrazit více“. Povolte tuto funkci a tlačítko se po načtení stránky automaticky klikne, aby byly všechny položky ihned viditelné."
   },

@@ -422,6 +422,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Ouvrir les options de mise en forme de base à côté du texte sélectionné dans l'éditeur de texte riche Haiilo."
   },
+  "markdownToolbar": {
+    "message": "Afficher une barre d'outils Markdown lors de la sélection de texte dans les éditeurs"
+  },
+  "markdownToolbarDescription": {
+    "message": "Lorsque vous sélectionnez du texte dans les éditeurs de chat ou de fil d'actualité, affiche une petite barre d'outils avec des raccourcis Markdown (gras, italique, barré, code en ligne, blocs de code et citations)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Afficher la marque Haiilo Enhancer dans la barre d'outils"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Ajoute une petite marque Haiilo Enhancer à la fin de la barre d'outils Markdown qui renvoie à la page GitHub du projet."
+  },
+  "markdownBold": { "message": "Gras" },
+  "markdownItalic": { "message": "Italique" },
+  "markdownStrike": { "message": "Barré" },
+  "markdownCode": { "message": "Code en ligne" },
+  "markdownCodeBlock": { "message": "Bloc de code" },
+  "markdownQuote": { "message": "Citation" },
+  "markdownBrand": { "message": "Haiilo Enhancer sur GitHub" },
+  "chatReplyMenu": {
+    "message": "Ajouter une action « Répondre » aux menus des messages du chat"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Ajoute un élément « Répondre » au menu déroulant des messages d'autres utilisateurs. Il cite le message dans l'éditeur du chat pour que vous puissiez répondre juste en dessous."
+  },
+  "chatReply": { "message": "Répondre" },
   "autoExpandDescription": {
     "message": "La barre latérale gauche de Haiilo affiche un nombre limité d’espaces de travail et de pages avant de masquer le reste derrière un bouton « Afficher plus ». Activez cette option pour cliquer automatiquement sur ce bouton au chargement de la page et afficher toutes les entrées immédiatement."
   },

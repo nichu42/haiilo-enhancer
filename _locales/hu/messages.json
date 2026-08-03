@@ -518,6 +518,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Alapvető formázási lehetőségek megnyitása a kijelölt szöveg mellett a Haiilo rich text szerkesztőjében."
   },
+  "markdownToolbar": {
+    "message": "Markdown eszköztár megjelenítése szöveg kijelölésekor a szerkesztőkben"
+  },
+  "markdownToolbarDescription": {
+    "message": "Ha szöveget jelölsz ki a chat vagy az idővonal szerkesztőjében, egy kis eszköztár jelenik meg Markdown parancsikonokkal (félkövér, dőlt, áthúzott, sorba ágyazott kód, kódblokkok és idézetek)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Haiilo Enhancer jel megjelenítése az eszköztáron"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Kis Haiilo Enhancer jelet ad a Markdown eszköztár végére, amely a projekt GitHub-oldalára mutató hivatkozást tartalmaz."
+  },
+  "markdownBold": { "message": "Félkövér" },
+  "markdownItalic": { "message": "Dőlt" },
+  "markdownStrike": { "message": "Áthúzott" },
+  "markdownCode": { "message": "Sorba ágyazott kód" },
+  "markdownCodeBlock": { "message": "Kódblokk" },
+  "markdownQuote": { "message": "Idézet" },
+  "markdownBrand": { "message": "Haiilo Enhancer a GitHubon" },
+  "chatReplyMenu": {
+    "message": "„Válasz” művelet hozzáadása a chat üzenetmenühöz"
+  },
+  "chatReplyMenuDescription": {
+    "message": "„Válasz” elemet ad hozzá más felhasználók üzeneteinek lenyíló menüjéhez. Idézi az üzenetet a chat szerkesztőjébe, így közvetlenül alá válaszolhatsz."
+  },
+  "chatReply": { "message": "Válasz" },
   "autoExpandDescription": {
     "message": "A Haiilo bal oldalsávja korlátozott számú munkaterületet és oldalt jelenít meg, a többit pedig a „Továbbiak megjelenítése” gomb mögé rejti. Engedélyezd ezt az automatikus kattintást az oldal betöltésekor, így minden bejegyzés azonnal látható lesz."
   },

@@ -518,6 +518,32 @@
   "floatingRichTextToolbarDescription": {
     "message": "Otwórz podstawowe opcje formatowania obok zaznaczonego tekstu w edytorze tekstu sformatowanego Haiilo."
   },
+  "markdownToolbar": {
+    "message": "Pokaż pasek narzędzi Markdown przy zaznaczaniu tekstu w edytorach"
+  },
+  "markdownToolbarDescription": {
+    "message": "Po zaznaczeniu tekstu w edytorze czatu lub osi czasu pokaże mały pasek narzędzi ze skrótami Markdown (pogrubienie, kursywa, przekreślenie, kod w tekście, bloki kodu i cytaty)."
+  },
+  "markdownToolbarBrand": {
+    "message": "Pokaż znak Haiilo Enhancer na pasku narzędzi"
+  },
+  "markdownToolbarBrandDescription": {
+    "message": "Dodaje mały znak Haiilo Enhancer na końcu paska narzędzi Markdown, który prowadzi do strony GitHub projektu."
+  },
+  "markdownBold": { "message": "Pogrubienie" },
+  "markdownItalic": { "message": "Kursywa" },
+  "markdownStrike": { "message": "Przekreślenie" },
+  "markdownCode": { "message": "Kod w tekście" },
+  "markdownCodeBlock": { "message": "Blok kodu" },
+  "markdownQuote": { "message": "Cytat" },
+  "markdownBrand": { "message": "Haiilo Enhancer na GitHubie" },
+  "chatReplyMenu": {
+    "message": "Dodaj akcję „Odpowiedz” do menu wiadomości czatu"
+  },
+  "chatReplyMenuDescription": {
+    "message": "Dodaje pozycję „Odpowiedz” do menu rozwijanego wiadomości innych użytkowników. Cytuje wiadomość w edytorze czatu, abyś mógł odpowiedzieć bezpośrednio pod nią."
+  },
+  "chatReply": { "message": "Odpowiedz" },
   "autoExpandDescription": {
     "message": "Lewy pasek boczny Haiilo pokazuje ograniczoną liczbę obszarów roboczych i stron, a resztę ukrywa za przyciskiem „Pokaż więcej”. Włącz tę funkcję, aby automatycznie kliknąć przycisk po załadowaniu strony i od razu wyświetlić wszystkie wpisy."
   },

@@ -57,6 +57,15 @@ function syncAutoLoadIdleControl() {
   idleSlider.disabled = !autoLoadCheckbox.checked;
 }
 
+// The brand-mark toggle only makes sense when the Markdown toolbar feature
+// itself is enabled, so hide the group otherwise.
+function syncMarkdownBrandControl() {
+  const markdownCheckbox = document.getElementById('markdownToolbar');
+  const brandGroup = document.getElementById('markdownToolbarBrandGroup');
+  if (!markdownCheckbox || !brandGroup) return;
+  brandGroup.style.display = markdownCheckbox.checked ? '' : 'none';
+}
+
 // Debug logging helper - reads the debugMode flag from settings on each
 // call so live toggles take effect without reload.
 function debugLog(...args) {
@@ -325,6 +334,10 @@ async function loadSettings() {
   document.getElementById('fixMobileWikiBreadcrumbs').checked = settings.fixMobileWikiBreadcrumbs === true;
   document.getElementById('fixWikiModeToggle').checked = settings.fixWikiModeToggle === true;
   document.getElementById('floatingRichTextToolbar').checked = settings.floatingRichTextToolbar !== false;
+  document.getElementById('markdownToolbar').checked = settings.markdownToolbar === true;
+  document.getElementById('markdownToolbarBrand').checked = settings.markdownToolbarBrand !== false;
+  syncMarkdownBrandControl();
+  document.getElementById('chatReplyMenu').checked = settings.chatReplyMenu === true;
   document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;
@@ -633,6 +646,12 @@ function setupEventListeners() {
   document.getElementById('fixMobileWikiBreadcrumbs').addEventListener('change', saveSettings);
   document.getElementById('fixWikiModeToggle').addEventListener('change', saveSettings);
   document.getElementById('floatingRichTextToolbar').addEventListener('change', saveSettings);
+  document.getElementById('markdownToolbar').addEventListener('change', () => {
+    syncMarkdownBrandControl();
+    saveSettings();
+  });
+  document.getElementById('markdownToolbarBrand').addEventListener('change', saveSettings);
+  document.getElementById('chatReplyMenu').addEventListener('change', saveSettings);
 
   // Cloud sync toggle
   const cloudSyncCheckbox = document.getElementById('cloudSync');
@@ -894,6 +913,9 @@ async function saveSettings() {
     fixMobileWikiBreadcrumbs: document.getElementById('fixMobileWikiBreadcrumbs').checked,
     fixWikiModeToggle: document.getElementById('fixWikiModeToggle').checked,
     floatingRichTextToolbar: document.getElementById('floatingRichTextToolbar').checked,
+    markdownToolbar: document.getElementById('markdownToolbar').checked,
+    markdownToolbarBrand: document.getElementById('markdownToolbarBrand').checked,
+    chatReplyMenu: document.getElementById('chatReplyMenu').checked,
     keepMessengerExpanded: document.getElementById('keepMessengerExpanded').checked,
     messengerPanelWidthPercent: clampMessengerPanelWidthPercent(document.getElementById('messengerPanelWidthPercent').value),
     centerContentWithMessenger:

@@ -1131,6 +1131,25 @@ footer .donate-icon {
   line-height: 1.6;
 }
 
+/* Match the popup body's scrollbar styling so the modal scrolls natively */
+.legal-dialog-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.legal-dialog-body::-webkit-scrollbar-track {
+  background: var(--color-bg-lighter);
+}
+
+.legal-dialog-body::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary);
+  border-radius: 5px;
+  border: 2px solid var(--color-bg-lighter);
+}
+
+.legal-dialog-body::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-primary-dark);
+}
+
 .legal-dialog-body h3 {
   margin: 18px 0 8px;
   font-size: 13px;

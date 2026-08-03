@@ -25,14 +25,6 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 - 💾 **Keep control of your data**  
   Export or import settings and muted users; optionally sync them through your browser account.
 
-## 🚀 Quick start
-
-1. Install the extension for your browser.
-2. Open Haiilo.
-3. Right-click a username to mute that user temporarily or permanently.
-4. Open the extension popup to review muted users, see a live count of hidden items on the current page, and use quick interface options.
-5. Click **Settings** in the popup for custom domains, date/time format, sidebar behavior, avatar and reaction customization, backups, and advanced settings.
-
 ## 📥 Installation
 
 ### 🌐 Chromium-based browsers (Chrome, Edge, Brave, Vivaldi, etc.)
@@ -53,16 +45,16 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 
 ---
 
-## 🔐 Permissions and privacy
-
-Everything happens locally in your browser. Haiilo Enhancer stores all settings locally in your browser using extension storage. This includes muted users, display preferences, custom domains, and backup/restore data.
-The extension does not send your Haiilo content, muted users, or settings to any external service. If you enable the optional browser sync feature, your muted users and settings are synced via your browser account's built-in sync infrastructure — no third-party servers are involved.
-
 ## ⚠️ Known limitations
 
 - Haiilo is a dynamic web application, so UI selectors can occasionally change after Haiilo updates. Please [report any issues](https://github.com/nichu42/haiilo-enhancer/issues) if you encounter problems.
 - Custom domains require explicit browser permission before the extension can run on them.
 - In Chromium-based browsers, optional host permissions may remain visible in the browser's extension settings even after removing a custom domain from the extension. To remove them, you may need to remove and re-install the extension.
+
+## 🔐 Permissions and privacy
+
+Everything happens locally in your browser. Haiilo Enhancer stores all settings locally in your browser using extension storage. This includes muted users, display preferences, custom domains, and backup/restore data.
+The extension does not send your Haiilo content, muted users, or settings to any external service. If you enable the optional browser sync feature, your muted users and settings are synced via your browser account's built-in sync infrastructure — no third-party servers are involved.
 
 ## 💬 Issues & Community
 

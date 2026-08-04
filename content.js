@@ -329,6 +329,13 @@
     }
   };
 
+  function parseSVG(svgString) {
+    if (!svgString) return null;
+    const doc = new DOMParser().parseFromString(svgString, 'image/svg+xml');
+    const el = doc.documentElement;
+    return el && el.nodeName !== 'parsererror' ? el : null;
+  }
+
   // Normalize Haiilo's mention trigger so editor whitespace does not create
   // a large blank line around an otherwise inline mention.
   function applyMentionFixStyles() {
@@ -469,11 +476,12 @@
       toolbarButton = document.createElement('button');
       toolbarButton.type = 'button';
       toolbarButton.className = 'fr-btn haiilo-enhancer-mode-toggle';
-      toolbarButton.innerHTML = `
-      <svg class="fr-svg" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M7 5h10.17l-2.58-2.59L16 1l5 5-5 5-1.41-1.41L17.17 7H7V5Zm10 14H6.83l2.58 2.59L8 23l-5-5 5-5 1.41 1.41L6.83 17H17v2Z"/>
-        </svg>
-      `;
+      const toggleSvg = parseSVG(
+        '<svg class="fr-svg" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path fill="currentColor" d="M7 5h10.17l-2.58-2.59L16 1l5 5-5 5-1.41-1.41L17.17 7H7V5Zm10 14H6.83l2.58 2.59L8 23l-5-5 5-5 1.41 1.41L6.83 17H17v2Z"/>' +
+        '</svg>'
+      );
+      if (toggleSvg) toolbarButton.appendChild(toggleSvg);
       targetGroup.insertBefore(toolbarButton, targetGroup.firstChild);
       toolbarButton.addEventListener('click', () => {
         if (isExtensionContextValid()) {
@@ -878,7 +886,8 @@
     const label = t('markdown' + cmd.charAt(0).toUpperCase() + cmd.slice(1));
     button.setAttribute('aria-label', label);
     button.title = label;
-    button.innerHTML = MARKDOWN_ICONS[cmd] || '';
+    const iconSvg = parseSVG(MARKDOWN_ICONS[cmd]);
+    if (iconSvg) button.appendChild(iconSvg);
     button.addEventListener('mousedown', event => event.preventDefault());
     button.addEventListener('click', () => {
       if (isExtensionContextValid()) applyMarkdownCommand(cmd);
@@ -923,11 +932,13 @@
       const label = t('markdownBrand');
       brand.title = label;
       brand.setAttribute('aria-label', label);
-      brand.innerHTML =
+      const brandSvg = parseSVG(
         '<svg viewBox="0 0 500 500" aria-hidden="true">' +
         '<rect x="0" y="0" width="500" height="500" rx="100" fill="#0f939d"/>' +
         '<path d="M110 90 H390 V150 H190 V218 H350 V282 H190 V350 H390 V410 H110 Z" fill="#502379"/>' +
-        '</svg>';
+        '</svg>'
+      );
+      if (brandSvg) brand.appendChild(brandSvg);
       toolbar.appendChild(brand);
     }
 
@@ -1022,12 +1033,16 @@
       item.className = 'haiilo-enhancer-reply-item';
       // The native cat-icon set has no reply icon, so render the icon inline
       // in the item's light DOM (it is slotted next to the label).
-      item.innerHTML =
+      const replySvg = parseSVG(
         '<svg class="haiilo-enhancer-reply-icon" viewBox="0 0 24 24" aria-hidden="true">' +
         '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 14l-4-4 4-4"/>' +
         '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 20v-7a4 4 0 0 0-4-4H4"/>' +
-        '</svg>' +
-        '<span>' + t('chatReply') + '</span>';
+        '</svg>'
+      );
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = t('chatReply');
+      if (replySvg) item.appendChild(replySvg);
+      item.appendChild(labelSpan);
       item.addEventListener('click', event => {
         event.stopPropagation();
         if (isExtensionContextValid()) quoteChatMessage(message);

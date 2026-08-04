@@ -19,7 +19,7 @@
   ],
   "optional_permissions": ["https://*/*", "http://*/*"],
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["shared.js", "i18n.js", "background.js"],
     "persistent": false
   },
   "content_scripts": [

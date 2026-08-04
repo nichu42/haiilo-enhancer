@@ -508,6 +508,21 @@ function setupEventListeners() {
   // Open options
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
-    browserAPI.runtime.openOptionsPage();
+    if (browserAPI.runtime.openOptionsPage) {
+      try {
+        const res = browserAPI.runtime.openOptionsPage();
+        if (res && typeof res.catch === 'function') {
+          res.catch(err => {
+            console.error('[Popup] openOptionsPage failed, opening tab directly:', err);
+            browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html') });
+          });
+        }
+      } catch (err) {
+        console.error('[Popup] openOptionsPage exception, opening tab directly:', err);
+        browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html') });
+      }
+    } else {
+      browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html') });
+    }
   });
 }

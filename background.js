@@ -2,10 +2,12 @@
 // Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
 //# sourceURL=haiilo-enhancer/background.js
 
-try {
-  importScripts('shared.js', 'i18n.js');
-} catch (error) {
-  console.error('Failed to load shared libraries:', error);
+if (typeof importScripts === 'function') {
+  try {
+    importScripts('shared.js', 'i18n.js');
+  } catch (error) {
+    console.error('Failed to load shared libraries:', error);
+  }
 }
 
 // Browser API compatibility

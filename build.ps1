@@ -14,6 +14,23 @@ if (-not (Test-Path $distDir)) {
     New-Item -ItemType Directory -Path $distDir | Out-Null
 }
 
+function Compress-ToZip {
+    param(
+        [string]$SourcePath,
+        [string]$ZipPath
+    )
+    
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    if (Test-Path $ZipPath) { Remove-Item $ZipPath }
+    
+    $zip = [System.IO.Compression.ZipFile]::Open($ZipPath, 'Update')
+    Get-ChildItem -Path $SourcePath -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+        $entryName = $_.FullName.Substring((Get-Item $SourcePath).FullName.Length + 1).Replace('\', '/')
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $entryName)
+    }
+    $zip.Dispose()
+}
+
 function Build-Chrome {
     Write-Host "Building Chrome extension..." -ForegroundColor Cyan
 
@@ -55,10 +72,7 @@ function Build-Chrome {
 
     # Create zip
     $zipPath = "$distDir\haiilo-enhancer-chrome.zip"
-    if (Test-Path $zipPath) {
-        Remove-Item $zipPath
-    }
-    Compress-Archive -Path "$chromeDir\*" -DestinationPath $zipPath
+    Compress-ToZip -SourcePath $chromeDir -ZipPath $zipPath
 
     Write-Host "Chrome build complete: $zipPath" -ForegroundColor Green
 }
@@ -104,16 +118,8 @@ function Build-Firefox {
     Remove-Item "$firefoxDir\icons\*.html" -ErrorAction SilentlyContinue
 
     # Create xpi (same format as zip; Firefox recognises the .xpi extension natively)
-    $zipPath = "$distDir\haiilo-enhancer-firefox.zip"
     $xpiPath = "$distDir\haiilo-enhancer-firefox.xpi"
-    if (Test-Path $zipPath) {
-        Remove-Item $zipPath
-    }
-    if (Test-Path $xpiPath) {
-        Remove-Item $xpiPath
-    }
-    Compress-Archive -Path "$firefoxDir\*" -DestinationPath $zipPath
-    Rename-Item -Path $zipPath -NewName "haiilo-enhancer-firefox.xpi"
+    Compress-ToZip -SourcePath $firefoxDir -ZipPath $xpiPath
 
     Write-Host "Firefox build complete: $xpiPath" -ForegroundColor Green
 }

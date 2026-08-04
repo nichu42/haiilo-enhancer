@@ -11,9 +11,9 @@ Haiilo Enhancer adds small, local quality-of-life improvements directly in your 
 - 🔇 **Hide unwanted content**  
   Right-click users to mute their posts and comments temporarily or permanently; the popup shows hidden-item counts and details.
 - 💬 **Make the interface work your way**  
-  Keep the messenger open, resize it, center the page in the remaining space, and automatically expand Workspaces and Pages.
+  Keep the messenger open, resize it, center the page in the remaining space, automatically expand Workspaces and Pages, auto-scroll timelines, and auto-load new updates when idle.
 - 🛠️ **Fix everyday Haiilo friction**  
-  Improve mentions, profile popups, wiki controls, mobile breadcrumbs, and the rich-text toolbar.
+  Improve mentions, profile popups, wiki controls, mobile breadcrumbs, and the rich-text toolbar; add a Markdown shortcut toolbar and chat quote-reply.
 - 🎨 **Improve readability**  
   Customize group-chat avatars, sort reactions, show reaction counts, and choose date/time formats.
 - 📅 **Export events**  

@@ -223,12 +223,14 @@
 /* Inline reply icon rendered inside the chat message context menu item. The
  * native cat-icon set has no reply icon, so it is drawn inline in the item's
  * light DOM and slotted next to the label. */
-.haiilo-enhancer-reply-item .haiilo-enhancer-reply-icon {
+.haiilo-enhancer-reply-item .haiilo-enhancer-reply-icon,
+.haiilo-enhancer-reply-item [slot="icon"] {
   width: 16px;
   height: 16px;
   margin-right: 8px;
   flex-shrink: 0;
   vertical-align: -3px;
+  display: inline-block;
 }
 
 /* Haiilo's mention dropdown trigger renders as a block inside rich content,

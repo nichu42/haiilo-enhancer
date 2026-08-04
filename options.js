@@ -334,10 +334,10 @@ async function loadSettings() {
   document.getElementById('fixMobileWikiBreadcrumbs').checked = settings.fixMobileWikiBreadcrumbs === true;
   document.getElementById('fixWikiModeToggle').checked = settings.fixWikiModeToggle === true;
   document.getElementById('floatingRichTextToolbar').checked = settings.floatingRichTextToolbar !== false;
-  document.getElementById('markdownToolbar').checked = settings.markdownToolbar === true;
+  document.getElementById('markdownToolbar').checked = settings.markdownToolbar !== false;
   document.getElementById('markdownToolbarBrand').checked = settings.markdownToolbarBrand !== false;
   syncMarkdownBrandControl();
-  document.getElementById('chatReplyMenu').checked = settings.chatReplyMenu === true;
+  document.getElementById('chatReplyMenu').checked = settings.chatReplyMenu !== false;
   document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;

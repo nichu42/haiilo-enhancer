@@ -331,9 +331,26 @@
 
   function parseSVG(svgString) {
     if (!svgString) return null;
-    const doc = new DOMParser().parseFromString(svgString, 'image/svg+xml');
-    const el = doc.documentElement;
-    return el && el.nodeName !== 'parsererror' ? el : null;
+    let xml = svgString.trim();
+    if (!xml.includes('xmlns=')) {
+      xml = xml.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    try {
+      const doc = new DOMParser().parseFromString(xml, 'image/svg+xml');
+      const el = doc.documentElement;
+      if (el && el.nodeName !== 'parsererror') {
+        return document.importNode(el, true);
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      const frag = document.createRange().createContextualFragment(xml);
+      const el = frag.firstElementChild;
+      return el ? document.importNode(el, true) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   // Normalize Haiilo's mention trigger so editor whitespace does not create
@@ -3189,9 +3206,9 @@
           mobileWikiBreadcrumbFixEnabled = settings.fixMobileWikiBreadcrumbs === true;
           wikiModeToggleFixEnabled = settings.fixWikiModeToggle === true;
           floatingRichTextToolbarEnabled = settings.floatingRichTextToolbar !== false;
-          markdownToolbarEnabled = settings.markdownToolbar === true;
+          markdownToolbarEnabled = settings.markdownToolbar !== false;
           markdownToolbarBrandEnabled = settings.markdownToolbarBrand !== false;
-          chatReplyMenuEnabled = settings.chatReplyMenu === true;
+          chatReplyMenuEnabled = settings.chatReplyMenu !== false;
           applyMentionFixStyles();
           applyMobileWikiBreadcrumbFixStyles();
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);

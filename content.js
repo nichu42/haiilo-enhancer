@@ -2644,18 +2644,24 @@
     return request;
   }
 
-  function clearInlineReactionCounts(reactionsInfo) {
+  const INLINE_REACTION_CLASS = 'haiilo-enhancer-inline-reactions-active';
+
+  function clearInlineReactionCounts(reactionsInfo, restoreNativeIcons = true) {
     reactionsInfo.__haiiloEnhancerInlineLabelObserver?.disconnect();
     delete reactionsInfo.__haiiloEnhancerInlineLabelObserver;
+    reactionsInfo.__haiiloEnhancerReactionUpdateObserver?.observer?.disconnect();
+    delete reactionsInfo.__haiiloEnhancerReactionUpdateObserver;
     reactionsInfo.querySelectorAll('.haiilo-enhancer-inline-reaction-summary').forEach(el => el.remove());
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-group').forEach(group => {
       while (group.firstChild) group.before(group.firstChild);
       group.remove();
     });
     reactionsInfo.querySelectorAll('.haiilo-enhancer-reaction-count').forEach(el => el.remove());
-    reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]').forEach(icon => {
-      icon.style.removeProperty('display');
-    });
+    if (restoreNativeIcons) {
+      reactionsInfo.classList.remove(INLINE_REACTION_CLASS);
+      reactionsInfo.querySelectorAll('cat-tooltip > cat-button .cat-flex cat-icon')
+        .forEach(icon => icon.style.removeProperty('display'));
+    }
     reactionsInfo.querySelectorAll('.reactions-info-label[data-haiilo-enhancer-original-text]')
       .forEach(label => {
         label.textContent = label.dataset.haiiloEnhancerOriginalText;
@@ -2666,6 +2672,83 @@
         label.style.removeProperty('display');
         delete label.dataset.haiiloEnhancerHiddenTotal;
       });
+  }
+
+  function invalidateReactionCaches(targetType, targetId, senderId) {
+    const summaryKey = `${targetType}:${targetId}:${senderId || ''}`;
+    const detailsKey = `${targetType}:${targetId}`;
+    reactionSummaryCache.delete(summaryKey);
+    reactionSummaryPromises.delete(summaryKey);
+    reactionDetailsCache.delete(detailsKey);
+    reactionDetailsPromises.delete(detailsKey);
+  }
+
+  function scheduleReactionRefresh(dataEl, delay = 50) {
+    if (dataEl.__haiiloEnhancerReactionRefreshTimer) return;
+    dataEl.__haiiloEnhancerReactionRefreshTimer = setTimeout(() => {
+      dataEl.__haiiloEnhancerReactionRefreshTimer = null;
+      if (!dataEl.isConnected) return;
+
+      const targetType = dataEl.dataset.reactionTargetType;
+      const targetId = dataEl.dataset.reactionTargetId;
+      if (!targetType || !targetId) return;
+
+      dataEl.__haiiloEnhancerReactionGeneration =
+        (dataEl.__haiiloEnhancerReactionGeneration || 0) + 1;
+      delete dataEl.dataset.haiiloEnhancerReactionsDone;
+      if (!(sortReactionsByCount || showReactionCountTooltip || showReactionCountInline)) return;
+      getSenderId().then(senderId => {
+        invalidateReactionCaches(targetType, targetId, senderId);
+        processReactionTarget(dataEl, true).catch(() => {});
+      }).catch(() => {});
+    }, delay);
+  }
+
+  function setupReactionUpdateObserver(dataEl, reactionsInfo) {
+    const existing = reactionsInfo.__haiiloEnhancerReactionUpdateObserver;
+    if (existing?.dataEl === dataEl) return;
+    existing?.observer.disconnect();
+
+    let suppressMutations = false;
+    const observer = new MutationObserver(records => {
+      if (suppressMutations) return;
+
+      // Ignore mutations caused by our own inline summary/label maintenance.
+      const nativeMutation = records.some(record => {
+        if (record.type === 'characterData') {
+          return !record.target.parentElement?.closest(
+            '.haiilo-enhancer-inline-reaction-summary'
+          );
+        }
+        if (record.type !== 'childList') return false;
+        const changedNodes = [...record.addedNodes, ...record.removedNodes]
+          .filter(node => node.nodeType === Node.ELEMENT_NODE);
+        return changedNodes.some(node => !node.matches?.(
+          '.haiilo-enhancer-inline-reaction-summary, .haiilo-enhancer-reaction-group, .haiilo-enhancer-reaction-count, .haiilo-enhancer-reaction-emoji'
+        ));
+      });
+      if (!nativeMutation) return;
+
+      scheduleReactionRefresh(dataEl);
+    });
+
+    observer.observe(dataEl, {
+      attributes: true,
+      attributeFilter: ['data-reaction-count']
+    });
+    observer.observe(reactionsInfo, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+    reactionsInfo.__haiiloEnhancerReactionUpdateObserver = { observer, dataEl };
+
+    // Mutations made while processing are delivered asynchronously. Give the
+    // observer one turn to discard those before it starts watching Haiilo again.
+    suppressMutations = true;
+    setTimeout(() => {
+      suppressMutations = false;
+    }, 0);
   }
 
   function stripInlineReactionLabelEmojis(reactionsInfo, reactionEmojis) {
@@ -2687,10 +2770,11 @@
   }
 
   function injectInlineReactionCounts(reactionsInfo, displayedData, typeMap) {
-    clearInlineReactionCounts(reactionsInfo);
     const button = reactionsInfo.querySelector('cat-tooltip > cat-button');
     const flex = button?.querySelector('.cat-flex');
-    if (!flex) return;
+    if (!flex) return false;
+    reactionsInfo.classList.add(INLINE_REACTION_CLASS);
+    clearInlineReactionCounts(reactionsInfo, false);
 
     const summary = document.createElement('span');
     summary.className = 'haiilo-enhancer-inline-reaction-summary';
@@ -2710,7 +2794,7 @@
       summary.appendChild(group);
     });
 
-    flex.querySelectorAll('cat-icon[data-test="reactions-info-icon"]').forEach(icon => {
+    flex.querySelectorAll('cat-icon').forEach(icon => {
       icon.style.display = 'none';
     });
     const label = flex.querySelector('.reactions-info-label');
@@ -2733,24 +2817,44 @@
       });
     }
     flex.insertBefore(summary, label || null);
+    return true;
+  }
+
+  function restoreLastInlineReactionCounts(dataEl, reactionsInfo, typeMap) {
+    const displayedData = dataEl.__haiiloEnhancerLastDisplayedData;
+    if (!showReactionCountInline || !Array.isArray(displayedData) || displayedData.length === 0) {
+      return;
+    }
+    if (injectInlineReactionCounts(reactionsInfo, displayedData, typeMap)) {
+      setupReactionUpdateObserver(dataEl, reactionsInfo);
+    }
   }
 
   // Process a single [data-reaction-target-id] anchor element.
-  async function processReactionTarget(dataEl) {
-    if (dataEl.dataset.haiiloEnhancerReactionsDone) return;
-    dataEl.dataset.haiiloEnhancerReactionsDone = '1';
+  async function processReactionTarget(dataEl, force = false) {
+    if (!(sortReactionsByCount || showReactionCountTooltip || showReactionCountInline)) return;
+    if (!force && dataEl.dataset.haiiloEnhancerReactionsDone) return;
+    const generation = dataEl.__haiiloEnhancerReactionGeneration || 0;
 
     const targetId = dataEl.dataset.reactionTargetId;
     const targetType = dataEl.dataset.reactionTargetType;
     const count = parseInt(dataEl.dataset.reactionCount, 10);
-    if (!targetId || !targetType || !Number.isFinite(count) || count < 1) return;
+    if (!targetId || !targetType || !Number.isFinite(count)) return;
 
     const typeMap = await getReactionTypes();
 
     const senderId = await getSenderId();
 
     const summary = await getReactionSummary(targetType, targetId, senderId);
-    if (!summary) return;
+    if (!summary) {
+      const attempts = dataEl.__haiiloEnhancerReactionConsistencyAttempts || 0;
+      if (force && attempts < 4) {
+        dataEl.__haiiloEnhancerReactionConsistencyAttempts = attempts + 1;
+        scheduleReactionRefresh(dataEl, 350);
+      }
+      return;
+    }
+    if (generation !== (dataEl.__haiiloEnhancerReactionGeneration || 0)) return;
     // apiData preserves the API's original order (matches DOM icon order)
     const { apiData, sortedData } = summary;
 
@@ -2761,17 +2865,34 @@
     if (!reactionsInfo) return;
 
     // Wait briefly for icons to render if they haven't yet
-    let icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
+    let icons = [...reactionsInfo.querySelectorAll('cat-tooltip > cat-button .cat-flex cat-icon')];
     if (icons.length === 0) {
       await new Promise(r => setTimeout(r, 150));
-      icons = [...reactionsInfo.querySelectorAll('cat-icon[data-test="reactions-info-icon"]')];
+      icons = [...reactionsInfo.querySelectorAll('cat-tooltip > cat-button .cat-flex cat-icon')];
     }
+    if (generation !== (dataEl.__haiiloEnhancerReactionGeneration || 0)) return;
 
     // currentApiOrder: the types in DOM order (API order == icon DOM order)
     const currentApiOrder = apiData.map(d => d.reactionType);
     const sortedTypes = sortedData.map(d => d.reactionType);
 
-    if (sortReactionsByCount && icons.length >= 2) {
+    // Haiilo can update the total and render a new icon before the breakdown
+    // endpoint includes the new reaction. Retry briefly instead of replacing
+    // the live row with an incomplete summary.
+    const apiTotal = apiData.reduce((total, reaction) => total + Number(reaction.count), 0);
+    if (apiTotal !== count) {
+      restoreLastInlineReactionCounts(dataEl, reactionsInfo, typeMap);
+      const attempts = dataEl.__haiiloEnhancerReactionConsistencyAttempts || 0;
+      if (attempts < 4) {
+        dataEl.__haiiloEnhancerReactionConsistencyAttempts = attempts + 1;
+        scheduleReactionRefresh(dataEl, 350);
+        return;
+      }
+    } else {
+      delete dataEl.__haiiloEnhancerReactionConsistencyAttempts;
+    }
+
+    if (sortReactionsByCount && !showReactionCountInline && icons.length >= 2) {
       reorderReactionIcons(icons, currentApiOrder, sortedTypes);
     }
 
@@ -2780,8 +2901,27 @@
       setupReactionNameEnrichment(reactionsInfo, targetType, targetId, typeMap);
     }
     if (showReactionCountInline) {
-      injectInlineReactionCounts(reactionsInfo, sortReactionsByCount ? sortedData : apiData, typeMap);
+      const displayedData = sortReactionsByCount ? sortedData : apiData;
+      const injected = injectInlineReactionCounts(
+        reactionsInfo,
+        displayedData,
+        typeMap
+      );
+      if (!injected) {
+        const attempts = dataEl.__haiiloEnhancerReactionConsistencyAttempts || 0;
+        if (attempts < 4) {
+          dataEl.__haiiloEnhancerReactionConsistencyAttempts = attempts + 1;
+          scheduleReactionRefresh(dataEl, 150);
+        }
+        return;
+      }
+      dataEl.__haiiloEnhancerLastDisplayedData = displayedData.map(reaction => ({
+        reactionType: reaction.reactionType,
+        count: reaction.count
+      }));
     }
+    dataEl.dataset.haiiloEnhancerReactionsDone = '1';
+    setupReactionUpdateObserver(dataEl, reactionsInfo);
   }
 
   function setupReactionEnhancerObserver() {
@@ -2802,19 +2942,44 @@
         reactionTimer = null;
         processScheduled = false;
         pendingTargets.clear();
+        document.querySelectorAll('[data-reaction-target-id]').forEach(el => {
+          if (el.__haiiloEnhancerReactionRefreshTimer) {
+            clearTimeout(el.__haiiloEnhancerReactionRefreshTimer);
+            el.__haiiloEnhancerReactionRefreshTimer = null;
+          }
+          const reactionsInfo = el.closest('coyo-reactions-info') ||
+            el.closest('[data-test="info-container"]')?.querySelector('coyo-reactions-info');
+          reactionsInfo?.__haiiloEnhancerReactionUpdateObserver?.observer.disconnect();
+          if (reactionsInfo) delete reactionsInfo.__haiiloEnhancerReactionUpdateObserver;
+        });
       },
       onRecords(mutations) {
+        const addReactionTarget = target => {
+          if (!target || target.nodeType !== Node.ELEMENT_NODE) return;
+          pendingTargets.add(target);
+        };
+
+        const addReactionTargetForNode = node => {
+          if (node.nodeType !== Node.ELEMENT_NODE ||
+              node.closest?.('.haiilo-enhancer-inline-reaction-summary, .haiilo-enhancer-reaction-group')) {
+            return;
+          }
+          if (node.matches?.('[data-reaction-target-id]')) {
+            addReactionTarget(node);
+          }
+          node.querySelectorAll?.('[data-reaction-target-id]')
+            .forEach(addReactionTarget);
+
+          const reactionsInfo = node.closest?.('coyo-reactions-info');
+          if (!reactionsInfo) return;
+          const target = reactionsInfo.parentElement?.querySelector('[data-reaction-target-id]') ||
+            reactionsInfo.closest('[data-test="info-container"]')?.querySelector('[data-reaction-target-id]');
+          addReactionTarget(target);
+        };
+
         for (const mutation of mutations) {
           for (const node of mutation.addedNodes) {
-            if (node.nodeType !== Node.ELEMENT_NODE) continue;
-            // Direct match
-            if (node.hasAttribute && node.hasAttribute('data-reaction-target-id')) {
-              pendingTargets.add(node);
-            }
-            // Descendants
-            if (node.querySelectorAll) {
-              node.querySelectorAll('[data-reaction-target-id]').forEach(el => pendingTargets.add(el));
-            }
+            addReactionTargetForNode(node);
           }
         }
         if (pendingTargets.size > 0 && !processScheduled) {
@@ -2824,7 +2989,13 @@
             processScheduled = false;
             const targets = pendingTargets;
             pendingTargets = new Set();
-            targets.forEach(target => processReactionTarget(target).catch(() => {}));
+            targets.forEach(target => {
+              if (!target.isConnected) return;
+              delete target.dataset.haiiloEnhancerReactionsDone;
+              target.__haiiloEnhancerReactionGeneration =
+                (target.__haiiloEnhancerReactionGeneration || 0) + 1;
+              processReactionTarget(target, true).catch(() => {});
+            });
           }, 50);
         }
       }

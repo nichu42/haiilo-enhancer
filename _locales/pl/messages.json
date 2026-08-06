@@ -332,6 +332,15 @@
   "centerContentWithMessenger": {
     "message": "Wyśrodkuj zawartość strony w pozostałej przestrzeni"
   },
+  "collapseNavbarSpacing": {
+    "message": "Zmniejsz odstęp paska nawigacji, gdy się nie mieści"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Na wąskich ekranach, gdzie komunikator zostawia zbyt mało miejsca, zmniejsza odstęp między pozycjami głównej nawigacji a wyszukiwarką, aby pozostały obok siebie."
+  },
+  "experimentalLabel": {
+    "message": "Eksperymentalne"
+  },
   "messengerPanelWidth": {
     "message": "Szerokość panelu komunikatora"
   },

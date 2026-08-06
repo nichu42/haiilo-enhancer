@@ -332,6 +332,15 @@
   "centerContentWithMessenger": {
     "message": "Centra il contenuto della pagina nello spazio rimanente"
   },
+  "collapseNavbarSpacing": {
+    "message": "Riduci lo spazio della barra di navigazione quando non ci sta"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Sugli schermi stretti in cui il messenger lascia troppo poco spazio, riduce lo spazio tra le voci della navigazione principale e la ricerca, così restano vicine."
+  },
+  "experimentalLabel": {
+    "message": "Sperimentale"
+  },
   "messengerPanelWidth": {
     "message": "Larghezza del pannello del messenger"
   },

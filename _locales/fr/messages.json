@@ -236,6 +236,15 @@
   "centerContentWithMessenger": {
     "message": "Centrer le contenu de la page dans l’espace restant"
   },
+  "collapseNavbarSpacing": {
+    "message": "Réduire l’espace de la barre de navigation quand elle ne rentre pas"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Sur les écrans étroits où la messagerie laisse trop peu d’espace, réduire l’écart entre les éléments de navigation principaux et la recherche pour qu’ils restent côte à côte."
+  },
+  "experimentalLabel": {
+    "message": "Expérimental"
+  },
   "messengerPanelWidth": {
     "message": "Largeur du panneau de messagerie"
   },

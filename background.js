@@ -155,6 +155,7 @@ const DEFAULT_SETTINGS = {
   keepMessengerExpanded: false, // Keep messenger panel permanently expanded
   messengerPanelWidthPercent: 100, // Messenger width scale (50-125, 100 = Haiilo default)
   centerContentWithMessenger: false, // Center page content in the space left beside the messenger
+  collapseNavbarSpacing: false, // Collapse the wasted navbar gap when the reduced space can't fit all items
   autoExpandEnabled: false, // Auto-click "Show more" buttons in sidebar lists
   autoExpandClicksPerList: 3, // Max number of "Show more" clicks per list (0-10)
   autoExpandDelayMs: 300, // Delay between clicks in ms (100-1000)

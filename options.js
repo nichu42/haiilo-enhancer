@@ -41,11 +41,23 @@ function getThemeControlValue() {
 function syncMessengerCenterControl() {
   const keepMessengerExpanded = document.getElementById('keepMessengerExpanded');
   const centerContent = document.getElementById('centerContentWithMessenger');
+  const collapseNavbarSpacing = document.getElementById('collapseNavbarSpacing');
   if (!keepMessengerExpanded || !centerContent) return;
 
   centerContent.disabled = !keepMessengerExpanded.checked;
   if (!keepMessengerExpanded.checked) {
     centerContent.checked = false;
+  }
+
+  // The navbar spacing collapse only matters when the page content is centered
+  // beside the messenger (there is no reduced space otherwise), so it is
+  // disabled unless both messenger expansion and centering are active.
+  if (collapseNavbarSpacing) {
+    const active = keepMessengerExpanded.checked && centerContent.checked;
+    collapseNavbarSpacing.disabled = !active;
+    if (!active) {
+      collapseNavbarSpacing.checked = false;
+    }
   }
 }
 
@@ -282,6 +294,10 @@ async function loadSettings() {
     centerContentCheckbox.checked =
       settings.keepMessengerExpanded === true && settings.centerContentWithMessenger === true;
   }
+  const collapseNavbarSpacingCheckbox = document.getElementById('collapseNavbarSpacing');
+  if (collapseNavbarSpacingCheckbox) {
+    collapseNavbarSpacingCheckbox.checked = settings.collapseNavbarSpacing === true;
+  }
   syncMessengerCenterControl();
   if (widthSlider) {
     const width = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
@@ -512,7 +528,11 @@ function setupEventListeners() {
     syncMessengerCenterControl();
     saveSettings();
   });
-  document.getElementById('centerContentWithMessenger').addEventListener('change', saveSettings);
+  document.getElementById('centerContentWithMessenger').addEventListener('change', () => {
+    syncMessengerCenterControl();
+    saveSettings();
+  });
+  document.getElementById('collapseNavbarSpacing').addEventListener('change', saveSettings);
   const themeGroup = document.getElementById('themeGroup');
   if (themeGroup) {
     themeGroup.addEventListener('click', (e) => {
@@ -921,6 +941,10 @@ async function saveSettings() {
     centerContentWithMessenger:
       document.getElementById('keepMessengerExpanded').checked &&
       document.getElementById('centerContentWithMessenger').checked,
+    collapseNavbarSpacing:
+      document.getElementById('keepMessengerExpanded').checked &&
+      document.getElementById('centerContentWithMessenger').checked &&
+      document.getElementById('collapseNavbarSpacing').checked,
     cloudSync: document.getElementById('cloudSync') ? document.getElementById('cloudSync').checked : false,
     theme: HaiiloShared.resolveThemeMode(getThemeControlValue())
   };

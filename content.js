@@ -96,6 +96,13 @@
   let messengerOverlayObserver = null;
   let keepMessengerExpandedActive = false;
   let centerContentWithMessengerActive = false;
+  let collapseNavbarSpacingEnabled = false;
+  let navbarSpacingCollapseHandle = null; // shared domMutation handler handle
+  let navbarSpacingResizeBound = false; // only bind one window resize listener
+  let navbarSpacingCollapseTimer = null; // debounce for the domMutation handler
+  let navbarSpacingResizeTimer = null; // debounce for the window resize listener
+  let navbarSpacingNaturalWidth = 0; // cached navbar width BEFORE our width constraint
+  let navbarSpacingLastViewport = 0; // viewport width the natural width was measured at
   let messengerReopenObserver = null;
   let bodyStyleObserver = null;
   let classObserver = null;
@@ -157,6 +164,7 @@
   const reactionSummaryPromises = new Map();
   const reactionDetailsCache = new Map();
   const reactionDetailsPromises = new Map();
+  const sortedReactionTargetIds = new Set();
   // P7 fix: LRU eviction for reaction caches to prevent unbounded growth
   const REACTION_CACHE_MAX = 500;
   function evictOldestEntries(map) {
@@ -189,6 +197,17 @@
   const clampMessengerPanelWidthPercent = HaiiloShared.clampMessengerPanelWidthPercent;
   const HAIILO_DEFAULT_MESSENGER_WIDTH_PERCENT = 80;
   const HAIILO_DEFAULT_MESSENGER_MAX_WIDTH_PX = 600;
+  // The navbar keeps a wasted gap (its left group has flex-grow: 1) whenever
+  // it cannot display at its full 1496px width next to the messenger. The gap
+  // is detected in JS rather than a media query, because the navbar only drops
+  // below its full width when the VIEWPORT is small, yet it can also overlap
+  // the open messenger panel on a wide viewport (the navbar stays 1496px and
+  // its right edge slides under the panel). A container query on the navbar
+  // is NOT usable here either: applying container-type to it makes the query
+  // read the containing column's capped width (~1305px) instead of the navbar
+  // itself, so it fires unconditionally. So the collapse is driven by an
+  // overlap/narrowness check in `updateNavbarSpacingCollapse()`.
+  const NAVBAR_COLLAPSE_MAX_VIEWPORT_PX = 1496; // the navbar's full width
 
   function getMessengerPanelWidthCSS(widthPercent) {
     const clampedPercent = clampMessengerPanelWidthPercent(widthPercent);
@@ -232,6 +251,125 @@
         }
       `;
   }
+
+  // Reduces the wasted space between the left nav items (Infoboards / Hubs /
+  // Events) and the Search box when the reduced space beside the messenger
+  // can't fit the full navbar. The gap is created by Haiilo's `.nav-left`
+  // having flex-grow: 1, which stretches it to fill the middle. On narrow
+  // screens that growth is removed so the Search box hugs the nav items, while
+  // wide screens keep the natural spacing.
+  function applyCollapseNavbarSpacingCSS() {
+    let styleElement = document.getElementById('haiilo-enhancer-navbar-spacing-style');
+    if (!collapseNavbarSpacingEnabled) {
+      if (styleElement) styleElement.remove();
+      document.body.classList.remove('haiilo-enhancer-navbar-collapsed');
+      if (navbarSpacingCollapseHandle) {
+        navbarSpacingCollapseHandle.stop();
+        navbarSpacingCollapseHandle = null;
+      }
+      if (navbarSpacingResizeBound) {
+        window.removeEventListener('resize', debouncedNavbarSpacingResize);
+        navbarSpacingResizeBound = false;
+      }
+      return;
+    }
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'haiilo-enhancer-navbar-spacing-style';
+      document.head.appendChild(styleElement);
+    }
+    styleElement.textContent = `
+        body.haiilo-enhancer-navbar-collapsed section.container-wrapper > section.container-main coyo-main-navbar nav.main-navigation .nav-left {
+          flex-grow: 0 !important;
+        }
+      `;
+
+    if (!navbarSpacingResizeBound) {
+      window.addEventListener('resize', debouncedNavbarSpacingResize);
+      navbarSpacingResizeBound = true;
+    }
+    if (!navbarSpacingCollapseHandle) {
+      navbarSpacingCollapseHandle = domMutation.register({
+        active: () => collapseNavbarSpacingEnabled,
+        teardown: () => {
+          if (navbarSpacingCollapseTimer) clearTimeout(navbarSpacingCollapseTimer);
+        },
+        onRecords() {
+          if (navbarSpacingCollapseTimer) return;
+          navbarSpacingCollapseTimer = setTimeout(() => {
+            navbarSpacingCollapseTimer = null;
+            updateNavbarSpacingCollapse();
+          }, 250);
+        }
+      });
+    }
+    updateNavbarSpacingCollapse();
+  }
+
+  // Collapses the navbar gap when it can't fit: either the navbar is narrower
+  // than its full width (small viewport) or its right edge overlaps the space
+  // beside it (open messenger panel / viewport edge).
+  function updateNavbarSpacingCollapse() {
+    const body = document.body;
+    const nav = document.querySelector('section.container-main coyo-main-navbar nav.main-navigation');
+    const resetNavWidth = () => {
+      if (nav) {
+        nav.style.maxWidth = '';
+        nav.style.width = '';
+      }
+    };
+    if (!collapseNavbarSpacingEnabled || !extensionEnabled || !nav) {
+      resetNavWidth();
+      body.classList.remove('haiilo-enhancer-navbar-collapsed');
+      return;
+    }
+    const vw = window.innerWidth;
+    const panel = document.querySelector(
+      'coyo-messaging-panel aside.sidebar-container.two-c, ' +
+      'coyo-messaging-panel aside.sidebar-container.two-columns, ' +
+      'coyo-messaging-sidebar aside.sidebar-container.two-c, ' +
+      'coyo-messaging-sidebar aside.sidebar-container.two-columns'
+    );
+    const availableRight = panel ? panel.getBoundingClientRect().left : vw;
+
+    // Refresh the natural (unconstrained) navbar width only when the viewport
+    // changed. This is done synchronously (clear -> measure -> re-apply below),
+    // so the brief un-constrain is never painted.
+    if (vw !== navbarSpacingLastViewport) {
+      nav.style.maxWidth = '';
+      nav.style.width = '';
+      navbarSpacingNaturalWidth = nav.getBoundingClientRect().width;
+      navbarSpacingLastViewport = vw;
+    }
+    // Decide against the natural width (not the constrained one), with a small
+    // tolerance, so constraining the navbar can never flip the decision and
+    // cause a resize/clear feedback loop.
+    const navWidth = navbarSpacingNaturalWidth || nav.getBoundingClientRect().width;
+    const overlap = navWidth - availableRight > 2;
+    const narrow = navWidth < NAVBAR_COLLAPSE_MAX_VIEWPORT_PX;
+    const collapse = narrow || overlap;
+
+    body.classList.toggle('haiilo-enhancer-navbar-collapsed', collapse);
+    if (collapse && overlap) {
+      // Constrain to the space left of the messenger so the navbar fits beside
+      // it instead of sliding underneath.
+      const target = Math.floor(availableRight);
+      nav.style.maxWidth = target + 'px';
+      nav.style.width = target + 'px';
+    } else {
+      resetNavWidth();
+    }
+  }
+
+  // Debounced window-resize handler so the collapse follows viewport changes.
+  function debouncedNavbarSpacingResize() {
+    if (navbarSpacingResizeTimer) clearTimeout(navbarSpacingResizeTimer);
+    navbarSpacingResizeTimer = setTimeout(() => {
+      navbarSpacingResizeTimer = null;
+      updateNavbarSpacingCollapse();
+    }, 150);
+  }
+
   // Per-button state. Track whether each show-more button has been
   // processed in this page load, keyed by its data-test value
   // ('show-more-workspace' or 'show-more-page'). Each button is
@@ -2507,7 +2645,7 @@
   // Reorder cat-icon elements to match sortedTypes order.
   // Icons are positionally mapped to allReactionsByCount (same order as the API response).
   function reorderReactionIcons(icons, currentApiOrder, sortedTypes) {
-    if (icons.length < 2) return;
+    if (icons.length < 2) return icons;
     // Map each icon to its type by position (API order == DOM order)
     const iconsByType = {};
     currentApiOrder.forEach((type, i) => {
@@ -2521,7 +2659,7 @@
     }
     // Check if already correct
     const alreadyCorrect = targetIcons.every((icon, i) => icon === icons[i]);
-    if (alreadyCorrect) return;
+    if (alreadyCorrect) return targetIcons;
     // Re-insert before the first icon's position
     const parent = icons[0].parentNode;
     const anchor = icons[0];
@@ -2529,6 +2667,7 @@
       parent.insertBefore(icon, anchor);
     }
     debugLog('[Reactions] Reordered icons to:', sortedTypes.join(', '));
+    return targetIcons;
   }
 
   // Inject (or update) a count tooltip into the cat-tooltip of a coyo-reactions-info.
@@ -2716,13 +2855,23 @@
       // Ignore mutations caused by our own inline summary/label maintenance.
       const nativeMutation = records.some(record => {
         if (record.type === 'characterData') {
-          return !record.target.parentElement?.closest(
-            '.haiilo-enhancer-inline-reaction-summary'
-          );
+          return false;
         }
         if (record.type !== 'childList') return false;
         const changedNodes = [...record.addedNodes, ...record.removedNodes]
           .filter(node => node.nodeType === Node.ELEMENT_NODE);
+        if (changedNodes.length > 0 &&
+            changedNodes.every(node => node.matches?.('cat-icon'))) {
+          const currentIcons = [...reactionsInfo.querySelectorAll(
+            'cat-tooltip > cat-button .cat-flex cat-icon'
+          )];
+          const lastSortedIcons = reactionsInfo.__haiiloEnhancerLastSortedIcons;
+          if (lastSortedIcons &&
+              currentIcons.length === lastSortedIcons.length &&
+              currentIcons.every(icon => lastSortedIcons.includes(icon))) {
+            return false;
+          }
+        }
         return changedNodes.some(node => !node.matches?.(
           '.haiilo-enhancer-inline-reaction-summary, .haiilo-enhancer-reaction-group, .haiilo-enhancer-reaction-count, .haiilo-enhancer-reaction-emoji'
         ));
@@ -2736,11 +2885,9 @@
       attributes: true,
       attributeFilter: ['data-reaction-count']
     });
-    observer.observe(reactionsInfo, {
-      childList: true,
-      characterData: true,
-      subtree: true
-    });
+    if (showReactionCountInline) {
+      observer.observe(reactionsInfo, { childList: true, subtree: true });
+    }
     reactionsInfo.__haiiloEnhancerReactionUpdateObserver = { observer, dataEl };
 
     // Mutations made while processing are delivered asynchronously. Give the
@@ -2892,8 +3039,23 @@
       delete dataEl.__haiiloEnhancerReactionConsistencyAttempts;
     }
 
-    if (sortReactionsByCount && !showReactionCountInline && icons.length >= 2) {
-      reorderReactionIcons(icons, currentApiOrder, sortedTypes);
+    const sortingKey = `${targetType}:${targetId}`;
+    if (sortReactionsByCount && !showReactionCountInline && icons.length >= 2 &&
+        !sortedReactionTargetIds.has(sortingKey)) {
+      const lastSortedIcons = reactionsInfo.__haiiloEnhancerLastSortedIcons;
+      const iconOrderChanged = !lastSortedIcons ||
+        icons.length !== lastSortedIcons.length ||
+        icons.some((icon, index) => icon !== lastSortedIcons[index]);
+      if (iconOrderChanged ||
+          reactionsInfo.__haiiloEnhancerLastSortedTypes?.join('|') !== sortedTypes.join('|')) {
+        reactionsInfo.__haiiloEnhancerLastSortedIcons =
+          reorderReactionIcons(icons, currentApiOrder, sortedTypes);
+        reactionsInfo.__haiiloEnhancerLastSortedTypes = sortedTypes;
+        sortedReactionTargetIds.add(sortingKey);
+      }
+    } else if (!sortReactionsByCount || showReactionCountInline) {
+      delete reactionsInfo.__haiiloEnhancerLastSortedIcons;
+      delete reactionsInfo.__haiiloEnhancerLastSortedTypes;
     }
 
     if (showReactionCountTooltip) {
@@ -3005,6 +3167,7 @@
 
   // Re-run reaction enhancements after settings change (clear processed flags first).
   function reapplyReactionEnhancements() {
+    sortedReactionTargetIds.clear();
     // Clear done flags so existing elements are reprocessed
     document.querySelectorAll('[data-reaction-target-id][data-haiilo-enhancer-reactions-done]')
       .forEach(el => {
@@ -3197,6 +3360,7 @@
               );
               applyMessengerExpandedCSS(message.expanded, widthPercent, message.centerContentWithMessenger);
               debugLog('Applied messenger expanded CSS for:', message.expanded, 'with width percent:', widthPercent);
+              updateNavbarSpacingCollapse();
               sendResponse({ success: true });
             }
 
@@ -3384,6 +3548,7 @@
           applyMobileWikiBreadcrumbFixStyles();
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
           const centerContentWithMessenger = settings.centerContentWithMessenger === true;
+          collapseNavbarSpacingEnabled = settings.collapseNavbarSpacing === true && extensionEnabled;
           debugLog('[Content] keepMessengerExpanded setting:', settings.keepMessengerExpanded);
           debugLog('[Content] messengerPanelWidthPercent setting:', messengerPanelWidthPercent);
           debugLog('[Content] centerContentWithMessenger setting:', centerContentWithMessenger);
@@ -3395,6 +3560,7 @@
               centerContentWithMessenger
             );
           }
+          applyCollapseNavbarSpacingCSS();
           setupEndlessScroll();
           setupAutoLoadUpdates();
           setupMarkdownToolbar();

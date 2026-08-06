@@ -236,6 +236,15 @@
   "centerContentWithMessenger": {
     "message": "Seiteninhalt im verbleibenden Bereich zentrieren"
   },
+  "collapseNavbarSpacing": {
+    "message": "Navigationsleisten-Abstand reduzieren, wenn sie nicht passt"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Auf schmalen Bildschirmen, auf denen der Messenger zu wenig Platz lässt, wird die Lücke zwischen den Hauptnavigationseinträgen und der Suche verkleinert, damit sie nebeneinander bleiben."
+  },
+  "experimentalLabel": {
+    "message": "Experimentell"
+  },
   "messengerPanelWidth": {
     "message": "Breite des Messenger-Bereichs"
   },

@@ -223,6 +223,21 @@ section .description {
   color: var(--color-text-label);
 }
 
+.experimental-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 999px;
+  background: var(--color-bg-lighter);
+  color: var(--color-text-secondary);
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
 .form-group select,
 .form-group input[type="text"],
 .form-group input[type="number"] {

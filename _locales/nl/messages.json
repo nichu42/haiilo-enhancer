@@ -236,6 +236,15 @@
   "centerContentWithMessenger": {
     "message": "Pagina-inhoud centreren in de resterende ruimte"
   },
+  "collapseNavbarSpacing": {
+    "message": "Navigatiebalk-ruimte verkleinen als hij niet past"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Op smalle schermen waar de messenger te weinig ruimte overlaat, wordt de ruimte tussen de hoofdnavigatie-items en Zoeken verkleind zodat ze bij elkaar blijven."
+  },
+  "experimentalLabel": {
+    "message": "Experimenteel"
+  },
   "messengerPanelWidth": {
     "message": "Breedte van het messengerpaneel"
   },

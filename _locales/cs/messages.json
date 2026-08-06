@@ -332,6 +332,15 @@
   "centerContentWithMessenger": {
     "message": "Centrovat obsah stránky ve zbývajícím prostoru"
   },
+  "collapseNavbarSpacing": {
+    "message": "Zmenšit mezeru v navigaci, když se nevejde"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "Na úzkých obrazovkách, kde messenger nechává příliš málo místa, se zmenší mezera mezi položkami hlavní navigace a vyhledáváním, aby zůstaly u sebe."
+  },
+  "experimentalLabel": {
+    "message": "Experimentální"
+  },
   "messengerPanelWidth": {
     "message": "Šířka panelu messengeru"
   },

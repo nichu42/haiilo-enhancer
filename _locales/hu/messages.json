@@ -332,6 +332,15 @@
   "centerContentWithMessenger": {
     "message": "Az oldal tartalmának középre igazítása a fennmaradó területen"
   },
+  "collapseNavbarSpacing": {
+    "message": "Navigációs sáv hézagának csökkentése, ha nem fér el"
+  },
+  "collapseNavbarSpacingDescription": {
+    "message": "A keskeny képernyőkön, ahol a messenger túl kevés helyet hagy, a fő navigációs elemek és a kereső közötti hézag összehúzódik, hogy egymás mellett maradjanak."
+  },
+  "experimentalLabel": {
+    "message": "Kísérleti"
+  },
   "messengerPanelWidth": {
     "message": "Messenger panel szélessége"
   },

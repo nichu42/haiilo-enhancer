@@ -10,7 +10,18 @@
 
   // Browser API compatibility: browser.* is promise-based in Firefox; chrome.* in Chrome
   const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+  const IS_FIREFOX = typeof browser !== 'undefined';
   const t = (key, substitutions) => HaiiloI18n.i18nMessage(key, substitutions);
+
+  // Fetch a page-relative URL from the content script. In MV3 (both Chromium
+  // and Firefox) content-script fetches run in the page context, so a relative
+  // URL resolves against the Haiilo page. Always send an absolute URL built from
+  // the page origin, and include credentials in Firefox so the Haiilo session
+  // cookie (which the host permission grants access to) is sent.
+  function apiFetch(path) {
+    const url = new URL(path, window.location.href).href;
+    return IS_FIREFOX ? fetch(url, { credentials: 'include' }) : fetch(url);
+  }
 
   // Global flag to track if extension context is valid
   let extensionContextValid = true;
@@ -2567,7 +2578,7 @@
     } catch (e) { /* ignore */ }
     // 2. Fetch from /web/users/me
     try {
-      const res = await fetch('/web/users/me');
+      const res = await apiFetch('/web/users/me');
       if (res.ok) {
         const data = await res.json();
         if (data?.id) { reactionSenderIdCache = data.id; return data.id; }
@@ -2590,7 +2601,7 @@
 
   async function getReactionTypesUncached() {
     try {
-      const res = await fetch('/web/reaction-targets/types');
+      const res = await apiFetch('/web/reaction-targets/types');
       if (!res.ok) return null;
       const types = await res.json();
       reactionTypesCache = {};
@@ -2613,7 +2624,7 @@
       return reactionSummaryPromises.get(cacheKey);
     }
 
-    const request = fetch(
+    const request = apiFetch(
       senderId
         ? `/web/reaction-targets/${targetType}?senderId=${senderId}&ids=${targetId}`
         : `/web/reaction-targets/${targetType}?ids=${targetId}`
@@ -2763,7 +2774,7 @@
     if (reactionDetailsPromises.has(cacheKey)) {
       return reactionDetailsPromises.get(cacheKey);
     }
-    const request = fetch(
+    const request = apiFetch(
       `/web/reaction-targets/${targetType}/${targetId}/reactions?_page=0&_pageSize=20`
     ).then(async response => {
       if (!response.ok) return [];

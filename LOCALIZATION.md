@@ -7,7 +7,7 @@ cover German (`de`), Czech (`cs`), Spanish (`es`), French (`fr`), Hungarian
 every English key so missing translations fall back safely to English.
 
 `i18n.js` loads the selected catalog from the extension's own `_locales`
-resources and is shared by popup/options, the MV3 service worker, Firefox MV2,
+resources and is shared by popup/options, the MV3 service worker, Firefox MV3,
 and content scripts. The General settings language selector supports Browser
 default plus English, German, Czech, Spanish, French, Hungarian, Italian,
 Dutch, and Polish. Changing it persists the `language` setting, recreates
@@ -22,7 +22,7 @@ Validate catalogs deterministically with:
 node scripts/check-locales.mjs
 ```
 
-Build scripts copy `_locales` into both Chrome MV3 and Firefox MV2 packages.
+Build scripts copy `_locales` into both Chrome MV3 and Firefox MV3 packages.
 
 ## POEditor
 

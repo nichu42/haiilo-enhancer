@@ -41,7 +41,7 @@ body:
       description: In which browser(s) does this issue occur?
       options:
         - label: Google Chrome / Edge / Chromium-based browsers (Manifest V3)
-        - label: Mozilla Firefox (Manifest V2)
+        - label: Mozilla Firefox (Manifest V3)
         - label: Other (please specify in context)
     validations:
       required: true

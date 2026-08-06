@@ -68,11 +68,13 @@ Cross-platform shortcut: `npm run build` delegates to the correct script for you
 To maintain compatibility and prevent regressions, all contributions **must** adhere to the following rules:
 
 ### 1. 100% Cross-Browser Compatibility
-The extension must run seamlessly on both Chromium (Chrome Manifest V3) and Firefox (Firefox Manifest V2). 
+The extension must run seamlessly on both Chromium (Chrome Manifest V3) and Firefox (Firefox Manifest V3). 
 - All browser API calls must route through the compatibility wrappers defined at the top of the JS files:
   ```javascript
   const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-  const badgeAPI   = typeof browser !== 'undefined' ? browser.browserAction : chrome.action;
+  const badgeAPI   = (typeof browser !== 'undefined' && browser.action)
+    ? browser.action
+    : (browserAPI.action || chrome.action);
   ```
 - **Never** hardcode `chrome.*` directly for API calls. Doing so can cause silent failures (returning `undefined` instead of Promises) on Firefox.
 - Keep the `manifest.json` (Chrome) and `manifest.firefox.json` (Firefox) synced. Do not hardcode version numbers in popup or options HTML files; they are dynamically injected at runtime.

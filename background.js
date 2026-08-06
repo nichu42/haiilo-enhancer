@@ -1,5 +1,5 @@
 // Background service worker for Haiilo Enhancer
-// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
+// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V3)
 //# sourceURL=haiilo-enhancer/background.js
 
 if (typeof importScripts === 'function') {
@@ -12,11 +12,12 @@ if (typeof importScripts === 'function') {
 
 // Browser API compatibility
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-// Firefox MV2 uses browser.browserAction; Chrome MV3 uses chrome.action (or browser.action)
-// Chrome also exposes the `browser` namespace in MV3 for compatibility, but only with `action`,
-// not `browserAction` — so we must detect the actual API surface, not just the global.
-const badgeAPI = (typeof browser !== 'undefined' && browser.browserAction)
-  ? browser.browserAction
+// Firefox MV3 uses browser.action; Chrome MV3 uses chrome.action (Chrome also exposes a
+// `browser` compat namespace, but only with `action`). Detect the actual API surface rather
+// than the global; keep chrome.action as the final fallback so the Chromium path is never
+// affected.
+const badgeAPI = (typeof browser !== 'undefined' && browser.action)
+  ? browser.action
   : (browserAPI.action || chrome.action);
 
 // Shared constants and helpers (single source of truth in shared.js).

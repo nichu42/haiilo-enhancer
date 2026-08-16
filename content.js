@@ -2865,6 +2865,13 @@
 
       // Ignore mutations caused by our own inline summary/label maintenance.
       const nativeMutation = records.some(record => {
+        // The observer only watches dataEl for the data-reaction-count
+        // attribute, so an attribute record is Haiilo updating the reaction
+        // total (e.g. when the user likes/unlikes a post). Treat it as a
+        // native change so the counters refresh.
+        if (record.type === 'attributes') {
+          return true;
+        }
         if (record.type === 'characterData') {
           return false;
         }

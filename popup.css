@@ -11,8 +11,10 @@ body {
   font-size: 14px;
   color: var(--color-text-primary);
   background: var(--gradient-page-background);
-  min-width: 460px;
-  width: 460px;
+  /* Phones (~360-430px CSS px) are narrower than the desktop 460px popup;
+   * tablets and desktop viewports are wider, so they render exactly as before. */
+  min-width: 0;
+  width: min(460px, 100vw);
   line-height: 1.6;
   overflow-y: auto;
   overflow-x: hidden;
@@ -556,6 +558,36 @@ section h2 {
 }
 
 .add-user-section button:active {
+  transform: translateY(0);
+}
+
+/* Homepage section — only shown where the native context menu is unavailable
+ * (Firefox for Android), as a replacement for the "Set as default homepage"
+ * context-menu item. Hidden elsewhere so the desktop popup is unchanged. */
+.homepage-section[hidden] {
+  display: none;
+}
+
+.homepage-section .homepage-button {
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-primary);
+}
+
+.homepage-section .homepage-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.homepage-section .homepage-button:active {
   transform: translateY(0);
 }
 

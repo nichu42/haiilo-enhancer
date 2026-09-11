@@ -33,7 +33,7 @@
     "message": "Utilisateurs masqués"
   },
   "noMutedUsers": {
-    "message": "Aucun utilisateur masqué pour le moment. Faites un clic droit sur un nom pour le masquer."
+    "message": "Aucun utilisateur masqué pour le moment. Faites un clic droit ou un appui long sur un nom d’utilisateur pour le masquer."
   },
   "addUserManually": {
     "message": "Ajouter un utilisateur manuellement"
@@ -255,7 +255,7 @@
     "message": "Options de masquage"
   },
   "mutingDescription": {
-    "message": "Faites un clic droit sur n’importe quel nom d’utilisateur dans Haiilo et choisissez Haiilo Enhancer → Masquer pendant …. Les publications et commentaires des utilisateurs masqués sont cachés sur toutes les pages jusqu’à expiration. Réactivez-les depuis la fenêtre contextuelle de la barre d’outils, via le menu contextuel ou en les ajoutant de nouveau avec « Définitivement » désactivé, puis attendez l’expiration."
+    "message": "Faites un clic droit ou un appui long sur n’importe quel nom d’utilisateur dans Haiilo et choisissez une durée. Les publications et commentaires des utilisateurs masqués sont cachés sur chaque page jusqu’à expiration. Réactivez-les depuis le menu de l’extension, avec le bouton Annuler, ou en les ajoutant à nouveau avec « Permanent » désactivé et en patientant."
   },
   "defaultMutePeriod": {
     "message": "Période de masquage par défaut (utilisée par « Masquer pendant la période par défaut ») :"
@@ -366,7 +366,7 @@
     "message": "Paramètres des pages d’accueil personnalisées"
   },
   "customHomepageDescription": {
-    "message": "Définissez vers quelle page d’accueil le logo redirige pour chaque instance Haiilo. Faites un clic droit sur un onglet de page d’accueil (par exemple « Home » ou « Home (soft) ») et sélectionnez « Définir comme page d’accueil par défaut » pour la configurer."
+    "message": "Choisissez la page d’accueil vers laquelle le logo redirige pour chaque instance Haiilo. Sur ordinateur, faites un clic droit sur un onglet d’accueil (p. ex. « Home ») et sélectionnez « Définir comme page d’accueil par défaut » ; sur écran tactile, ouvrez cette page et utilisez plutôt le bouton de page d’accueil du menu de l’extension."
   },
   "reactions": {
     "message": "Réactions"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Politique de confidentialité"
-  }
+  },
+  "muteSheetTitle": { "message": "Masquer $USER$ ?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Annuler" },
+  "useCurrentPageHomepage": { "message": "Utiliser la page actuelle comme page d’accueil" }
 }

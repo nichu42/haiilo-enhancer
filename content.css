@@ -378,3 +378,97 @@ coyo-reactions-info.haiilo-enhancer-inline-reactions-active
   filter: brightness(1.1);
   transform: translateY(-1px);
 }
+
+/* In-page mute sheet — touch alternative to the desktop right-click context
+ * menu (the menus API does not exist on Firefox for Android). Opened by a
+ * long-press on an author name; mouse right-clicks keep using the native
+ * menu. Content pages never get data-theme, so hard-code a light palette
+ * like the undo toast above. */
+.haiilo-enhancer-mute-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45) !important;
+  z-index: 2147483646 !important;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.haiilo-enhancer-mute-sheet-backdrop[hidden] {
+  display: none !important;
+}
+
+.haiilo-enhancer-mute-sheet-backdrop.visible {
+  opacity: 1;
+}
+
+.haiilo-enhancer-mute-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  transform: translateY(20px);
+  transition: transform 0.2s ease;
+}
+
+.haiilo-enhancer-mute-sheet-backdrop.visible .haiilo-enhancer-mute-sheet {
+  transform: translateY(0);
+}
+
+.haiilo-enhancer-mute-sheet-title {
+  margin: 4px 4px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.haiilo-enhancer-mute-sheet-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.haiilo-enhancer-mute-sheet-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 10px 14px;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border: none !important;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.haiilo-enhancer-mute-sheet-btn:active {
+  filter: brightness(0.94);
+}
+
+.haiilo-enhancer-mute-sheet-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b !important;
+}
+
+.haiilo-enhancer-mute-sheet-cancel {
+  margin-top: 4px;
+  background: transparent !important;
+  border: 1px solid #cbd5e1 !important;
+}

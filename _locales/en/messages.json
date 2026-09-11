@@ -30,7 +30,7 @@
   "itemsHiddenSummary": { "message": "$COUNT$ items hidden on this page", "placeholders": { "count": { "content": "$1", "example": "3" } } },
   "openHiddenSection": { "message": "Open this section to view what was hidden." },
   "mutedUsers": { "message": "Muted Users" },
-  "noMutedUsers": { "message": "No muted users yet. Right-click on a username to mute." },
+  "noMutedUsers": { "message": "No muted users yet. Right-click or long-press a username to mute." },
   "addUserManually": { "message": "Add User Manually" },
   "enterUsername": { "message": "Enter username" },
   "permanently": { "message": "Permanently" },
@@ -97,7 +97,7 @@
   "messengerPanelWidth": { "message": "Messenger panel width" },
   "savedApplied": { "message": "Saved and applied when changed." },
   "mutingOptions": { "message": "Muting Options" },
-  "mutingDescription": { "message": "Right-click any username on Haiilo and choose Haiilo Enhancer → Mute for …. Muted users' posts and comments are hidden on every page until they expire. Unmute them from this extension's toolbar popup, via the context menu, or by adding them again with \"Permanently\" off and waiting it out." },
+  "mutingDescription": { "message": "Right-click or long-press any username on Haiilo and choose a mute duration. Muted users' posts and comments are hidden on every page until they expire. Unmute them from this extension's toolbar popup, via the undo button, or by adding them again with \"Permanently\" off and waiting it out." },
   "defaultMutePeriod": { "message": "Default mute period (used by \"Mute for default period\"):" },
   "showHiddenCount": { "message": "Show badge with hidden content count on the extension icon" },
   "dateTimeFormat": { "message": "Date & Time Format" },
@@ -134,7 +134,7 @@
   "upperLeft": { "message": "Upper left corner" },
   "chooseBadgePosition": { "message": "Choose where the badge icon appears on the avatar" },
   "customHomepageSettings": { "message": "Custom Homepage Settings" },
-  "customHomepageDescription": { "message": "Set which homepage the logo redirects to for each Haiilo instance. Right-click on a homepage tab (e.g., \"Home\", \"Home (soft)\") and select \"Set as default homepage\" to configure." },
+  "customHomepageDescription": { "message": "Set which homepage the logo redirects to for each Haiilo instance. On desktop, right-click a homepage tab (e.g. \"Home\", \"Home (soft)\") and select \"Set as default homepage\"; on touch screens, open that page and use the homepage button in the extension popup instead." },
   "reactions": { "message": "Reactions" },
   "reactionsDescription": { "message": "Improve how emoji reactions are displayed on posts and comments." },
   "sortReactions": { "message": "Sort reaction emojis by count (most used first)" },
@@ -278,5 +278,8 @@
   },
   "privacyPolicy": {
     "message": "Privacy Policy"
-  }
+  },
+  "muteSheetTitle": { "message": "Mute $USER$?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Cancel" },
+  "useCurrentPageHomepage": { "message": "Use current page as homepage" }
 }

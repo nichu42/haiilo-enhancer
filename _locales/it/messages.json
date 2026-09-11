@@ -111,7 +111,7 @@
     "message": "Utenti silenziati"
   },
   "noMutedUsers": {
-    "message": "Non ci sono ancora utenti silenziati. Fai clic destro su un nome utente per silenziarlo."
+    "message": "Ancora nessun utente silenziato. Fai clic con il pulsante destro o tieni premuto su un nome utente per silenziarlo."
   },
   "addUserManually": {
     "message": "Aggiungi utente manualmente"
@@ -351,7 +351,7 @@
     "message": "Opzioni di silenziamento"
   },
   "mutingDescription": {
-    "message": "Fai clic destro su qualsiasi nome utente in Haiilo e scegli Haiilo Enhancer → Silenzia per …. I post e i commenti degli utenti silenziati vengono nascosti in ogni pagina fino alla scadenza. Riattiva l'utente dal popup della barra degli strumenti dell'estensione, dal menu contestuale oppure aggiungilo di nuovo con «Permanentemente» disattivato e attendi la scadenza."
+    "message": "Fai clic con il pulsante destro o tieni premuto su qualsiasi nome utente in Haiilo e scegli una durata. I post e i commenti degli utenti silenziati vengono nascosti in ogni pagina fino alla scadenza. Riattivali dal menu dell’estensione, con il pulsante Annulla oppure aggiungendoli di nuovo con «Permanente» disattivato e attendendo."
   },
   "defaultMutePeriod": {
     "message": "Periodo di silenziamento predefinito (usato da «Silenzia per il periodo predefinito»):"
@@ -462,7 +462,7 @@
     "message": "Impostazioni home page personalizzata"
   },
   "customHomepageDescription": {
-    "message": "Imposta a quale home page reindirizza il logo per ogni istanza Haiilo. Fai clic destro su una scheda home page (ad esempio «Home», «Home (soft)») e seleziona «Imposta come home page predefinita» per configurarla."
+    "message": "Scegli la homepage a cui il logo reindirizza per ciascuna istanza di Haiilo. Su desktop, fai clic con il pulsante destro su una scheda homepage (ad es. «Home») e seleziona «Imposta come homepage predefinita»; sui touchscreen, apri quella pagina e usa invece il pulsante homepage nel menu dell’estensione."
   },
   "reactions": {
     "message": "Reazioni"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Informativa sulla privacy"
-  }
+  },
+  "muteSheetTitle": { "message": "Silenziare $USER$?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Annulla" },
+  "useCurrentPageHomepage": { "message": "Usa la pagina corrente come homepage" }
 }

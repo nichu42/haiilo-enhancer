@@ -111,7 +111,7 @@
     "message": "Wyciszeni użytkownicy"
   },
   "noMutedUsers": {
-    "message": "Brak wyciszonych użytkowników. Kliknij prawym przyciskiem myszy nazwę użytkownika, aby go wyciszyć."
+    "message": "Brak wyciszonych użytkowników. Kliknij nazwę użytkownika prawym przyciskiem myszy lub przytrzymaj ją, aby wyciszyć."
   },
   "addUserManually": {
     "message": "Dodaj użytkownika ręcznie"
@@ -351,7 +351,7 @@
     "message": "Opcje wyciszania"
   },
   "mutingDescription": {
-    "message": "Kliknij prawym przyciskiem myszy dowolną nazwę użytkownika w Haiilo i wybierz Haiilo Enhancer → Wycisz na …. Posty i komentarze wyciszonych użytkowników są ukrywane na każdej stronie do czasu wygaśnięcia wyciszenia. Wyłącz wyciszenie w wyskakującym oknie rozszerzenia, za pomocą menu kontekstowego lub dodając użytkownika ponownie przy wyłączonej opcji „Na zawsze” i czekając na wygaśnięcie."
+    "message": "Kliknij prawym przyciskiem myszy dowolną nazwę użytkownika w Haiilo lub przytrzymaj ją i wybierz czas wyciszenia. Posty i komentarze wyciszonych użytkowników są ukrywane na każdej stronie do wygaśnięcia. Wyciszenie cofniesz z menu rozszerzenia, przyciskiem Cofnij albo dodając użytkownika ponownie z wyłączoną opcją „Na stałe“ i czekając."
   },
   "defaultMutePeriod": {
     "message": "Domyślny okres wyciszenia (używany przez „Wycisz na domyślny okres”):"
@@ -462,7 +462,7 @@
     "message": "Ustawienia niestandardowej strony głównej"
   },
   "customHomepageDescription": {
-    "message": "Ustaw stronę główną, do której logo przekierowuje w każdej instancji Haiilo. Kliknij prawym przyciskiem kartę strony głównej (np. „Strona główna”, „Strona główna (soft)”) i wybierz „Ustaw jako domyślną stronę główną”."
+    "message": "Wybierz, na którą stronę główną przekierowuje logo dla każdej instancji Haiilo. Na komputerze kliknij prawym przyciskiem myszy kartę strony głównej (np. „Home“) i wybierz „Ustaw jako domyślną stronę główną”; na ekranach dotykowych otwórz tę stronę i użyj przycisku strony głównej w menu rozszerzenia."
   },
   "reactions": {
     "message": "Reakcje"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Politykę prywatności"
-  }
+  },
+  "muteSheetTitle": { "message": "Wyciszyć $USER$?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Anuluj" },
+  "useCurrentPageHomepage": { "message": "Użyj bieżącej strony jako strony głównej" }
 }

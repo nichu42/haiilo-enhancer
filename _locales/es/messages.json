@@ -33,7 +33,7 @@
     "message": "Usuarios silenciados"
   },
   "noMutedUsers": {
-    "message": "Aún no hay usuarios silenciados. Haz clic derecho en un nombre para silenciarlo."
+    "message": "Aún no hay usuarios silenciados. Haz clic derecho o mantén pulsado un nombre de usuario para silenciarlo."
   },
   "addUserManually": {
     "message": "Añadir usuario manualmente"
@@ -255,7 +255,7 @@
     "message": "Opciones de silencio"
   },
   "mutingDescription": {
-    "message": "Haz clic derecho en cualquier nombre de usuario de Haiilo y elige Haiilo Enhancer → Silenciar durante …. Las publicaciones y comentarios de los usuarios silenciados se ocultan en todas las páginas hasta que caduque el silencio. Reactiva a los usuarios desde el popup de la barra de herramientas de esta extensión, mediante el menú contextual o volviéndolos a añadir con «Permanentemente» desactivado y esperando a que termine el plazo."
+    "message": "Haz clic derecho o mantén pulsado cualquier nombre de usuario en Haiilo y elige una duración de silencio. Las publicaciones y comentarios de usuarios silenciados se ocultan en todas las páginas hasta que caduque. Reactívalos desde el menú de la extensión, con el botón Deshacer o añadiéndolos de nuevo con «Permanente» desactivado y esperando."
   },
   "defaultMutePeriod": {
     "message": "Periodo de silencio predeterminado (usado por «Silenciar durante el periodo predeterminado»):"
@@ -366,7 +366,7 @@
     "message": "Configuración de páginas de inicio personalizadas"
   },
   "customHomepageDescription": {
-    "message": "Establece a qué página de inicio redirige el logotipo para cada instancia de Haiilo. Haz clic derecho en una pestaña de inicio (por ejemplo, «Home» o «Home (soft)») y selecciona «Establecer como página de inicio predeterminada» para configurarla."
+    "message": "Elige a qué página de inicio redirige el logotipo para cada instancia de Haiilo. En el escritorio, haz clic derecho en una pestaña de inicio (p. ej., «Home») y selecciona «Establecer como página de inicio predeterminada»; en pantallas táctiles, abre esa página y usa en su lugar el botón de página de inicio del menú de la extensión."
   },
   "reactions": {
     "message": "Reacciones"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Política de privacidad"
-  }
+  },
+  "muteSheetTitle": { "message": "¿Silenciar a $USER$?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Cancelar" },
+  "useCurrentPageHomepage": { "message": "Usar la página actual como página de inicio" }
 }

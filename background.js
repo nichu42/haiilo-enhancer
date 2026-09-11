@@ -360,6 +360,12 @@ browserAPI.webNavigation.onCompleted.addListener(async (details) => {
 });
 
 async function createContextMenu() {
+  // Firefox for Android does not expose the menus/contextMenus API —
+  // skip menu creation there (core filtering still works).
+  if (!browserAPI.contextMenus || typeof browserAPI.contextMenus.create !== 'function') {
+    debugLog('Context menus API not available, skipping menu creation');
+    return;
+  }
   const settings = normalizeSettings((await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS);
   await initializeI18n(settings.language);
   if (settings.extensionEnabled === false) {
@@ -464,7 +470,8 @@ async function createContextMenu() {
   });
 }
 
-// Handle context menu clicks
+// Handle context menu clicks (menus API is unavailable on Firefox for Android)
+if (browserAPI.contextMenus && browserAPI.contextMenus.onClicked) {
 browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
   const settings = (await browserAPI.storage.local.get('settings')).settings || DEFAULT_SETTINGS;
   if (!settings.extensionEnabled) {
@@ -590,6 +597,7 @@ browserAPI.contextMenus.onClicked.addListener(async (info, tab) => {
     debugLog('Could not send undo toast to tab', tab.id);
   }
 });
+} // end contextMenus guard
 
 // Mute a user
 async function muteUser(userName, days) {
@@ -795,8 +803,23 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'setCustomHomepage') {
-    setCustomHomepage(message.baseUrl, message.homepageUrl).then(() => {
+    setCustomHomepage(message.baseUrl, message.homepageUrl).then(async () => {
       sendResponse({ success: true });
+      // Tell open tabs of the same instance to re-read the redirect. The
+      // context-menu path does this in handleSetHomepage; the popup "use
+      // current page" path (mobile) needs it here. Harmless on desktop.
+      try {
+        const allTabs = await browserAPI.tabs.query({});
+        for (const t of allTabs) {
+          if (!t.url) continue;
+          try {
+            const tUrl = new URL(t.url);
+            if ((tUrl.protocol + '//' + tUrl.hostname) === message.baseUrl) {
+              browserAPI.tabs.sendMessage(t.id, { action: 'updateHomepageRedirect' }).catch(() => {});
+            }
+          } catch (e) { /* skip malformed URLs */ }
+        }
+      } catch (e) { /* tab query failed — setting is still saved */ }
     }).catch(error => {
       sendResponse({ success: false, error: error.message });
     });

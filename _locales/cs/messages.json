@@ -111,7 +111,7 @@
     "message": "Ztlumení uživatelé"
   },
   "noMutedUsers": {
-    "message": "Zatím nejsou ztlumení žádní uživatelé. Kliknutím pravým tlačítkem na uživatelské jméno ho ztlumíte."
+    "message": "Zatím žádní ztlumení uživatelé. Klikněte pravým tlačítkem na uživatelské jméno nebo je dlouze podržte a ztlumte ho."
   },
   "addUserManually": {
     "message": "Přidat uživatele ručně"
@@ -351,7 +351,7 @@
     "message": "Možnosti ztlumení"
   },
   "mutingDescription": {
-    "message": "Klikněte pravým tlačítkem na libovolné uživatelské jméno v Haiilo a zvolte Haiilo Enhancer → Ztlumit na …. Příspěvky a komentáře ztlumených uživatelů jsou skryty na všech stránkách až do vypršení ztlumení. Ztlumení zrušíte v rozbalovacím okně rozšíření, kontextové nabídce nebo opětovným přidáním uživatele s vypnutou volbou „Natrvalo“ a vyčkáním na vypršení."
+    "message": "Klikněte pravým tlačítkem na jakékoli uživatelské jméno v Haiilo nebo je dlouze podržte a zvolte délku ztlumení. Příspěvky a komentáře ztlumených uživatelů jsou skryty na každé stránce, dokud ztlumení nevyprší. Ztlumení zrušíte v panelu rozšíření, tlačítkem Zpět, nebo opětovným přidáním s vypnutou volbou „Trvale“ a vyčkáním."
   },
   "defaultMutePeriod": {
     "message": "Výchozí doba ztlumení (použije se pro „Ztlumit na výchozí dobu“):"
@@ -462,7 +462,7 @@
     "message": "Nastavení vlastní domovské stránky"
   },
   "customHomepageDescription": {
-    "message": "Nastavte, na kterou domovskou stránku logo přesměruje pro každou instanci Haiilo. Klikněte pravým tlačítkem na kartu domovské stránky (např. „Domů“, „Domů (soft)“) a výběrem „Nastavit jako výchozí domovskou stránku“ ji nakonfigurujte."
+    "message": "Nastavte, na kterou domovskou stránku přesměrovává logo pro každou instanci Haiilo. Na počítači klikněte pravým tlačítkem na kartu domovské stránky (např. „Home“) a vyberte „Nastavit jako výchozí domovskou stránku“; na dotykových obrazovkách místo toho otevřete stránku a použijte tlačítko domovské stránky ve vyskakovacím okně rozšíření."
   },
   "reactions": {
     "message": "Reakce"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Zásady ochrany osobních údajů"
-  }
+  },
+  "muteSheetTitle": { "message": "Ztlumit uživatele $USER$?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Zrušit" },
+  "useCurrentPageHomepage": { "message": "Použít aktuální stránku jako domovskou" }
 }

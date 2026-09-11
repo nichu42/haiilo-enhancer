@@ -84,6 +84,23 @@
   let hiddenItems = [];
   let lastRightClickedUser = null;
   let lastRightClickedElement = null;
+  // In-page mute sheet (touch alternative to the desktop right-click context
+  // menu — the menus API does not exist on Firefox for Android). Triggered by
+  // a long-press on an author name; mouse right-clicks keep using the native
+  // extension menu, so the desktop workflow is untouched.
+  let muteSheetEl = null;
+  let muteSheetUser = null;
+  let muteSheetSuppressContextMenuUntil = 0;
+  let muteSheetTouchTimer = null;
+  let muteSheetTouchTarget = null;
+  let muteSheetTouchX = 0;
+  let muteSheetTouchY = 0;
+  let muteSheetListenersBound = false;
+  let defaultMuteDays = 7;
+  // Distinguishes touch long-presses (in-page sheet) from mouse right-clicks
+  // (native extension menu). Updated by the listeners in setupMobileMuteSheet.
+  let lastTouchStartTime = 0;
+  let lastMouseDownTime = 0;
   let observer = null;
   let debugMode = false;
   let extensionEnabled = true;
@@ -3464,6 +3481,7 @@
       setupChatReplyMenu();
       setupTypingPauseListener();
       setupRightClickListener();
+      setupMobileMuteSheet();
       setupLogoClickInterceptor();
       hideContent();
 
@@ -3546,6 +3564,8 @@
           const rawDelay = parseInt(settings.autoExpandDelayMs, 10);
           autoExpandDelayMs = isNaN(rawDelay) ? 300 : Math.max(100, Math.min(1000, rawDelay));
           autoExpandScope = normalizeAutoExpandScope(settings.autoExpandScope);
+          const rawDefaultMute = parseInt(settings.defaultMuteDays, 10);
+          defaultMuteDays = isNaN(rawDefaultMute) ? 7 : Math.max(1, Math.min(90, rawDefaultMute));
           endlessScrollEnabled = settings.endlessScrollEnabled === true;
           autoLoadUpdatesEnabled = settings.autoLoadUpdatesEnabled === true;
           const rawIdleSec = parseInt(settings.autoLoadUpdatesIdleSec, 10);
@@ -3833,6 +3853,39 @@
 
   function setupRightClickListener() {
     document.addEventListener('contextmenu', (e) => {
+      // A touch long-press we already turned into the in-page mute sheet must
+      // not also run the desktop bookkeeping or the browser's long-press menu.
+      if (Date.now() < muteSheetSuppressContextMenuUntil) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      // Touch long-press: mobile browsers fire `contextmenu` for it — often
+      // before our touch timer (the page may even get `touchcancel` when the
+      // browser claims the gesture, e.g. on Haiilo's linked author names, so
+      // the timer alone loses the race against the native link menu). Claim
+      // the event for the in-page sheet instead. Mouse right-clicks always
+      // have a more recent mousedown (it fires before `contextmenu`), so the
+      // desktop menu path below is never hijacked.
+      if (lastTouchStartTime > lastMouseDownTime && Date.now() - lastTouchStartTime < 2000) {
+        if (muteSheetTouchTimer) {
+          clearTimeout(muteSheetTouchTimer);
+          muteSheetTouchTimer = null;
+        }
+        try {
+          const touchedUser = findProfileAuthorFromElement(e.target);
+          if (touchedUser && extensionEnabled && isExtensionContextValid()) {
+            e.preventDefault();
+            e.stopPropagation();
+            muteSheetSuppressContextMenuUntil = Date.now() + 2000;
+            showMuteSheet(touchedUser);
+            return;
+          }
+        } catch (err) {
+          debugLog('Touch contextmenu author lookup failed:', err);
+        }
+        // No author found — fall through to the desktop bookkeeping below.
+      }
       lastRightClickedUser = null;
       lastRightClickedElement = e.target;
 
@@ -3843,6 +3896,202 @@
         debugLog('Right-click detected on user:', userName);
       }
     }, true);
+  }
+
+  // ── In-page mute sheet (touch devices) ───────────────────────────────────
+  // Long-press on an author name opens a mute dialog inside the page. It uses
+  // the same `muteUser` message as every other mute path, so no background
+  // changes are needed — the background already notifies all tabs afterwards.
+  // Touch-only: mouse-driven desktop flow never reaches this code.
+  function ensureMuteSheet() {
+    if (muteSheetEl && muteSheetEl.isConnected) return muteSheetEl;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'haiilo-enhancer-mute-sheet-backdrop';
+    backdrop.hidden = true;
+    const sheet = document.createElement('div');
+    sheet.className = 'haiilo-enhancer-mute-sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    const title = document.createElement('div');
+    title.className = 'haiilo-enhancer-mute-sheet-title';
+    const list = document.createElement('div');
+    list.className = 'haiilo-enhancer-mute-sheet-buttons';
+    sheet.appendChild(title);
+    sheet.appendChild(list);
+    backdrop.appendChild(sheet);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) hideMuteSheet();
+    });
+    document.body.appendChild(backdrop);
+    muteSheetEl = backdrop;
+    return backdrop;
+  }
+
+  function showMuteSheet(userName) {
+    if (!isExtensionContextValid() || !extensionEnabled || !document.body || !userName) return;
+    // Already open (e.g. both the touch timer and the contextmenu fallback
+    // fired for the same long-press) — don't rebuild it.
+    if (muteSheetEl && muteSheetEl.isConnected && !muteSheetEl.hidden) return;
+    const backdrop = ensureMuteSheet();
+    muteSheetUser = userName;
+    backdrop.querySelector('.haiilo-enhancer-mute-sheet-title').textContent = t('muteSheetTitle', userName);
+    const list = backdrop.querySelector('.haiilo-enhancer-mute-sheet-buttons');
+    list.textContent = '';
+    const options = [
+      { label: t('muteUserPermanently'), days: null },
+      { label: t('muteDefaultPeriod'), sub: t('muteForDays', defaultMuteDays), days: defaultMuteDays },
+      ...[1, 3, 7, 14, 30, 90].map(days => ({ label: t('muteForDays', days), days }))
+    ];
+    for (const opt of options) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'haiilo-enhancer-mute-sheet-btn';
+      const main = document.createElement('span');
+      main.textContent = opt.label;
+      btn.appendChild(main);
+      if (opt.sub) {
+        const sub = document.createElement('span');
+        sub.className = 'haiilo-enhancer-mute-sheet-sub';
+        sub.textContent = opt.sub;
+        btn.appendChild(sub);
+      }
+      btn.addEventListener('click', () => muteSheetMute(userName, opt.days));
+      list.appendChild(btn);
+    }
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'haiilo-enhancer-mute-sheet-btn haiilo-enhancer-mute-sheet-cancel';
+    cancel.textContent = t('muteCancel');
+    cancel.addEventListener('click', hideMuteSheet);
+    list.appendChild(cancel);
+    backdrop.hidden = false;
+    // Force reflow so the open transition runs.
+    void backdrop.offsetWidth;
+    backdrop.classList.add('visible');
+    debugLog('Mute sheet shown for:', userName);
+  }
+
+  function hideMuteSheet() {
+    muteSheetUser = null;
+    if (muteSheetEl) {
+      muteSheetEl.classList.remove('visible');
+      muteSheetEl.hidden = true;
+    }
+  }
+
+  async function muteSheetMute(userName, days) {
+    hideMuteSheet();
+    if (!isExtensionContextValid() || !extensionEnabled || !userName) return;
+    try {
+      await safeSendMessage({ action: 'muteUser', userName, days });
+      debugLog('Muted via in-page sheet:', userName, days);
+    } catch (e) {
+      console.error('Failed to mute user from sheet:', e);
+      return;
+    }
+    showTabUndoToast(userName);
+  }
+
+  function setupMobileMuteSheet() {
+    if (muteSheetListenersBound) return;
+    muteSheetListenersBound = true;
+    // Tracks the most recent input type so the contextmenu handler can tell
+    // touch long-presses (sheet) apart from mouse right-clicks (native menu).
+    document.addEventListener('mousedown', () => {
+      lastMouseDownTime = Date.now();
+    }, { passive: true });
+    // Stationary long-press on an author name. Scrolling (touchmove) and
+    // taps (touchend before the timeout) cancel; text fields are skipped so
+    // text selection/editing there is never disturbed.
+    document.addEventListener('touchstart', (e) => {
+      if (muteSheetTouchTimer) {
+        clearTimeout(muteSheetTouchTimer);
+        muteSheetTouchTimer = null;
+      }
+      if (e.touches.length === 1) lastTouchStartTime = Date.now();
+      if ((muteSheetEl && !muteSheetEl.hidden) || !extensionEnabled || !isExtensionContextValid()) return;
+      if (e.touches.length !== 1) return;
+      const target = e.target;
+      if (target && target.closest && target.closest('textarea, input, [contenteditable="true"], [contenteditable=""]')) return;
+      const touch = e.touches[0];
+      muteSheetTouchX = touch.clientX;
+      muteSheetTouchY = touch.clientY;
+      muteSheetTouchTarget = target;
+      muteSheetTouchTimer = setTimeout(() => {
+        muteSheetTouchTimer = null;
+        try {
+          const userName = findProfileAuthorFromElement(muteSheetTouchTarget);
+          if (userName) {
+            // Swallow the contextmenu event this long-press is about to fire.
+            // (Backup path: if the browser fires contextmenu first or cancels
+            // the touch, the contextmenu handler claims it for the sheet.)
+            muteSheetSuppressContextMenuUntil = Date.now() + 2000;
+            showMuteSheet(userName);
+          }
+        } catch (err) {
+          debugLog('Long-press author lookup failed:', err);
+        }
+      }, 400);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!muteSheetTouchTimer) return;
+      const touch = e.touches[0];
+      if (Math.hypot(touch.clientX - muteSheetTouchX, touch.clientY - muteSheetTouchY) > 12) {
+        clearTimeout(muteSheetTouchTimer);
+        muteSheetTouchTimer = null;
+      }
+    }, { passive: true });
+    const cancelLongPress = () => {
+      if (muteSheetTouchTimer) {
+        clearTimeout(muteSheetTouchTimer);
+        muteSheetTouchTimer = null;
+      }
+    };
+    document.addEventListener('touchend', cancelLongPress);
+    document.addEventListener('touchcancel', cancelLongPress);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && muteSheetEl && !muteSheetEl.hidden) hideMuteSheet();
+    });
+  }
+
+  // Strict author lookup for the touch mute sheet: only true profile
+  // authors qualify — an anchor linking to /profile/* or /user/*, or the
+  // unambiguous author elements. Regular words must never match (a long-press
+  // selects the touched word, so the selection fallback in
+  // findUserNameFromElement() below would false-positive on any text).
+  function findProfileAuthorFromElement(element) {
+    let current = element;
+    const maxDepth = 10;
+    let depth = 0;
+
+    while (current && depth < maxDepth) {
+      if (current.tagName === 'CAT-SENDER-LINK') {
+        const text = (current.textContent || '').trim();
+        if (text) return text;
+      }
+
+      if (current.hasAttribute && current.hasAttribute('data-test') &&
+          current.getAttribute('data-test') === 'comment-author') {
+        const text = (current.textContent || '').trim();
+        if (text) return text;
+      }
+
+      if (current.tagName === 'A' && current.href) {
+        try {
+          const url = new URL(current.href, window.location.href);
+          if (url.pathname === '/profile' || url.pathname.startsWith('/profile/') ||
+              url.pathname === '/user' || url.pathname.startsWith('/user/')) {
+            const text = (current.textContent || '').trim();
+            if (text && text.length < 100) return text;
+          }
+        } catch (e) { /* malformed href — not a profile link */ }
+      }
+
+      current = current.parentElement;
+      depth++;
+    }
+
+    return null;
   }
 
   function findUserNameFromElement(element) {

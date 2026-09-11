@@ -103,6 +103,7 @@ async function initPopup() {
   await loadHiddenCount();
   setupHiddenDetailsToggle();
   await loadSettings();
+  await setupHomepageSection();
   setupEventListeners();
 }
 
@@ -465,6 +466,50 @@ function updatePopupDisabledState() {
   addUserInputs.forEach(input => {
     input.disabled = !isEnabled;
   });
+}
+
+// "Use current page as homepage" — touch replacement for the desktop
+// "Set as default homepage" context-menu item. Shown only on mobile browsers
+// (no menus API, as on Firefox for Android, or any Android Chromium such as
+// Vivaldi/Kiwi/Edge, where the API exists but is unreachable by touch) and
+// only when the active tab is a valid homepage path, so the desktop popup
+// is unchanged.
+function isMobileBrowser() {
+  try {
+    if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '')) return true;
+  } catch (e) { /* UA unavailable — fall through to API detection */ }
+  return !(browserAPI.contextMenus && browserAPI.contextMenus.create);
+}
+
+async function setupHomepageSection() {
+  const section = document.getElementById('homepageSection');
+  if (!section) return;
+  if (!isMobileBrowser()) return;
+  try {
+    const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !await isHaiiloUrl(tab.url)) return;
+    const url = new URL(tab.url);
+    if (!url.pathname.startsWith('/home/') &&
+        !url.pathname.startsWith('/pages/') &&
+        !url.pathname.startsWith('/workspaces/')) {
+      return;
+    }
+    section.hidden = false;
+    document.getElementById('useCurrentHomepage').addEventListener('click', async () => {
+      try {
+        await browserAPI.runtime.sendMessage({
+          action: 'setCustomHomepage',
+          baseUrl: url.origin,
+          homepageUrl: tab.url
+        });
+        showUndoToast(t('customHomepageSet'));
+      } catch (error) {
+        console.error('[Popup] Error setting homepage:', error);
+      }
+    });
+  } catch (e) {
+    debugLog('Could not set up homepage section:', e);
+  }
 }
 
 function setupEventListeners() {

@@ -33,7 +33,7 @@
     "message": "Gedempte gebruikers"
   },
   "noMutedUsers": {
-    "message": "Nog geen gedempte gebruikers. Klik met de rechtermuisknop op een gebruikersnaam om deze te dempen."
+    "message": "Nog geen gedempte gebruikers. Klik met de rechtermuisknop op een gebruikersnaam of houd deze lang ingedrukt om te dempen."
   },
   "addUserManually": {
     "message": "Gebruiker handmatig toevoegen"
@@ -255,7 +255,7 @@
     "message": "Dempopties"
   },
   "mutingDescription": {
-    "message": "Klik met de rechtermuisknop op een gebruikersnaam in Haiilo en kies Haiilo Enhancer → Dempen voor …. Berichten en reacties van gedempte gebruikers worden op elke pagina verborgen totdat de demping verloopt. Hef het dempen op via de werkbalkpop-up van deze extensie, het contextmenu of door de gebruiker opnieuw toe te voegen met „Permanent” uitgeschakeld en de periode af te wachten."
+    "message": "Klik met de rechtermuisknop op een gebruikersnaam in Haiilo of houd deze lang ingedrukt en kies een dempingsduur. Berichten en reacties van gedempte gebruikers worden op elke pagina verborgen totdat de demping verloopt. Hef het dempen op via de werkbalkpop-up van deze extensie, de knop Ongedaan maken, of door de gebruiker opnieuw toe te voegen met „Permanent” uitgeschakeld en af te wachten."
   },
   "defaultMutePeriod": {
     "message": "Standaard dempingsperiode (gebruikt door „Dempen voor de standaardperiode“):"
@@ -366,7 +366,7 @@
     "message": "Instellingen voor aangepaste startpagina’s"
   },
   "customHomepageDescription": {
-    "message": "Stel in naar welke startpagina het logo voor elke Haiilo-instantie verwijst. Klik met de rechtermuisknop op een startpaginatab (bijv. „Home” of „Home (soft)”) en kies „Instellen als standaardstartpagina” om deze te configureren."
+    "message": "Stel in naar welke startpagina het logo doorverwijst voor elke Haiilo-instantie. Klik op desktop met de rechtermuisknop op een startpaginatab (bijv. „Home”) en selecteer „Instellen als standaardstartpagina”; op touchscreens open je die pagina en gebruik je in plaats daarvan de startpaginaknop in de extensiepop-up."
   },
   "reactions": {
     "message": "Reacties"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Privacybeleid"
-  }
+  },
+  "muteSheetTitle": { "message": "$USER$ dempen?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Annuleren" },
+  "useCurrentPageHomepage": { "message": "Huidige pagina als startpagina gebruiken" }
 }

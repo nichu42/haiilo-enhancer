@@ -33,7 +33,7 @@
     "message": "Stummgeschaltete Benutzer"
   },
   "noMutedUsers": {
-    "message": "Noch keine stummgeschalteten Benutzer. Klicke mit der rechten Maustaste auf einen Benutzernamen, um ihn stummzuschalten."
+    "message": "Noch keine stummgeschalteten Benutzer. Klicke mit der rechten Maustaste auf einen Benutzernamen oder halte ihn lange gedrückt, um ihn stummzuschalten."
   },
   "addUserManually": {
     "message": "Benutzer manuell hinzufügen"
@@ -255,7 +255,7 @@
     "message": "Stummschaltungsoptionen"
   },
   "mutingDescription": {
-    "message": "Klicke auf Haiilo mit der rechten Maustaste auf einen beliebigen Benutzernamen und wähle Haiilo Enhancer → Für … stummschalten. Beiträge und Kommentare stummgeschalteter Benutzer werden auf jeder Seite ausgeblendet, bis die Stummschaltung abläuft. Hebe die Stummschaltung im Toolbar-Popup dieser Erweiterung, über das Kontextmenü oder durch erneutes Hinzufügen bei deaktivierter Option „Dauerhaft“ auf und warte die Laufzeit ab."
+    "message": "Klicke mit der rechten Maustaste auf einen Benutzernamen in Haiilo oder halte ihn lange gedrückt und wähle eine Stummschaltdauer. Beiträge und Kommentare stummgeschalteter Benutzer werden auf jeder Seite ausgeblendet, bis die Stummschaltung abläuft. Hebe die Stummschaltung über das Toolbar-Popup dieser Erweiterung, die Rückgängig-Schaltfläche oder erneutes Hinzufügen mit deaktiviertem „Permanent“ auf und warte ab."
   },
   "defaultMutePeriod": {
     "message": "Standard-Stummschaltungszeitraum (verwendet von „Für den Standardzeitraum stummschalten“):"
@@ -366,7 +366,7 @@
     "message": "Einstellungen für benutzerdefinierte Startseiten"
   },
   "customHomepageDescription": {
-    "message": "Lege fest, auf welche Startseite das Logo für jede Haiilo-Instanz weiterleitet. Klicke mit der rechten Maustaste auf einen Startseiten-Tab (z. B. „Home“, „Home (soft)“) und wähle „Als Standard-Startseite festlegen“, um ihn zu konfigurieren."
+    "message": "Lege fest, auf welche Startseite das Logo für jede Haiilo-Instanz weiterleitet. Klicke auf dem Desktop mit der rechten Maustaste auf einen Startseiten-Tab (z. B. „Home“) und wähle „Als Standard-Startseite festlegen“; auf Touchscreens öffne die Seite und nutze stattdessen die Startseiten-Schaltfläche im Erweiterungs-Popup."
   },
   "reactions": {
     "message": "Reaktionen"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Datenschutzerklärung"
-  }
+  },
+  "muteSheetTitle": { "message": "$USER$ stummschalten?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Abbrechen" },
+  "useCurrentPageHomepage": { "message": "Aktuelle Seite als Startseite verwenden" }
 }

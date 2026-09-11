@@ -111,7 +111,7 @@
     "message": "Némított felhasználók"
   },
   "noMutedUsers": {
-    "message": "Még nincs némított felhasználó. Némításhoz kattints jobb gombbal egy felhasználónévre."
+    "message": "Még nincsenek némított felhasználók. Kattints jobb gombbal egy felhasználónévre, vagy tartsd hosszan nyomva a némításhoz."
   },
   "addUserManually": {
     "message": "Felhasználó manuális hozzáadása"
@@ -351,7 +351,7 @@
     "message": "Némítási beállítások"
   },
   "mutingDescription": {
-    "message": "Kattints jobb gombbal bármelyik Haiilo-felhasználónévre, majd válaszd a Haiilo Enhancer → Némítás … lehetőséget. A némított felhasználók bejegyzései és hozzászólásai minden oldalon rejtve maradnak a némítás lejártáig. A némítás feloldható a kiegészítő eszköztár-felugró ablakából, a helyi menüből, vagy a felhasználó újbóli hozzáadásával, amikor a „Véglegesen” ki van kapcsolva, majd a lejárat kivárásával."
+    "message": "Kattints jobb gombbal bármely felhasználónévre a Haiilóban, vagy tartsd hosszan nyomva, és válassz némítási időtartamot. A némított felhasználók bejegyzései és hozzászólásai minden oldalon rejtve maradnak a lejáratig. A némítást a bővítmény előugró paneljén, a visszavonás gombbal, vagy a „Végleges“ kikapcsolásával és várakozással oldhatod fel."
   },
   "defaultMutePeriod": {
     "message": "Alapértelmezett némítási időtartam (a „Némítás az alapértelmezett időtartamra” használja):"
@@ -462,7 +462,7 @@
     "message": "Egyéni kezdőlap beállításai"
   },
   "customHomepageDescription": {
-    "message": "Állítsd be, hogy az egyes Haiilo-példányokban melyik kezdőlapra irányítson a logó. Kattints jobb gombbal egy kezdőlapfülre (például „Kezdőlap”, „Kezdőlap (soft)”), majd válaszd a „Beállítás alapértelmezett kezdőlapként” lehetőséget."
+    "message": "Állítsd be, hogy a logó melyik kezdőlapra irányítson át az egyes Haiilo-példányoknál. Asztali gépen kattints jobb gombbal egy kezdőlapfülre (pl. „Home“) és válaszd a „Beállítás alapértelmezett kezdőlapként“ lehetőséget; érintőképernyőn ehelyett nyisd meg az oldalt, és használd a bővítmény előugró paneljén lévő kezdőlap gombot."
   },
   "reactions": {
     "message": "Reakciók"
@@ -842,5 +842,8 @@
   },
   "privacyPolicy": {
     "message": "Adatvédelmi nyilatkozatot"
-  }
+  },
+  "muteSheetTitle": { "message": "$USER$ némítása?", "placeholders": { "user": { "content": "$1", "example": "Alex" } } },
+  "muteCancel": { "message": "Mégse" },
+  "useCurrentPageHomepage": { "message": "Aktuális oldal használata kezdőlapként" }
 }

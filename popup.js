@@ -93,6 +93,11 @@ if (document.readyState === 'loading') {
 async function initPopup() {
   await HaiiloI18n.initializeI18n();
   HaiiloI18n.localizeDocument();
+  // Fluid popup width on mobile browsers only; desktop keeps the fixed 460px
+  // layout (viewport units in popup CSS resolve circularly and break it).
+  try {
+    if (isMobileBrowser()) document.body.classList.add('mobile-popup');
+  } catch (e) { /* default desktop layout */ }
   // Display version from manifest
   const manifest = browserAPI.runtime.getManifest();
   const versionEl = document.getElementById('versionInfo');

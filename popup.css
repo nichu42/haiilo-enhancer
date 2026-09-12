@@ -11,13 +11,19 @@ body {
   font-size: 14px;
   color: var(--color-text-primary);
   background: var(--gradient-page-background);
-  /* Phones (~360-430px CSS px) are narrower than the desktop 460px popup;
-   * tablets and desktop viewports are wider, so they render exactly as before. */
-  min-width: 0;
-  width: min(460px, 100vw);
+  min-width: 460px;
+  width: 460px;
   line-height: 1.6;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Fluid width for phone-sized popups (Firefox Android overlay, Vivaldi).
+ * Applied via JS (isMobileBrowser) — never by viewport units in CSS, which
+ * resolve circularly inside extension popups and collapse desktop to a strip. */
+body.mobile-popup {
+  min-width: 0;
+  width: 100vw;
 }
 
 .container {

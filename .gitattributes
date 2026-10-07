@@ -1,0 +1,4 @@
+# Enforce LF line endings in repo and on all checkouts (Linux/macOS/Windows).
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf

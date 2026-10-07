@@ -126,5 +126,4 @@ Packages are written to `dist/`. The Windows script may need `Set-ExecutionPolic
 
 The extension uses native WebExtension catalogs in `_locales/`. English is the
 source catalog; German, French, Spanish, and Dutch catalogs are included.
-See [LOCALIZATION.md](LOCALIZATION.md) for catalog validation and the optional
-POEditor account-side hand-off.
+See [LOCALIZATION.md](LOCALIZATION.md) for catalog validation and how to contribute translations.

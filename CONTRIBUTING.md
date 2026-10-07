@@ -120,10 +120,10 @@ When targeting Angular backdrops or overlay dialogs:
 
 ## 🌐 Localization & Translations
 
-Translations are welcome and managed through the public **POEditor** project, then shipped
+Translations are welcome and managed directly in this repository, shipped
 as native WebExtension catalogs in `_locales/<locale>/messages.json`.
 
-- **Translators**: follow [LOCALIZATION.md](LOCALIZATION.md) for the full POEditor workflow.
+- **Translators**: follow [LOCALIZATION.md](LOCALIZATION.md) for the translation workflow.
   Keep message IDs and `$PLACEHOLDER$` names unchanged when translating.
 - **Developers**: never remove or rename message IDs — every catalog must contain every
   English key so missing translations fall back safely. Validate catalogs deterministically

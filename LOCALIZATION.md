@@ -24,19 +24,16 @@ node scripts/check-locales.mjs
 
 Build scripts copy `_locales` into both Chrome MV3 and Firefox MV3 packages.
 
-## POEditor
+## Contributing translations
 
-The public POEditor project is **Haiilo Enhancer** (project ID `836880`) with
-English as the reference language and the same eight target languages as the
-local catalogs. POEditor is the collaboration source for future corrections;
-machine-translated drafts must be reviewed before release.
+English (`en`) is the reference language. To correct or extend a target
+language, edit the matching `_locales/<locale>/messages.json` directly and
+open a Pull Request:
 
-1. Import/synchronize `_locales/en/messages.json` as key-value terms.
-2. Keep message IDs and `$PLACEHOLDER$` names unchanged.
-3. Translate and review each target language in POEditor.
-4. Export each translated catalog back to the matching
-   `_locales/<locale>/messages.json`.
-5. Run `node scripts/check-locales.mjs` and the browser builds before release.
+1. Keep message IDs and `$PLACEHOLDER$` names unchanged.
+2. Make sure every catalog contains every English key so missing translations
+   fall back safely to English.
+3. Run `node scripts/check-locales.mjs` and the browser builds before release.
 
-POEditor exports must preserve WebExtension JSON format and not convert message
-IDs into translated strings.
+Machine-translated drafts must be reviewed by a speaker of the target language
+before release.

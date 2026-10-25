@@ -896,15 +896,18 @@
   // feature; it is a no-op when disabled and safe after extension-context
   // invalidation (it never touches extension APIs in its callbacks).
   //
-  // The timeline post editor is a <textarea data-test="textarea-timeline-post">
-  // living inside a <cat-textarea> web component's shadow root, so focus
-  // detection must descend into shadow roots (see getDeepActiveElement).
+  // Haiilo's timeline post composer is now a CKEditor (rich-text) instance
+  // with its own native formatting toolbar (see support article on formatting
+  // timeline posts), so we no longer target it here. Only the plain-textarea
+  // editors remain: the chat message editor and timeline comment editors.
+  // Focus detection still descends into shadow roots defensively
+  // (see getDeepActiveElement), even though the remaining editors live in
+  // light DOM.
 
-  // Editors where the toolbar is offered (chat message editor, timeline post
-  // composer, timeline comment editors).
+  // Editors where the toolbar is offered (chat message editor and timeline
+  // comment editors).
   const MARKDOWN_EDITOR_SELECTOR = [
     'textarea[data-test="textarea-message-form"]',
-    'textarea[data-test="textarea-timeline-post"]',
     'textarea[data-test="timeline-comment-message-edit-mode"]'
   ].join(', ');
 
@@ -914,6 +917,9 @@
   const MARKDOWN_ICON_CODE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 7l-5 5 5 5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 7l5 5-5 5"/></svg>';
   const MARKDOWN_ICON_CODE_BLOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 3a2 2 0 0 1 2 2v2.5a2 2 0 0 0 2 2 2 2 0 0 0-2 2V14a2 2 0 0 1-2 2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 3a2 2 0 0 0-2 2v2.5a2 2 0 0 1-2 2 2 2 0 0 1 2 2V14a2 2 0 0 0 2 2"/></svg>';
   const MARKDOWN_ICON_QUOTE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.17 6A4.17 4.17 0 0 0 3 10.17v5.58A2.25 2.25 0 0 0 5.25 18h3A2.25 2.25 0 0 0 10.5 15.75v-3A2.25 2.25 0 0 0 8.25 10.5H5.83A4.17 4.17 0 0 1 10 6.33 1 1 0 0 0 7.17 6zM17.17 6A4.17 4.17 0 0 0 13 10.17v5.58A2.25 2.25 0 0 0 15.25 18h3A2.25 2.25 0 0 0 20.5 15.75v-3A2.25 2.25 0 0 0 18.25 10.5h-2.42A4.17 4.17 0 0 1 20 6.33 1 1 0 0 0 17.17 6z"/></svg>';
+  const MARKDOWN_ICON_BULLET_LIST = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
+  const MARKDOWN_ICON_NUMBERED_LIST = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 6h11M10 12h11M10 18h11"/><text x="2" y="8" font-size="7" fill="currentColor" font-family="sans-serif">1</text><text x="2" y="14" font-size="7" fill="currentColor" font-family="sans-serif">2</text><text x="2" y="20" font-size="7" fill="currentColor" font-family="sans-serif">3</text></svg>';
+  const MARKDOWN_ICON_LINK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 
   const MARKDOWN_COMMANDS = {
     bold: { prefix: '**', suffix: '**' },
@@ -921,7 +927,9 @@
     strike: { prefix: '~~', suffix: '~~' },
     code: { prefix: '`', suffix: '`' },
     codeBlock: { prefix: '\n```\n', suffix: '\n```\n', lineWise: true },
-    quote: { prefix: '> ', lineWise: true }
+    quote: { prefix: '> ', lineWise: true },
+    bulletList: { prefix: '- ', lineWise: true },
+    numberedList: { prefix: '1. ', lineWise: true }
   };
   const MARKDOWN_ICONS = {
     bold: MARKDOWN_ICON_BOLD,
@@ -929,12 +937,16 @@
     strike: MARKDOWN_ICON_STRIKE,
     code: MARKDOWN_ICON_CODE,
     codeBlock: MARKDOWN_ICON_CODE_BLOCK,
-    quote: MARKDOWN_ICON_QUOTE
+    quote: MARKDOWN_ICON_QUOTE,
+    bulletList: MARKDOWN_ICON_BULLET_LIST,
+    numberedList: MARKDOWN_ICON_NUMBERED_LIST,
+    link: MARKDOWN_ICON_LINK
   };
   const MARKDOWN_GROUPS = [
     ['bold', 'italic', 'strike'],
     ['code', 'codeBlock'],
-    ['quote']
+    ['quote', 'bulletList', 'numberedList'],
+    ['link']
   ];
 
   // Resolve the element that actually has focus, descending into shadow roots
@@ -1143,6 +1155,21 @@
     if (start == null || end == null || start > end) return;
 
     const selected = editor.value.substring(start, end);
+
+    // Link is special: wrap the selection as [text](url) and select the
+    // "url" placeholder so the user can type the destination immediately.
+    if (cmd === 'link') {
+      const linkText = selected || 'link text';
+      const replacement = '[' + linkText + '](url)';
+      editor.focus({ preventScroll: true });
+      editor.setRangeText(replacement, start, end, 'end');
+      const urlStart = start + linkText.length + 3;
+      editor.setSelectionRange(urlStart, urlStart + 3);
+      editor.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      updateMarkdownToolbar();
+      return;
+    }
+
     const config = MARKDOWN_COMMANDS[cmd];
     let replacement = '';
     let newStart = start;

@@ -449,6 +449,9 @@
   "markdownCode": { "message": "Inline-Code" },
   "markdownCodeBlock": { "message": "Codeblock" },
   "markdownQuote": { "message": "Zitat" },
+  "markdownBulletList": { "message": "Aufzählung" },
+  "markdownNumberedList": { "message": "Nummerierte Liste" },
+  "markdownLink": { "message": "Link" },
   "markdownBrand": { "message": "Haiilo Enhancer auf GitHub" },
   "chatReplyMenu": {
     "message": "Eine Aktion „Antworten“ zu Chat-Nachrichtenmenüs hinzufügen"

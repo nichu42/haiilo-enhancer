@@ -545,6 +545,9 @@
   "markdownCode": { "message": "Sorba ágyazott kód" },
   "markdownCodeBlock": { "message": "Kódblokk" },
   "markdownQuote": { "message": "Idézet" },
+  "markdownBulletList": { "message": "Felsorolás" },
+  "markdownNumberedList": { "message": "Számozott lista" },
+  "markdownLink": { "message": "Hivatkozás" },
   "markdownBrand": { "message": "Haiilo Enhancer a GitHubon" },
   "chatReplyMenu": {
     "message": "„Válasz” művelet hozzáadása a chat üzenetmenühöz"

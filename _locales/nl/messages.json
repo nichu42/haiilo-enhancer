@@ -449,6 +449,9 @@
   "markdownCode": { "message": "Inline-code" },
   "markdownCodeBlock": { "message": "Codeblok" },
   "markdownQuote": { "message": "Citaat" },
+  "markdownBulletList": { "message": "Opsomming" },
+  "markdownNumberedList": { "message": "Genummerde lijst" },
+  "markdownLink": { "message": "Link" },
   "markdownBrand": { "message": "Haiilo Enhancer op GitHub" },
   "chatReplyMenu": {
     "message": "Een actie 'Antwoorden' toevoegen aan de menu's van chatberichten"

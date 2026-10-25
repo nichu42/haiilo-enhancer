@@ -545,6 +545,9 @@
   "markdownCode": { "message": "Řádkový kód" },
   "markdownCodeBlock": { "message": "Blok kódu" },
   "markdownQuote": { "message": "Citace" },
+  "markdownBulletList": { "message": "Odrážkový seznam" },
+  "markdownNumberedList": { "message": "Číslovaný seznam" },
+  "markdownLink": { "message": "Odkaz" },
   "markdownBrand": { "message": "Haiilo Enhancer na GitHubu" },
   "chatReplyMenu": {
     "message": "Přidat akci „Odpovědět“ do nabídek zpráv chatu"

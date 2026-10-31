@@ -558,6 +558,13 @@ function setupEventListeners() {
   // Open options
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
+    // On mobile (Firefox for Android / Android Chromium) openOptionsPage opens
+    // the options page in a BACKGROUND tab with no visible tab bar, so it
+    // looks like nothing happened. Open an active tab instead.
+    if (isMobileBrowser()) {
+      browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html'), active: true });
+      return;
+    }
     if (browserAPI.runtime.openOptionsPage) {
       try {
         const res = browserAPI.runtime.openOptionsPage();
@@ -572,7 +579,7 @@ function setupEventListeners() {
         browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html') });
       }
     } else {
-      browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html') });
+      browserAPI.tabs.create({ url: browserAPI.runtime.getURL('options.html'), active: true });
     }
   });
 }

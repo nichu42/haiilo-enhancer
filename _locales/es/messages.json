@@ -505,6 +505,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Cuando Haiilo muestre el botón «Cargar nuevas actualizaciones» en una línea de tiempo, haz clic en él automáticamente una vez que la página esté inactiva durante un tiempo, para que el flujo se mantenga actualizado sin que tengas que hacer clic."
   },
+  "hideMutedNotifications": { "message": "Ocultar notificaciones de usuarios silenciados" },
+  "hideMutedNotificationsDescription": { "message": "Oculta las entradas del menú de notificaciones (campana) creadas por usuarios que has silenciado. El contador de no leídas no cambia." },
   "autoLoadIdleSec": {
     "message": "Tiempo de inactividad antes de cargar (s, 0 = inmediatamente):"
   },

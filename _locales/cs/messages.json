@@ -601,6 +601,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Když Haiilo zobrazí tlačítko „Načíst nové aktualizace“ na časové ose, klikněte na něj automaticky, jakmile je stránka chvíli nečinná, aby zůstala aktuální bez klikání."
   },
+  "hideMutedNotifications": { "message": "Skrýt oznámení od ztlumených uživatelů" },
+  "hideMutedNotificationsDescription": { "message": "Skryje položky v nabídce oznámení (zvonek), které vytvořili ztlumení uživatelé. Počítadlo nepřečtených oznámení zůstane nezměněno." },
   "autoLoadIdleSec": {
     "message": "Doba nečinnosti před načtením (s, 0 = okamžitě):"
   },

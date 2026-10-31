@@ -472,3 +472,11 @@ coyo-reactions-info.haiilo-enhancer-inline-reactions-active
   background: transparent !important;
   border: 1px solid #cbd5e1 !important;
 }
+
+/* Hide notification-panel entries caused by muted users (experimental).
+   The classes are only added by content.js while the feature is enabled and
+   are removed again on teardown, so these rules are inert otherwise. */
+.haiilo-enhancer-notification-hidden,
+.haiilo-enhancer-notification-separator-empty {
+  display: none !important;
+}

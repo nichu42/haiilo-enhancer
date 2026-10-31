@@ -188,6 +188,8 @@
   "endlessScrollDescription": { "message": "Automatically click the \"Load more\" button when you scroll to the bottom of a timeline, so the next page of posts loads continuously without clicking." },
   "autoLoadUpdates": { "message": "Auto-load new updates when idle" },
   "autoLoadUpdatesDescription": { "message": "When Haiilo shows a \"Load new updates\" button on a timeline, click it automatically once the page has been idle for a while, so the stream stays fresh without you having to click." },
+  "hideMutedNotifications": { "message": "Hide notifications from muted users" },
+  "hideMutedNotificationsDescription": { "message": "Hides entries in the notification menu (bell) that were caused by people you muted. The unread counter itself is unchanged." },
   "autoLoadIdleSec": { "message": "Idle time before loading (s, 0 = immediately):" },
   "autoLoadIdleSecHelp": { "message": "How long the page must be free of mouse, keyboard, and scroll activity before new updates are loaded automatically. Set to 0 to load new updates as soon as they appear, regardless of what you're doing. Range: 0-600 seconds." },
   "customDomains": { "message": "Custom Haiilo Domains" },

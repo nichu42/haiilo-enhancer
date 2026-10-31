@@ -180,6 +180,11 @@
   let chatReplyMenuHandle = null;
   let chatReplyMenuTimer = null;
 
+  // Hide notification-panel entries from muted users (experimental, opt-in)
+  let hideMutedNotificationsEnabled = false;
+  let notificationFilterHandle = null;
+  let notificationFilterTimer = null;
+
   // Reaction enhancements
   let sortReactionsByCount = true;
   let showReactionCountTooltip = true;
@@ -3387,6 +3392,9 @@
                   showAllContent();
                   hideContent();
                 }
+                // Re-evaluate notification entries: hide newly muted users and
+                // restore entries whose author was just unmuted.
+                applyMutedNotificationFilter();
                 debugLog('Filter refresh complete');
                 sendResponse({ success: true });
               }).catch(error => {
@@ -3539,6 +3547,7 @@
       setupMobileMuteSheet();
       setupLogoClickInterceptor();
       hideContent();
+      setupHideMutedNotifications();
 
       // Auto-expand sidebar lists (Workspaces / Pages) if enabled.
       // Try once now; if the sidebar isn't mounted yet, the observer
@@ -3593,6 +3602,7 @@
   }
 
   async function loadSettings() {
+    hideMutedNotificationsEnabled = false;
     try {
       if (isExtensionContextValid()) {
         try {
@@ -3637,6 +3647,7 @@
           markdownToolbarEnabled = settings.markdownToolbar !== false;
           markdownToolbarBrandEnabled = settings.markdownToolbarBrand !== false;
           chatReplyMenuEnabled = settings.chatReplyMenu !== false;
+          hideMutedNotificationsEnabled = settings.hideMutedNotifications === true;
           applyMentionFixStyles();
           applyMobileWikiBreadcrumbFixStyles();
           const messengerPanelWidthPercent = clampMessengerPanelWidthPercent(settings.messengerPanelWidthPercent);
@@ -3766,6 +3777,9 @@
       applyMentionFixStyles();
       applyMobileWikiBreadcrumbFixStyles();
     }
+    // Re-evaluate notification filtering after every settings load (enable,
+    // disable, or muted-name changes delivered through settingsUpdated).
+    setupHideMutedNotifications();
   }
 
   async function loadMutedUsers() {
@@ -4430,6 +4444,123 @@
     });
 
     updateBadge();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Hide notification-panel entries from muted users (experimental, opt-in)
+  //
+  // Haiilo renders the bell dropdown as:
+  //   coyo-notification-items
+  //     ul.cui-plain
+  //       coyo-notification-day-separator
+  //         li.day-separator > strong          ("Yesterday", "Today", …)
+  //         li > coyo-notification-item
+  //                > .item-wrapper.notification-item
+  //                    .message > span > strong  (actor display name)
+  //                    .avatar img[alt]          (actor display name fallback)
+  //
+  // Both tabs (Discussion and Subscriptions) use this same structure and are
+  // re-rendered when the panel opens or the tab changes, so one debounced
+  // handler on the shared domMutation dispatcher covers all of it. Matching
+  // uses the same exact display-name comparison as the feed filter
+  // (isUserMuted), so the muted-user list stays the single source of truth.
+  // ---------------------------------------------------------------------------
+  const NOTIFICATION_HIDDEN_CLASS = 'haiilo-enhancer-notification-hidden';
+  const NOTIFICATION_EMPTY_SEPARATOR_CLASS = 'haiilo-enhancer-notification-separator-empty';
+  const NOTIFICATION_ITEM_SELECTOR = '.item-wrapper.notification-item';
+
+  function getNotificationAuthorName(wrapper) {
+    if (!wrapper) return '';
+    const strong = wrapper.querySelector('.message strong');
+    const strongName = normalizeWhitespace(strong && strong.textContent);
+    if (strongName) return strongName;
+    const avatar = wrapper.querySelector('.avatar img[alt]');
+    return avatar ? normalizeWhitespace(avatar.getAttribute('alt')) : '';
+  }
+
+  // Hide day headings ("Yesterday", "Today", …) whose notifications are all
+  // hidden, so the panel does not show empty date sections.
+  function refreshNotificationDaySeparators() {
+    document.querySelectorAll('coyo-notification-day-separator').forEach(group => {
+      const children = Array.from(group.children);
+      // Safety: only manage headings in a group that really contains
+      // notification rows. If Haiilo ever changes the wrapping structure,
+      // this avoids hiding every heading on an empty/mismatched group.
+      if (!children.some(child => child.querySelector && child.querySelector(NOTIFICATION_ITEM_SELECTOR))) {
+        return;
+      }
+      children.forEach((child, index) => {
+        if (!child.classList || !child.classList.contains('day-separator')) return;
+        let hasVisibleItem = false;
+        for (let next = index + 1; next < children.length; next++) {
+          const sibling = children[next];
+          if (sibling.classList && sibling.classList.contains('day-separator')) break;
+          if (sibling.classList && sibling.classList.contains(NOTIFICATION_HIDDEN_CLASS)) continue;
+          if (sibling.querySelector && sibling.querySelector(NOTIFICATION_ITEM_SELECTOR)) {
+            hasVisibleItem = true;
+            break;
+          }
+        }
+        child.classList.toggle(NOTIFICATION_EMPTY_SEPARATOR_CLASS, !hasVisibleItem);
+      });
+    });
+  }
+
+  function applyMutedNotificationFilter() {
+    if (!extensionEnabled || !hideMutedNotificationsEnabled) return;
+    document.querySelectorAll('coyo-notification-item').forEach(item => {
+      const wrapper = item.matches(NOTIFICATION_ITEM_SELECTOR)
+        ? item
+        : item.querySelector(NOTIFICATION_ITEM_SELECTOR);
+      if (!wrapper) return;
+      const authorName = getNotificationAuthorName(wrapper);
+      const muted = Boolean(authorName) && isUserMuted(authorName);
+      // Hide the whole <li> row (not just the item wrapper) so the list gap
+      // collapses as well.
+      const row = item.closest('li') || wrapper;
+      row.classList.toggle(NOTIFICATION_HIDDEN_CLASS, muted);
+      if (muted) debugLog('[Notifications] Hid notification by:', authorName);
+    });
+    refreshNotificationDaySeparators();
+  }
+
+  function clearMutedNotificationFilter() {
+    document.querySelectorAll('.' + NOTIFICATION_HIDDEN_CLASS)
+      .forEach(el => el.classList.remove(NOTIFICATION_HIDDEN_CLASS));
+    document.querySelectorAll('.' + NOTIFICATION_EMPTY_SEPARATOR_CLASS)
+      .forEach(el => el.classList.remove(NOTIFICATION_EMPTY_SEPARATOR_CLASS));
+  }
+
+  function setupHideMutedNotifications() {
+    if (!extensionEnabled || !hideMutedNotificationsEnabled) {
+      if (notificationFilterHandle) {
+        notificationFilterHandle.stop();
+        notificationFilterHandle = null;
+      }
+      clearMutedNotificationFilter();
+      return;
+    }
+    if (notificationFilterHandle) {
+      applyMutedNotificationFilter();
+      return;
+    }
+    notificationFilterHandle = domMutation.register({
+      active: () => extensionEnabled && hideMutedNotificationsEnabled,
+      onRecords() {
+        if (notificationFilterTimer) return;
+        notificationFilterTimer = setTimeout(() => {
+          notificationFilterTimer = null;
+          applyMutedNotificationFilter();
+        }, 100);
+      },
+      teardown() {
+        if (notificationFilterTimer) {
+          clearTimeout(notificationFilterTimer);
+          notificationFilterTimer = null;
+        }
+      }
+    });
+    applyMutedNotificationFilter();
   }
 
   // Removed hideElement function - using direct style.display = 'none' like original script

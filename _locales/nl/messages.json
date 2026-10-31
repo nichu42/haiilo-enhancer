@@ -505,6 +505,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Wanneer Haiilo een knop „Nieuwe updates laden” op een tijdlijn toont, klik er dan automatisch op zodra de pagina een tijdje inactief is, zodat de stream up-to-date blijft zonder dat je hoeft te klikken."
   },
+  "hideMutedNotifications": { "message": "Meldingen van gedempte gebruikers verbergen" },
+  "hideMutedNotificationsDescription": { "message": "Verbergt items in het meldingenmenu (bel) die afkomstig zijn van gebruikers die je hebt gedempt. De teller voor ongelezen meldingen blijft ongewijzigd." },
   "autoLoadIdleSec": {
     "message": "Inactieve tijd vóór het laden (s, 0 = onmiddellijk):"
   },

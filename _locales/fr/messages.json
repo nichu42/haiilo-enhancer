@@ -505,6 +505,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Lorsque Haiilo affiche le bouton « Charger les nouvelles mises à jour » sur un fil, cliquez automatiquement dessus dès que la page est inactive depuis un moment, afin que le fil reste à jour sans que vous ayez à cliquer."
   },
+  "hideMutedNotifications": { "message": "Masquer les notifications des utilisateurs en sourdine" },
+  "hideMutedNotificationsDescription": { "message": "Masque les entrées du menu des notifications (cloche) provenant des personnes que vous avez mises en sourdine. Le compteur de non-lues reste inchangé." },
   "autoLoadIdleSec": {
     "message": "Durée d'inactivité avant chargement (s, 0 = immédiatement) :"
   },

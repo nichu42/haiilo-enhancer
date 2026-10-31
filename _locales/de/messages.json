@@ -505,6 +505,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Wenn Haiilo auf einer Timeline einen „X neue Updates laden“-Button anzeigt, klickt ihn automatisch, sobald die Seite eine Weile inaktiv war, damit der Stream ohne Klicken aktuell bleibt."
   },
+  "hideMutedNotifications": { "message": "Benachrichtigungen von stummgeschalteten Personen ausblenden" },
+  "hideMutedNotificationsDescription": { "message": "Blendet Einträge im Benachrichtigungsmenü (Glocke) aus, die von Personen stammen, die du stummgeschaltet hast. Der Zähler für ungelesene Benachrichtigungen bleibt unverändert." },
   "autoLoadIdleSec": {
     "message": "Inaktivitätsdauer vor dem Laden (s, 0 = sofort):"
   },

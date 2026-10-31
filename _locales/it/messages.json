@@ -601,6 +601,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Quando Haiilo mostra il pulsante «Carica nuovi aggiornamenti» in una timeline, fai clic automaticamente una volta che la pagina è inattiva da un po', così lo stream resta aggiornato senza dover cliccare."
   },
+  "hideMutedNotifications": { "message": "Nascondi le notifiche degli utenti silenziati" },
+  "hideMutedNotificationsDescription": { "message": "Nasconde le voci del menu delle notifiche (campana) generate dagli utenti che hai silenziato. Il contatore delle non lette resta invariato." },
   "autoLoadIdleSec": {
     "message": "Tempo di inattività prima del caricamento (s, 0 = immediatamente):"
   },

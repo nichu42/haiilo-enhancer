@@ -176,7 +176,8 @@ const DEFAULT_SETTINGS = {
   floatingRichTextToolbar: true, // Show formatting controls next to selected editor text
   markdownToolbar: true, // Show a Markdown shortcut toolbar when selecting text in the chat message editor
   markdownToolbarBrand: true, // Show the Haiilo Enhancer mark at the end of the Markdown toolbar
-  chatReplyMenu: true // Add a "Reply" action to chat message context menus that quotes the message
+  chatReplyMenu: true, // Add a "Reply" action to chat message context menus that quotes the message
+  hideMutedNotifications: false // Hide notification-panel entries caused by muted users (experimental)
 };
 
 function normalizeSettings(settings = {}) {

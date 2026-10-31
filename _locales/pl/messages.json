@@ -601,6 +601,8 @@
   "autoLoadUpdatesDescription": {
     "message": "Gdy Haiilo pokaże przycisk „Wczytaj nowe aktualizacje” na osi czasu, klikaj go automatycznie, gdy strona jest bezczynna przez chwilę, aby strumień pozostawał aktualny bez klikania."
   },
+  "hideMutedNotifications": { "message": "Ukryj powiadomienia od wyciszonych użytkowników" },
+  "hideMutedNotificationsDescription": { "message": "Ukrywa wpisy w menu powiadomień (dzwonek) pochodzące od wyciszonych użytkowników. Licznik nieprzeczytanych powiadomień pozostaje bez zmian." },
   "autoLoadIdleSec": {
     "message": "Czas bezczynności przed wczytaniem (s, 0 = natychmiast):"
   },

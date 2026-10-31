@@ -354,6 +354,7 @@ async function loadSettings() {
   document.getElementById('markdownToolbarBrand').checked = settings.markdownToolbarBrand !== false;
   syncMarkdownBrandControl();
   document.getElementById('chatReplyMenu').checked = settings.chatReplyMenu !== false;
+  document.getElementById('hideMutedNotifications').checked = settings.hideMutedNotifications === true;
   document.getElementById('autoExpandClicksPerList').value = settings.autoExpandClicksPerList !== undefined ? settings.autoExpandClicksPerList : 3;
   document.getElementById('autoExpandDelayMs').value = settings.autoExpandDelayMs !== undefined ? settings.autoExpandDelayMs : 300;
   const scope = settings.autoExpandScope;
@@ -672,6 +673,7 @@ function setupEventListeners() {
   });
   document.getElementById('markdownToolbarBrand').addEventListener('change', saveSettings);
   document.getElementById('chatReplyMenu').addEventListener('change', saveSettings);
+  document.getElementById('hideMutedNotifications').addEventListener('change', saveSettings);
 
   // Cloud sync toggle
   const cloudSyncCheckbox = document.getElementById('cloudSync');
@@ -936,6 +938,7 @@ async function saveSettings() {
     markdownToolbar: document.getElementById('markdownToolbar').checked,
     markdownToolbarBrand: document.getElementById('markdownToolbarBrand').checked,
     chatReplyMenu: document.getElementById('chatReplyMenu').checked,
+    hideMutedNotifications: document.getElementById('hideMutedNotifications').checked,
     keepMessengerExpanded: document.getElementById('keepMessengerExpanded').checked,
     messengerPanelWidthPercent: clampMessengerPanelWidthPercent(document.getElementById('messengerPanelWidthPercent').value),
     centerContentWithMessenger:

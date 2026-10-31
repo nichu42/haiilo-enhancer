@@ -1326,6 +1326,29 @@
     }
   }
 
+  // Function to remove Haiilo's html-level scroll lock.
+  // Recent Haiilo versions no longer lock the body; they set an inline
+  // `overflow: hidden` on <html> while the messenger is open (the
+  // cdk-global-scrollblock class is not used in that path). Clearing the body
+  // alone therefore leaves the whole page unscrollable, so the html lock has to
+  // be lifted as well.
+  function removeHtmlScrollLockStyles() {
+    if (!keepMessengerExpandedActive) return;
+
+    const html = document.documentElement;
+    const currentStyle = html.getAttribute('style');
+
+    if (!currentStyle) return;
+
+    const hasOverflowLock = /overflow(-y)?\s*:[^;]*hidden/.test(currentStyle);
+    if (hasOverflowLock) {
+      debugLog('[Content] Removing html scroll lock styles:', currentStyle);
+      html.style.overflow = '';
+      html.style.overflowY = '';
+      debugLog('[Content] html scroll lock removed');
+    }
+  }
+
   // Function to keep the messenger open: re-opens it when the page tries to close it
   // (e.g. via Angular's outside-click handler). It does NOT block any other clicks,
   // so page content and UI chrome (navbar, bell, etc.) remain interactive.
@@ -1466,6 +1489,7 @@
 
       // Remove any existing body lock styles
       removeBodyLockStyles();
+      removeHtmlScrollLockStyles();
 
       // Don't do initial backdrop removal here - let the MutationObserver
       // and periodic check handle it. This avoids timing issues with
@@ -1532,7 +1556,10 @@
         debugLog('[Content] Set up body style observer');
       }
 
-      // Also watch for 'cdk-global-scrollblock' class being added
+      // Also watch for scroll locks on <html>: Haiilo sets an inline
+      // `overflow: hidden` on the html element while the messenger is open
+      // (newer versions no longer use the cdk-global-scrollblock class). We
+      // listen to both `class` (old CDK lock) and `style` (inline lock).
       if (!classObserver) {
         classObserver = new MutationObserver(() => {
           if (!keepMessengerExpandedActive) return;
@@ -1542,11 +1569,12 @@
             debugLog('[Content] Removing cdk-global-scrollblock from html');
             html.classList.remove('cdk-global-scrollblock');
           }
+          removeHtmlScrollLockStyles();
         });
 
         classObserver.observe(document.documentElement, {
           attributes: true,
-          attributeFilter: ['class']
+          attributeFilter: ['class', 'style']
         });
         debugLog('[Content] Set up class observer');
       }
